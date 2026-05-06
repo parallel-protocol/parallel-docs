@@ -1,0 +1,79 @@
+---
+title: MIMORebalance
+description: >-
+  The `MIMOLeverage` action contract handle the super vault empty vault logic
+  described in
+  [Rebalancing](/products/parallel-v2/how-it-works/super-vaults-sv/rebal…
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMORebalance"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+The `MIMOLeverage` action contract handle the super vault empty vault logic described in [Rebalancing](/products/parallel-v2/how-it-works/super-vaults-sv/rebalancing).
+
+<figure><img src="/images/K0UpF6oEyYkcEmfQ6Nu0.svg" alt="" /><figcaption></figcaption></figure>
+
+### Write Methods
+
+#### `executeAction(bytes calldata _calldata) external`
+
+Uses a flash loan to repay all debts for a vault and send all collateral in the vault to the owner.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Must be called through the `MIMOProxy` `execute()` function
+* Targeted vault must have been created by the `MIMOProxy`
+
+| Param Name | Type  | Description                                                                                                                                                          |
+| ---------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| \_callData | bytes | <p>Abi encoded bytes with : </p><ul><li><code>FlashloanData flData</code></li><li><code>RebalanceData rbData</code></li><li><code>SwapData swapData</code></li></ul> |
+
+**`RebalanceData`**&#x20;
+
+| Param Name     | Type    | Description                                                                 |
+| -------------- | ------- | --------------------------------------------------------------------------- |
+| `toCollateral` | IERC20  | Collateral to rebalance to                                                  |
+| `vaultId`      | uint256 | Id of the vault to rebalance                                                |
+| `mintAmount`   | uint256 | Amount of stableX to mint on rebalancing vault to swap and repay flash loan |
+
+#### `executeOperation(address[] calldata assets, uint256[] calldata amounts, uint256[] calldata premiums, address initiator, bytes calldata params`
+
+AAVE `Pool` contract flash loan callback function.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Can only be called by the AAVE `Pool` contract
+* Flash loan initiator must be the `MIMOProxy`
+
+<table><thead><tr><th>Param Name</th><th width="301.3333333333333">Type</th><th>Description</th></tr></thead><tbody><tr><td><code>assets</code></td><td>address[]</td><td>Address array with one element corresponding to the address of the target vault asset</td></tr><tr><td><code>amounts</code></td><td>uint256[]</td><td>Uint array with one element corresponding to the amount of the target vault asset</td></tr><tr><td><code>premiums</code></td><td>uint256[]</td><td>Uint array with one element corresponding to the flashLoan fees</td></tr><tr><td><code>initiator</code></td><td>address</td><td>Initiator of the flashloan; can only be MIMOProxy owner</td></tr><tr><td><code>params</code></td><td>bytes</td><td>Bytes sent by this contract containing MIMOProxy owner, target vault id, SwapData struct</td></tr></tbody></table>
+
+#### rebalanceOperation`(IERC20 fromCollateral, uint256 swapAmount, uint256 flashLoanRepayAmount, uint256 fee, RebalanceData calldata rbData, SwapData calldata swapData)`
+
+Performs a rebalance logic within MIMOProxy context.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Contract must be unpaused
+* Must be called through the `MIMOProxy` `execute()` function
+
+| Param Name             | Type    | Description                                                                                                |
+| ---------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `fromCollateral`       | IERC20  | Collateral of the vault to rebalance                                                                       |
+| `swapAmount`           | uint256 | The amount of collateral to swap to for stableX to repay vaultdebt                                         |
+| `flashLoanRepayAmount` | uint256 | Amount of collateral to repay to flash loan protocol at the end of the transaction                         |
+| `fee`                  | uint256 | Optional fee to be passed in the context of a `ManagedRebalance` to mint additional stablex to pay manager |
+| `rbData`               | struct  | `RebalanceData` passed from the flashloan call                                                             |
+| `swapData`             | struct  | SwapData passed from the flash loan call                                                                   |
+
+### View Methods
+
+`proxyFactory()`
+
+Returns the `MIMOProxyFactory` address.

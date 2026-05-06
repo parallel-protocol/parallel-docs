@@ -1,0 +1,36 @@
+import type { ContractEntry } from '@/components/ContractAddressesPage';
+
+export const PAUSD_DEPRECATED_ADDRESSES: Record<string, ContractEntry[]> = {
+  "ethereum": [
+    { name: "paUSD", address: "0x571f54D23cDf2211C83E9A0CbD92AcA36c48Fa02", description: "Core Protocol" },
+    { name: "AccessController", address: "0x1F056e4560D63E73d17B10dD0ED195f1f6ab5950", description: "Core Protocol" },
+    { name: "AddressProvider", address: "0xCC1A1b6716e8017355F4e667F5b2ed7f4029f6dB", description: "Core Protocol" },
+    { name: "ConfigProvider", address: "0x3E0F4aC1Be8F494b7C1AC445192B9099700e5A27", description: "Core Protocol" },
+    { name: "PriceFeedUSD", address: "0xb2a4318736b992012DF5fF2E5aA7f17c54C639C2", description: "Core Protocol" },
+    { name: "RatesManager", address: "0x55c1AdC5Bf546B6bB8CA32d9Aa21Af5F3316d394", description: "Core Protocol" },
+    { name: "LiquidationManager", address: "0x89d811944e8b6D3b17e6deCc9B16608b57740e0C", description: "Core Protocol" },
+    { name: "FeeDistributor", address: "0x8316F4A6E23633290BC6898dDa686067e324D52B", description: "Core Protocol" },
+    { name: "VaultsDataProvider", address: "0x676b43437F52642b5Db90f593B76D9d65425DCFd", description: "Core Protocol" },
+    { name: "VaultsCore", address: "0xE26348D30694aa7E879b9335252362Df3df93204", description: "Core Protocol" },
+    { name: "VaultsCoreState", address: "0xDb75531E12ca4Bb6CD5cFE77F10522B08806386F", description: "Core Protocol" },
+    { name: "GovernanceAddressProvider", address: "0xaEB39638eDEB0547508036e7517559cb4B24c1f3", description: "Core Protocol" },
+    { name: "DebtNotifier", address: "0x1B1310d782c79D98d23b96d2E57A8c6126610c2C", description: "Core Protocol" },
+    { name: "lz-paUSD", address: "0xd4DEE6E089969600d3359CdbCd34E3111BC838eB", description: "Bridging Module" },
+  ],
+  "polygon": [
+    { name: "paUSD", address: "0x8054d4D130C3A84852f379424Bcac75673a7486B", description: "Core Protocol" },
+    { name: "AccessController", address: "0xaea58dd0a79cdfe14a25d537f6c2e8fd8556f3bf", description: "Core Protocol" },
+    { name: "AddressProvider", address: "0xb89ddc23168442c31792c16d8f352842a5855b88", description: "Core Protocol" },
+    { name: "ConfigProvider", address: "0x44adedae87cda45f9e9b6d49e49db5d583646163", description: "Core Protocol" },
+    { name: "PriceFeedUSD", address: "0xB3d014Fcb429A1Eaf4C98b4a1d7384db47321FA4", description: "Core Protocol" },
+    { name: "RatesManager", address: "0xfC3631012bf0c6A24EbFc8eB8A8eD76aA1FF1686", description: "Core Protocol" },
+    { name: "LiquidationManager", address: "0x97b6d9BA569153E4B43eAACc84A517cbe4f5B740", description: "Core Protocol" },
+    { name: "FeeDistributor", address: "0x83D8cA70144d55F74aD3c5Eb3336b4163BcA1227", description: "Core Protocol" },
+    { name: "VaultsDataProvider", address: "0x8a604E5C0cEd41064354D055b84fc964aaa9101a", description: "Core Protocol" },
+    { name: "VaultsCore", address: "0xcABAbC1Feb7C5298F69B635099D75975aD5E6e5f", description: "Core Protocol" },
+    { name: "VaultsCoreState", address: "0xfaD382eE9B8229fb9B05DF9F9391baC5DD81f346", description: "Core Protocol" },
+    { name: "GovernanceAddressProvider", address: "0x026FA9B2Bc828c7e0ACcA440fDf77a19D3Fa0eCF", description: "Core Protocol" },
+    { name: "DebtNotifier", address: "0xeb6b8f833f5AA81cb00a1cc7eF93B6b332A53574", description: "Core Protocol" },
+    { name: "lz-paUSD", address: "0x4311321f144e2cf24df87deefe79E9C4E232273b", description: "Bridging Module" },
+  ],
+};

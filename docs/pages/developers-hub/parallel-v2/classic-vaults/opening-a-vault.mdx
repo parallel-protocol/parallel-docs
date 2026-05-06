@@ -1,0 +1,48 @@
+---
+title: Opening a vault
+description: >-
+  *As of July 2021, the Parallel Protocol Vaults supports the following
+  collateral assets: WETH, WBTC, and USDC.*
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Classic Vaults","href":"/developers-hub/parallel-v2/classic-vaults"}]} title={"Opening a vault"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+*As of July 2021, the Parallel Protocol Vaults supports the following collateral assets: WETH, WBTC, and USDC.*
+
+To create a vault and deposit WETH collateral equal to `DEPOSIT_AMOUNT` to it, follow these steps:
+
+* Approve the collateral ERC20 asset (WETH) to the [**VaultsCore** address](https://app.gitbook.com/@mimo-defi/s/mimo-defi/~/drafts/-MewpTJxUIffxdZakurk/developers/contract-addresses) equal to at least the `DEPOSIT_AMOUNT`.&#x20;
+
+```
+WETH.approve(VaultsCore address, DEPOSIT_AMOUNT)
+```
+
+* Call the `VaultsCore.deposit()` function with the desired collateral address and deposit amount.
+
+```
+VaultsCore.deposit(WETH address, DEPOSIT_AMOUNT)
+```
+
+* You can view your vault details from the `VaultsCore.vaults()`view function.
+
+```
+myVaultId = VaultsDataProvider.vaultId(WETH address, your address);
+myVault = VaultsDataProvider.vaults(vaultId)
+```
+
+* Each Vault has the following information:
+
+```
+struct Vault {
+    address collateralType;
+    address owner;
+    uint256 collateralBalance;
+    uint256 baseDebt;
+    uint256 createdAt;
+  }
+```

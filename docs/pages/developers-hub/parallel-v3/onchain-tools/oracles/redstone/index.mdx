@@ -1,0 +1,49 @@
+---
+title: RedStone
+description: >-
+  Following the approval of [PGP-33 l Launch Parallel Stablecoins Price Feeds
+  using
+  Redstone](https://gov.parallel.best/t/pgp-33-l-launch-parallel-stablecoins-pr…
+subtitle: Parallel related RedStone Price Feeds Details
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V3","href":"/developers-hub/parallel-v3"},{"label":"Onchain Tools","href":"/developers-hub/parallel-v3/onchain-tools"},{"label":"Oracles","href":"/developers-hub/parallel-v3/onchain-tools/oracles"}]} title={"RedStone"} subtitle={"Parallel related RedStone Price Feeds Details"} />
+
+import { Tabs, Tab } from '@/components/Tabs';
+
+
+Following the approval of [PGP-33 l Launch Parallel Stablecoins Price Feeds using Redstone](https://gov.parallel.best/t/pgp-33-l-launch-parallel-stablecoins-price-feeds-using-redstone/487), RedStone has deployed fundamental price feeds across several chains. All deployed price feeds are ChainlinkAggregatorV3Interface compatible adapter contracts.
+
+:::info
+More details on RedStone oracles are available [here](/developers-hub/parallel-v3/onchain-tools/oracles/redstone/fundamental).
+:::
+
+<Tabs>
+  <Tab label="Avalanche">
+| Price Feed   | Contract Address                                                                                                           | Type        | Deviation (%) | Hearbeat |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------- | -------- |
+| USDp/USD     | [0xFB1267A29C0aa19daae4a483ea895862A69e4AA5](https://snowscan.xyz/address/0xFB1267A29C0aa19daae4a483ea895862A69e4AA5#code) | Fundamental | 0.2%          | 12 hours |
+| sUSDp/USD    | [0x5ED849a45B4608952161f45483F4B95BCEa7f8f0](https://snowscan.xyz/address/0x5ED849a45B4608952161f45483F4B95BCEa7f8f0#code) | Fundamental | 0.2%          | 12 hours |
+  </Tab>
+  <Tab label="HyperEVM">
+| Price Feed   | Contract Address                                                                                                                | Type        | Deviation (%) | Hearbeat |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------- | -------- |
+| USDp/USD     | [0xf0DEbDAE819b354D076b0D162e399BE013A856d3](https://hyperevmscan.io//address/0xf0DEbDAE819b354D076b0D162e399BE013A856d3?#code) | Fundamental | 0.2%          | 12 hours |
+| sUSDp/USD    | [0xD15862FC3D5407A03B696548b6902D6464A69b8c](https://hyperevmscan.io//address/0xD15862FC3D5407A03B696548b6902D6464A69b8c?#code) | Fundamental | 0.2%          | 12 hours |
+  </Tab>
+  <Tab label="Base">
+| Price Feed   | Contract Address                                                                                                            | Type        | Deviation (%) | Hearbeat |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------- | -------- |
+| USDp/USD     | [0xD15862FC3D5407A03B696548b6902D6464A69b8c](https://basescan.org/address/0xD15862FC3D5407A03B696548b6902D6464A69b8c?#code) | Fundamental | 0.2%          | 12 hours |
+| sUSDp/USD    | [0x58fa68A373956285dDfb340EDf755246f8DfCA16](https://basescan.org/address/0x58fa68A373956285dDfb340EDf755246f8DfCA16?#code) | Fundamental | 0.2%          | 12 hours |
+  </Tab>
+  <Tab label="Sonic">
+| Price Feed    | Contract Address                                                                                                              | Type        | Deviation (%) | Hearbeat |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------- | -------- |
+| USDp/USD      | [0xE23eCA12D7D2ED3829499556F6dCE06642AFd990](https://sonicscan.org//address/0xE23eCA12D7D2ED3829499556F6dCE06642AFd990?#code) | Fundamental | 0.2%          | 12 hours |
+| sUSDp/USD     | [0x31a36CdF4465ba61ce78F5CDbA26FDF8ec361803](https://sonicscan.org//address/0x31a36CdF4465ba61ce78F5CDbA26FDF8ec361803?#code) | Fundamental | 0.2%          | 12 hours |
+  </Tab>
+</Tabs>
+
+a

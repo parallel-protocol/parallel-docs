@@ -1,0 +1,61 @@
+---
+title: Architecture
+description: ''
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Bridging Module","href":"/developers-hub/parallel-v2/bridging-module"}]} title={"Architecture"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+## Bridge Transaction Lifecycle Overview
+
+<figure><img src="/images/oQWZvQKGB5xOMIykLwQN.png" alt="" /><figcaption><p>Bridge Transaction Lifecycle</p></figcaption></figure>
+
+1. **Burn:** If no TKN burn limit (due to OFT configuration) is reached, then the TKN is burned and the lz-TKN equivalent is minted. However, if the burn limit is reached, the user will not be able to start the bridge process.
+2. **Send:** The source chain OFT calls `lzSend` on the source LayerZero Endpoint, providing the message payload and its unique path.
+3. **Verify:** Configured DVNs independently verify the packet on the destination side using the destination MessageLib. After the packet is verified by the sufficient number of DVNs required by the Security Stack, it is committed to the destination Endpoint by an appropriate worker (a DVN, executor, or user).
+4. **Execute:** Endpoint ensures payload verification aligns with the OApp-configured Security Stack before committing to the channel. An executor invokes the `lzReceive` function to process the received packet with the Receiver OFT’s logic. This step ensures the message is delivered exactly once and without loss. If the system cannot guarantee this, the process is reverted to prevent any possibility of censorship.
+5. **Mint:** If no TKN mint limit (due to OFT configuration) is reached, then the lz-TKN is burned and the TKN equivalent is minted. However, if the mint limit is reached, the user will receive lz-TKN (which can be bridged again to another blockchain), or wait until the mint limits on the destination blockchain are no longer reached to burn its lz-TKN in exchange for TKN.
+
+## Principal Token Mint/Burn Limits
+
+The protocol has the possiblity to set mint/burn limits at daily and global levels. Only the **Owner** has the possibility to call related functions:
+
+* `setMintDailyLimit` : Maximum amount of principal tokens that can be minted in a day.
+* `setBurnDailyLimit` : Maximum amount of principal tokens that can be burned in a day.
+* `setGlobalMintLimit` : Maximum amount of principal tokens that can be minted globally.
+* `setGlobalBurnLimit` : Maximum amount of principal tokens that can be burned globally.
+
+When a burn limit is reached, the contract will simply revert future send requests for principal tokens. When a mint limit is reached, the contract will mint OFT tokens instead of principal tokens.
+
+Daily and global mint/burn limits on the principal token can be seen via view functions:
+
+* `getMintDailyLimit` : Maximum amount of principal tokens that can be minted in a day.
+* `getBurnDailyLimit` : Maximum amount of principal tokens that can be burned in a day.
+* `getGlobalMintLimit` : Maximum amount of principal tokens that can be minted globally.
+* `getGlobalBurnLimit` : Maximum amount of principal tokens that can be burned globally.
+
+## IsolateMode
+
+A `toggleIsolateMode` function exists to toggle the `isIsolateMode` variable. This variable is used to prevent the contract to burn more principal token than what it has minted. This is useful when the contract is in a state where it has minted more principal tokens than it has burned. Only the **Owner** can call the`toggleIsolateMode` function.
+
+## Fees
+
+The protocol has the option to charge a fee when a TKN is bridged. The fee is taken on the destination blockchain when the lz-TKN is burned for TKN. The fee is taken via a fixed rate taken according to the bridged amount, there is no possibility to take a fixed fee per bridge transaction. Fees can be modified by the **Owner** via the `setFeesRate` function, and are automatically sent to the address provided via the `setFeesRecipient` function.
+
+## Pause
+
+A `pause` function exists to prevent new send() calls from being executed. This is useful in the event of a bug or security vulnerability. Only the **Owner** can call the `pause` function.
+
+## Unpause
+
+An `unpause` function exists to
+
+Only the **Owner** may call unpause
+
+## Swap OFT tokens to principal tokens
+
+As users can receive OFT tokens instead of principal tokens when one of the mint limit is reached, the contract provides a `swapLzTokenToPrincipalToken` function to swap these OFT tokens for principal tokens according to the limits.

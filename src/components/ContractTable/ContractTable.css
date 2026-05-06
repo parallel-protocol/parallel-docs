@@ -1,0 +1,195 @@
+/* ContractTable — scoped styles, prefix `cooper-ct-*`. No Tailwind. */
+
+.cooper-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cooper-ct-root {
+  width: 100%;
+}
+
+.cooper-ct-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.cooper-ct-thead {
+  border-bottom: var(--doc-card-border);
+}
+
+.cooper-ct-th {
+  text-align: left;
+  padding: 0.625rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--doc-tint-strong);
+}
+
+.cooper-ct-th-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.cooper-ct-row {
+  border-bottom: var(--doc-card-border);
+  transition: background-color 120ms ease;
+}
+
+.cooper-ct-row:last-child {
+  border-bottom: 0;
+}
+
+.cooper-ct-row:hover {
+  background-color: var(--vocs-color-background2);
+}
+
+.cooper-ct-row td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+.cooper-ct-name {
+  font-weight: 500;
+  color: var(--doc-tint-strong);
+}
+
+.cooper-ct-description {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--doc-tint-subtle);
+}
+
+.cooper-ct-address {
+  font-family: var(--doc-font-mono);
+  font-size: 0.875em;
+  color: var(--doc-tint-strong);
+}
+
+.cooper-ct-actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cooper-ct-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.cooper-ct-copy,
+.cooper-ct-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--doc-tint-subtle);
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.cooper-ct-copy:hover,
+.cooper-ct-link:hover,
+.cooper-ct-copy:focus-visible,
+.cooper-ct-link:focus-visible {
+  color: var(--doc-tint-strong);
+  background-color: var(--vocs-color-background2);
+}
+
+.cooper-ct-copy:focus-visible,
+.cooper-ct-link:focus-visible {
+  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline-offset: 2px;
+}
+
+.cooper-ct-copy[data-copied="true"] {
+  color: var(--vocs-color-success, #10b981);
+}
+
+.cooper-ct-empty {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  margin: 0;
+  color: var(--doc-tint-subtle);
+}
+
+/* compact variant */
+.cooper-ct-compact .cooper-ct-th {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.cooper-ct-compact .cooper-ct-row td {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.cooper-ct-compact .cooper-ct-address {
+  font-size: 0.8125em;
+}
+
+/* Mobile: stack each row as a card */
+@media (max-width: 767px) {
+  .cooper-ct-thead {
+    display: none;
+  }
+
+  .cooper-ct-table,
+  .cooper-ct-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .cooper-ct-row {
+    display: block;
+    width: 100%;
+    position: relative;
+    border: var(--doc-card-border);
+    border-radius: var(--doc-card-radius);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    box-shadow: var(--doc-card-shadow);
+    background-color: var(--vocs-color-background);
+  }
+
+  .cooper-ct-row:hover {
+    background-color: var(--vocs-color-background);
+    box-shadow: var(--doc-card-shadow-hover);
+  }
+
+  .cooper-ct-row td {
+    display: block;
+    padding: 0.125rem 0;
+  }
+
+  .cooper-ct-card-name {
+    padding-right: 4.5rem !important;
+  }
+
+  .cooper-ct-actions-cell {
+    position: absolute;
+    top: 0.625rem;
+    right: 0.75rem;
+    padding: 0 !important;
+  }
+
+  .cooper-ct-compact .cooper-ct-row {
+    padding: 0.5rem 0.75rem;
+  }
+}

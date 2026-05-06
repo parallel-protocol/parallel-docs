@@ -1,0 +1,102 @@
+---
+title: MIMOVaultActions
+description: >-
+  The `MIMOVaultActions` actions contract is a mirror of the `VaultsCore` owner
+  access restricted functionalities. Its sole purpose is to provide a readable
+  way…
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMOVaultActions"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+The `MIMOVaultActions` actions contract is a mirror of the `VaultsCore` owner access restricted functionalities. Its sole purpose is to provide a readable way for `MIMOProxy` owners to interact with `VaultsCore` through their `MIMOProxy`
+
+:::info
+All functions non payable functions of the `MIMOVaultActions can be reproduced through the MIMOProxyActions multicall() function.`
+:::
+
+### Write Methods
+
+#### `function deposit(IERC20 collateral, uint256 amount)`
+
+Calls `VaultsCore` `deposit()`.
+
+| Param Name   | Type    | Description                                        |
+| ------------ | ------- | -------------------------------------------------- |
+| `collateral` | IERC20  | The address of the collateral type to be deposited |
+| `amount`     | uint256 | The amount of tokens to be deposited               |
+
+#### `function depositETH()`
+
+Calls `VaultsCore` `depositETH()`.
+
+#### `depositAndBorrow(address _collateralType, uint256 _depositAmount, uint256 _borrowAmount)`
+
+Calls `VaultsCore` `depositAndBorrow()`.
+
+| Param Name        | Type    | Description                                        |
+| ----------------- | ------- | -------------------------------------------------- |
+| `_collateralType` | address | The address of the collateral type to be deposited |
+| `_depositAmount`  | uint256 | The amount of tokens to be deposited in WEI        |
+| \_`borrowAmount`  | uint256 | The amount of borrowed StableX tokens in WEI       |
+
+#### `depositETHAndBorrow(uint256 borrowAmount)`
+
+Calls `VaultsCore` `depositETHAndBorrow()`.
+
+| Param Name     | Type    | Description                                  |
+| -------------- | ------- | -------------------------------------------- |
+| `borrowAmount` | uint256 | The amount of borrowed StableX tokens in WEI |
+
+#### `withdraw(uint256 vaultId, uint256 amount)`
+
+Calls `VaultsCore` `withdraw()`.
+
+| Param Name | Type    | Description                                               |
+| ---------- | ------- | --------------------------------------------------------- |
+| `vaultId`  | uint256 | The id of the vault from which to withdraw the collateral |
+| `amount`   | uint256 | The amount of ERC20 tokens to be withdrawn                |
+
+#### `withdrawETH(uint256 vaultId, uint256 amount)`
+
+Calls `VaultsCore` `withdrawETH()`.
+
+| Param Name | Type    | Description                                               |
+| ---------- | ------- | --------------------------------------------------------- |
+| `vaultId`  | uint256 | The id of the vault from which to withdraw the collateral |
+| `amount`   | uint256 | The amount of ETH to be withdrawn                         |
+
+#### `borrow(uint256 vaultId, uint256 amount)`
+
+Calls `VaultsCore` `borrow()`.
+
+| Param Name | Type    | Description                              |
+| ---------- | ------- | ---------------------------------------- |
+| `vaultId`  | uint256 | The id of the vault from which to borrow |
+| `amount`   | uint256 | The amount of `stableX` to borrow        |
+
+### View Methods
+
+#### `contractAddress()`
+
+Returns the `MIMOVaultActions` address. This is to access the contract address within the delegate call.
+
+#### core`()`
+
+Returns the `VaultsCore` address.
+
+#### `vaultsData()`
+
+Returns the `VaultsDataProvider` address.
+
+#### `stablex()`
+
+Returns the `stableX` address.
+
+#### `proxyFactory()`
+
+Returns the `MIMOProxyFactory` address.

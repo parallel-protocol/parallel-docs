@@ -1,0 +1,59 @@
+---
+title: DIA
+description: >-
+  Following the approval of [PGP-34 l Launch Parallel Stablecoins Price Feeds
+  using
+  DIA](https://gov.parallel.best/t/pgp-34-l-launch-parallel-stablecoins-price-f…
+subtitle: Parallel related DIA Price Feeds Details
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V3","href":"/developers-hub/parallel-v3"},{"label":"Onchain Tools","href":"/developers-hub/parallel-v3/onchain-tools"},{"label":"Oracles","href":"/developers-hub/parallel-v3/onchain-tools/oracles"}]} title={"DIA"} subtitle={"Parallel related DIA Price Feeds Details"} />
+
+import { Tabs, Tab } from '@/components/Tabs';
+
+
+Following the approval of [PGP-34 l Launch Parallel Stablecoins Price Feeds using DIA](https://gov.parallel.best/t/pgp-34-l-launch-parallel-stablecoins-price-feeds-using-dia/488), DIA has deployed fundamental & markets price feeds across several chains. All deployed price feeds are ChainlinkAggregatorV3Interface compatible adapter contracts.
+
+:::info
+More details on DIA oracles are available [here](/developers-hub/parallel-v3/onchain-tools/oracles/dia/fundamental) & [here](/developers-hub/parallel-v3/onchain-tools/oracles/dia/market).
+:::
+
+<Tabs>
+  <Tab label="Avalanche">
+| Price Feed   | Contract Address                                                                                                           | Type        | Deviation (%) & Refresh Frequency | Hearbeat |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------- | -------- |
+| USDp/USD     | [0x2eEF8970d6dC0fa4f6F86385407439b45DF59e99](https://snowscan.xyz/address/0x2eEF8970d6dC0fa4f6F86385407439b45DF59e99#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD    | [0x45FFE3F65C58983dfC8Fb10Ce046fDa6E1EC231a](https://snowscan.xyz/address/0x45FFE3F65C58983dfC8Fb10Ce046fDa6E1EC231a#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| USDp/USD     | [0xd826C5F7be24b33Cc825A9b9E9AcD8C5a2bD71F7](https://snowscan.xyz/address/0xd826C5F7be24b33Cc825A9b9E9AcD8C5a2bD71F7#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD    | [0x4D165058332a39F2E2C32F438f4897BcF7694Fbd](https://snowscan.xyz/address/0x4D165058332a39F2E2C32F438f4897BcF7694Fbd#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+  </Tab>
+  <Tab label="HyperEVM">
+| Price Feed   | Contract Address                                                                                                              | Type        | Deviation (%) & Refresh Frequency | Hearbeat |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------- | -------- |
+| USDp/USD     | [0x5975994e5009e2b7fC348dD94a36E7C86958D795](https://hyperevmscan.io/address/0x5975994e5009e2b7fC348dD94a36E7C86958D795#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD    | [0xEf06cffeCD2c76762279Fc1b8C37E67bB6d2c18c](https://hyperevmscan.io/address/0xEf06cffeCD2c76762279Fc1b8C37E67bB6d2c18c#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| USDp/USD     | [0x2189f3d9Be89808Dfe6C34446FE7aaDA7A5aD1b6](https://hyperevmscan.io/address/0x2189f3d9Be89808Dfe6C34446FE7aaDA7A5aD1b6#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD    | [0xdcA437D1492Db6E9438A82Ad31Cab92E2eE159E1](https://hyperevmscan.io/address/0xdcA437D1492Db6E9438A82Ad31Cab92E2eE159E1#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+  </Tab>
+  <Tab label="Base">
+| Price Feed   | Contract Address                                                                                                           | Type        | Deviation (%) & Refresh Frequency | Hearbeat |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------- | -------- |
+| USDp/USD     | [0xE2b51a6c951B81499Ca4602d548ff2f701bfdc24](https://basescan.org/address/0xE2b51a6c951B81499Ca4602d548ff2f701bfdc24#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD    | [0xB45f03799F26168699c1909f58bE380eAC735B4b](https://basescan.org/address/0xB45f03799F26168699c1909f58bE380eAC735B4b#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| USDp/USD     | [0x048710167827e4bd7286384653baa0be7d22e638](https://basescan.org/address/0x048710167827e4bd7286384653baa0be7d22e638#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD    | [0xA6c34e47088331C0348bFe58fe97314A4567071A](https://basescan.org/address/0xA6c34e47088331C0348bFe58fe97314A4567071A#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+  </Tab>
+  <Tab label="Sonic (Deprecated)">
+:::warning
+USDp & sUSDp price feeds on Sonic are deprecated.
+:::
+
+| Price Feed    | Contract Address                                                                                                            | Type        | Deviation (%) & Refresh Frequency | Hearbeat |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------- | -------- |
+| USDp/USD      | [0xF43dd82a870a176e2Cd392c2d9d51e31D0d694b1](https://sonicscan.org/address/0xF43dd82a870a176e2Cd392c2d9d51e31D0d694b1#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD     | [0x026ffC812e12a30658727467246757944F76eB48](https://sonicscan.org/address/0x026ffC812e12a30658727467246757944F76eB48#code) | Fundamental | 0.5% & 120 Seconds                | 12 hours |
+| USDp/USD      | [0xf20f32c481ae55531ec3d923c03306d2d6dc294e](https://sonicscan.org/address/0xf20f32c481ae55531ec3d923c03306d2d6dc294e#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+| sUSDp/USD     | [0x06d6c926EF90260B71Bb3d9431958b8DA0C365F5](https://sonicscan.org/address/0x06d6c926EF90260B71Bb3d9431958b8DA0C365F5#code) | Market      | 0.5% & 120 Seconds                | 12 hours |
+  </Tab>
+</Tabs>

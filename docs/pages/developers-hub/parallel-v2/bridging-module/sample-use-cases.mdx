@@ -1,0 +1,29 @@
+---
+title: Sample Use Cases
+description: ''
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Bridging Module","href":"/developers-hub/parallel-v2/bridging-module"}]} title={"Sample Use Cases"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+## User scenario 1
+
+In this scenario, no limit is reached, and the user sends principal tokens. The user wants to send 100 principal tokens to another chain. The contract will burn 100 principal tokens and send a message to LayerZero to mint 100 principal tokens on the other chain.
+
+<figure><img src="https://github.com/parallel-protocol/bridging-module/raw/main/docs/bridgeableToken/assets/scenario-1.png" alt="" /><figcaption><p>user scenario 1</p></figcaption></figure>
+
+## User scenario 2
+
+In this scenario, no limit is reached, but the user sends OFT tokens. The user wants to send 100 OFT tokens to another chain. The contract will burn 100 OFT tokens and send a message to LayerZero to mint 100 principal tokens on the other chain.
+
+<figure><img src="https://github.com/parallel-protocol/bridging-module/raw/main/docs/bridgeableToken/assets/scenario-2.png" alt="" /><figcaption><p>user scenario 2</p></figcaption></figure>
+
+## User scenario 3
+
+In this scenario, a mint limit is reached. The user wants to send 100 principal tokens XXX to another chain. The contract will burn 100 principal tokens XXX and send a message to LayerZero to mint 100 principal tokens XXX, but as the mint limit is reached, the user will receive OFT tokens lz-XXX on the other chain.
+
+<figure><img src="https://github.com/parallel-protocol/bridging-module/raw/main/docs/bridgeableToken/assets/scenario-3.png" alt="" /><figcaption><p>user scenario 3</p></figcaption></figure>

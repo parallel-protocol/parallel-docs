@@ -1,0 +1,88 @@
+---
+title: Flashloan Module Integration
+description: >-
+  The Flashloan module serves as the core minting and burning engine for
+  Parallel stablecoins.&#x20;
+subtitle: >-
+  Interact with the Flashloan Module to execute one-block borrows of Parallel
+  stablecoins
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V3","href":"/developers-hub/parallel-v3"},{"label":"Build On Parallel","href":"/developers-hub/parallel-v3/build-on-parallel"}]} title={"Flashloan Module Integration"} subtitle={"Interact with the Flashloan Module to execute one-block borrows of Parallel stablecoins"} />
+
+The Flashloan module serves as the core minting and burning engine for Parallel stablecoins.&#x20;
+
+This [repo](https://github.com/parallel-protocol/parrallel-tokens/tree/main/contracts/flashloan) contains the contract implementation.
+
+In this guide, we explain how to interact with the Flashloan Module and fetch basical information from it. For more in depth information on how the Flashloan Module and its functions work, you can directly look into the code.
+
+:::info
+The Flashloan Module can be used for any Parallel stablecoins: find its deployment addresses [here](/developers-hub/contract-addresses/parallel-v3).
+:::
+
+## What is a Flashloan?
+
+Flashloans (also called one-block borrows) are special transactions that allow the borrowing of an asset, as long as the borrowed amount (and a fee) is returned before the end of the transaction. These transactions do not require a user to supply collateral prior to engaging in the transaction.
+
+## What's similar/different with Parallel?
+
+The innovation with Parallel is that stablecoins given out in flashloans are minted during the flashloan transaction and burnt at the end of it: this means that the size of the flashloans taken is not capped by an amount of liquidity in a pool but rather by a parameter chosen by governance.
+
+This is similar to what Sky is doing in its [flash-mint module](https://docs.makerdao.com/smart-contract-modules/flash-mint-module).
+
+Like done elsewhere, flashloan transactions are only valid when the amount borrowed by the address taking the flashloan is returned plus a fee (governance could vote to set no fees) at the end of the transaction.
+
+There could also be a cap on the size of the flash-loan taken.
+
+There is only one simple `flashLoan` implementation in Parallel: it allows borrowers to get liquidity of a single stablecoin. Different stablecoins may be supported by the same `FlashParallel` contract.
+
+## Execution Flow <a href="#execution-flow" id="execution-flow"></a>
+
+For developers, the following needs to be considered when building your flashloan solutions:
+
+1. Your contract calls the `FlashParallel` contract requesting a certain `amount` of `token` to be sent to a `receiver` address of your choice.
+2. After some elementary sanity checks, the `FlashParallel` contract transfers the tokens to the `receiver` contract address and then calls the `onFlashLoan` method of this contract.
+3. Your contract now holding the flash-loaned `amount` executes any arbitrary operation in its code. These operations can be specified directly in the call to the `flashLoan` function through the `data` parameter.
+   * When your code has finished, you need to approve the `FlashParallel` contract on the token for the flash-loaned amount plus the fee and then return `keccak256("ERC3156FlashBorrower.onFlashLoan")`.
+   * If the amount due is not available (due to a lack of balance for instance), then the transaction is reverted
+4. All of the above happens in 1 transaction and hence in a single block (on the chain you're on).
+
+## Applications of Flashloans <a href="#applications-of-flash-loans" id="applications-of-flash-loans"></a>
+
+Flashloans of Parallel stablecoins may serve different use cases like arbitrage between assets without needing the principal amount to execute the arbitrage. Overall, it improves the general market efficiency for Parallel stablecoins.
+
+## Flashloan Fee and Cap <a href="#flash-loan-fee-and-cap" id="flash-loan-fee-and-cap"></a>
+
+Parallel introduces for each stablecoin different parameters defining the fees that can be taken at each flashloan and the maximum size allowed for a flashloan. These parameters can be modified by governance votes.
+
+If you are building flashloans on top of Parallel, you may want to check these amounts prior to your call by calling the `flashFee` and `maxFlashLoan` function for your token of interest in the `FlashParallel` contract.
+
+## Step by Step Guide <a href="#step-by-step-guide" id="step-by-step-guide"></a>
+
+### 1. Setting up <a href="#id-1.-setting-up" id="id-1.-setting-up"></a>
+
+The first thing needed to make a flash-loan is a `receiver` contract which must conform to the `IERC3156FlashBorrower` [interface](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/interfaces/IERC3156FlashBorrower.sol).
+
+:::info
+Since the owed amounts will be pulled from your contract, your contract must give allowance to the pool to pull those funds to pay back the flashloan amount + premiums.
+:::
+
+### 2. Checking fees and maximum amount <a href="#id-2.-checking-fees-and-maximum-amount" id="id-2.-checking-fees-and-maximum-amount"></a>
+
+Prior to making a flashloan, you may want to check the fees induced and if the `amount` you want to take is inferior to the maximum amount allowed. The functions to call are `flashFee()` and `maxFlashLoan`.
+
+### 3. Calling `flashLoan()` <a href="#id-3.-calling-flashloan" id="id-3.-calling-flashloan"></a>
+
+To call the `flashLoan` method on the `FlashParallel`, you need to pass the relevant parameters. In all cases, you need to make sure that the `receiver` address passed respects all the criteria from step 1.
+
+1. From an EOA ('normal' ethereum account) or from a different contract: To use an EOA or a different contract, send a transaction to `FlashParallel` calling the `flashLoan` function.
+2. From the same `receiver` contract: If you want to use the same contract as in step 1, use `address(this)` for the `receiver` address parameter in the flash-loan method.
+
+### 4. Completing the flash-loan <a href="#id-4.-completing-the-flash-loan" id="id-4.-completing-the-flash-loan"></a>
+
+Once you have performed your logic with the flash loaned assets (in your `onFlashLoan()` function), you will need to pay back the flash loaned amount of tokens plus the eventual fees associated to the operation.
+
+You do not need to transfer the owed amount back to the `FlashParallel` contract. The funds will be automatically pulled at the conclusion of your operation.
+
+If your contract does not have the right amount on it, or if it has not approved the `FlashParallel` contract, then the whole operation will fail and the transaction will revert meaning you would have paid gas for nothing.

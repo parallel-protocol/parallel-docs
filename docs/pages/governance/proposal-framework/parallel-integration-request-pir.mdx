@@ -1,0 +1,49 @@
+---
+title: Parallel Integration Request (PIR)
+description: Explaining Parallel Integration Request
+subtitle: Explaining Parallel Integration Request
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Governance","href":"/governance"},{"label":"Proposal Framework","href":"/governance/proposal-framework"}]} title={"Parallel Integration Request (PIR)"} subtitle={"Explaining Parallel Integration Request"} />
+
+## New Asset Listing
+
+The Parallel protocol can support many different assets in many different markets. Each market operates as a segregated risk pool, with the addition of each new asset influencing the overall risk of that particular market.&#x20;
+
+* The increased insolvency risk of the market it is listed in.
+* The potential to expose the market it is listed in to a single point of failure.
+* The risks associated with collateral currencies.
+* The benefits of protocol/market diversification.
+
+## 1. Proposing the asset via the PIR Process
+
+As with all governance upgrades, PIR Template is recommended.
+
+* **Project Presentation:** (After summary)
+  * Protocol name
+  * Token requested
+  * Token contract address
+  * Audit(s) links
+  * Chain requested: Ethereum/Base/Sonic
+  * Relation with the project
+  * X/Discord/Telegram links
+* **Token metrics:** (After project presentation)
+* **Risk assessment:**
+  * Smart Contract risk: maturity, transactions
+  * Counterparty risk: holders, permission
+  * Market Risk: market cap, average volume, normalized volatility
+  * Use the Parallel Methodology (more [here](https://docs.mimo.capital/parallel-protocol/risk/parallels-risk-framework))
+  * Community size on Twitter/Discord/Telegram
+* **Sentiment poll:** (After voting options)
+  * A poll on the governance forum post to get a first sentiment at least 48 hours before submitting a snapshot proposa
+
+## 2. Submission of Proposal
+
+The proposal can now be submitted on [Snapshot](https://snapshot.box/#/s:mimo.eth), including all the information from the above steps.
+
+Considering that the integrations proposals can happen quite often and that the risk for the protocol is lower than other proposal types, we could consider the following parameters:
+
+* Admin: DAO Multisig
+* Quorum: 100,000 sPRL (ParaBoost)
+* Voting Duration: 5 days
