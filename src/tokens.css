@@ -7,4 +7,25 @@
   --doc-font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
   --doc-tint-subtle: var(--vocs-color-text3);
   --doc-tint-strong: var(--vocs-color-text);
+
+  /* Parallel brand typography : IBM Plex Serif (loaded via Google Fonts in
+   * vocs.config.tsx head). Override Vocs' default sans-serif stack so body,
+   * headings, sidebar, and footer all inherit the brand serif. Code blocks
+   * keep --vocs-fontFamily-mono untouched so JetBrains Mono is preserved. */
+  --vocs-fontFamily-default: "IBM Plex Serif", Georgia, serif;
+}
+
+body,
+.vocs_DocsLayout,
+.vocs_Sidebar,
+.vocs_Content,
+.cooper-footer,
+.cooper-page-header,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "IBM Plex Serif", Georgia, serif;
 }

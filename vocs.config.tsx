@@ -55,6 +55,13 @@ export default defineConfig({
         integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV"
         crossOrigin="anonymous"
       />
+      {/* Parallel brand typography : IBM Plex Serif (regular + italic, 400/500/700). */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap"
+      />
       <meta property="og:site_name" content="Parallel Documentation" />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
