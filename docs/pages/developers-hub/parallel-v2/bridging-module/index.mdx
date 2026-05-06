@@ -1,0 +1,44 @@
+---
+title: Bridging Module
+description: ''
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"}]} title={"Bridging Module"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+## Overview
+
+[BridgeableToken.sol](https://github.com/parallel-protocol/bridging-module/blob/main/docs/bridgeableToken/contracts/BridgeableToken.sol) allows an already deployed ERC-20 token to be bridgeable by leveraging [LayerZero's OFT standard](https://docs.layerzero.network/v2/home/protocol/contract-standards#oft). The Parallel Bridging Module codebase is available [here](https://github.com/parallel-protocol/bridging-module/tree/main), licensed under [MIT License](https://github.com/parallel-protocol/bridging-module/blob/main/LICENSE) and has been audited by BailSecurity. You can find the report [here](https://github.com/parallel-protocol/bridging-module/blob/main/docs/audits/Bailsec%20-%20Parallel%20Bridge%20-%20BridgeableToken%20-%20Final%20Report.pdf). Deployed addresses can be seen [here](/developers-hub/contract-addresses).
+
+## Key Features
+
+The key features of `BridgeableToken` are:
+
+* Ability to burn principal tokens (named `XXX`) and send a message to LayerZero to mint the mirrored token on the other chain.
+* Ability to mint principal tokens by receiving a message from LayerZero from the mirrored BridgeableToken contract on the other chain.
+* Ability to cap the principal token amount to mint and burn (per day and globally). Since minting tokens from a received message must not revert, when the mint limit is reached, the user will receive OFT tokens (named `lz-XXX`) instead of principal tokens.
+* Ability to swap OFT tokens to principal tokens if the limits are not reached.
+
+## High level Design:
+
+<figure><img src="https://github.com/parallel-protocol/bridging-module/raw/main/docs/bridgeableToken/assets/bridgeableToken-HLD.png" alt="" /><figcaption><p>High Level Design</p></figcaption></figure>
+
+## LayerZero OFT standard
+
+The OFT standard from LayerZero allows fungible tokens to be transferred across multiple blockchains without asset wrapping or middlechains. The BridgeableToken contract is designed to comply with this standard to mint/burn the OFT tokens if the mint/burn limit is reached. More details about the OFT standard can be found [here](https://docs.layerzero.network/v2/home/protocol/contract-standards#oft).
+
+## Why do we need an OFT token ?
+
+When the contract receives a message from LayerZero to mint principal tokens on its chain, it must not revert. Due to the mint limit on the principal token, we still have to credit the user with something. This is why we mint OFT tokens instead of principal tokens XXX. The user can then swap these OFT tokens for principal tokens if the limit is not reached.
+
+## Receiving Credit Messages from LayerZero
+
+When the contract receives a message from LayerZero, it will mint tokens to the specified receiver address. Depending on the mint limits, the receiver will be credited with principal tokens and/or OFT tokens.
+
+## Sending Messages to LayerZero
+
+Users can send principal tokens or OFT tokens to a receiver address on another chain by calling the `send` function. A check regarding burn limits and isIsolateMode is performed before sending the message to LayerZero. If any check fails, the function will revert. The user's tokens will be burned before sending the message to LayerZero.

@@ -1,0 +1,124 @@
+/* Footer Previous/Next navigation — match GitBook card design.
+ *
+ * Vocs renders these via `Footer.js` Navigation as vanilla-extract classes
+ * (`vocs_Footer_navigation__<hash>`, `vocs_Footer_navigationItem__<hash>`, …).
+ * We target them with `[class*="..."]` and the `__` boundary so the container
+ * selector doesn't also match its variants (Item, Text, Icon).
+ *
+ * Design : bordered card per item, "Previous"/"Next" label injected via
+ * ::before pseudo-element, hover turns border + text + icon to brand accent
+ * (eUSD primary green via --vocs-color_textAccent).
+ */
+
+/* Container : 2 cards side-by-side with gap, instead of justify-between.
+ * Match `Footer_navigation` (dev) or `Footer_navigation__hash` (prod) but not
+ * its variants (Item/Text/Icon). */
+[class*="Footer_navigation"]:not([class*="navigationItem"]):not([class*="navigationText"]):not([class*="navigationIcon"]) {
+  display: flex;
+  gap: 1rem;
+  justify-content: stretch;
+}
+
+/* Each nav item becomes a bordered card */
+a[class*="Footer_navigationItem"] {
+  flex: 1 1 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.625rem;
+  padding-right: 1rem;
+  border: 1px solid var(--vocs-color_border, #e5e7eb);
+  border-radius: 0.125rem;
+  transition: border-color 150ms ease;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  a[class*="Footer_navigationItem"] {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}
+
+a[class*="Footer_navigationItem"]:hover {
+  border-color: var(--vocs-color_textAccent, #075833);
+}
+
+/* Reset the right-item alignment override (so card content stays centered) */
+a[class*="Footer_navigationItem_right"] {
+  align-items: center;
+}
+
+/* Hide the keyboard shortcut hint inside the card */
+a[class*="Footer_navigationItem"] kbd,
+a[class*="Footer_navigationItem"] [class*="KeyboardShortcut"] {
+  display: none;
+}
+
+/* navigationText : flex row filling the card.
+ * Match `navigationText` but not `navigationTextInner`. */
+a[class*="Footer_navigationItem"] [class*="Footer_navigationText"]:not([class*="navigationTextInner"]) {
+  flex: 1;
+  align-items: center;
+  gap: 1rem;
+  font-size: inherit;
+  width: 100%;
+  font-weight: 500;
+  color: var(--vocs-color_text2, #4b5563);
+  transition: color 150ms ease;
+}
+
+a[class*="Footer_navigationItem"]:hover [class*="Footer_navigationText"]:not([class*="navigationTextInner"]) {
+  color: var(--vocs-color_textAccent, #075833);
+}
+
+/* navigationTextInner : convert from ellipsis 26ch single-line to a column
+ * stacking the "Previous"/"Next" pseudo-label above the page title. */
+a[class*="Footer_navigationItem"] [class*="Footer_navigationTextInner"] {
+  flex: 1;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  font-size: inherit;
+}
+
+/* Inject "Previous"/"Next" small label above the title */
+a[class*="Footer_navigationItem_left"] [class*="Footer_navigationTextInner"]::before {
+  content: "Previous";
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--vocs-color_text3, #6b7280);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+a[class*="Footer_navigationItem_right"] [class*="Footer_navigationTextInner"]::before {
+  content: "Next";
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--vocs-color_text3, #6b7280);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* Right-align Next side */
+a[class*="Footer_navigationItem_right"] [class*="Footer_navigationTextInner"] {
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* Icon : neutral color, turns brand accent on hover */
+a[class*="Footer_navigationItem"] [class*="Footer_navigationIcon"] {
+  color: var(--vocs-color_text3, #6b7280);
+  transition: color 150ms ease;
+  flex-shrink: 0;
+}
+
+a[class*="Footer_navigationItem"]:hover [class*="Footer_navigationIcon"] {
+  color: var(--vocs-color_textAccent, #075833);
+}

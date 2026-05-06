@@ -1,0 +1,43 @@
+.cooper-df-figure {
+  margin: 0;
+  max-width: 100%;
+}
+.cooper-df-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--doc-card-radius);
+}
+.cooper-df-bordered {
+  border: var(--doc-card-border);
+  border-radius: var(--doc-card-radius);
+  padding: var(--doc-card-padding);
+}
+.cooper-df-plain {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.cooper-df-zoomable {
+  cursor: zoom-in;
+  background: none;
+  border: 0;
+  padding: 0;
+  display: block;
+  width: 100%;
+  transition: transform 150ms ease;
+}
+.cooper-df-zoomable:hover img {
+  transform: scale(1.02);
+}
+.cooper-df-zoomable:focus-visible {
+  outline: 2px solid var(--vocs-color-textAccent, #3b82f6);
+  outline-offset: 2px;
+}
+.cooper-df-caption {
+  font-style: italic;
+  font-size: 0.875rem;
+  color: var(--doc-tint-subtle);
+  text-align: center;
+  margin-top: 0.5rem;
+}

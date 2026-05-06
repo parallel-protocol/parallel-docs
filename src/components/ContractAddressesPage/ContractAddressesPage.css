@@ -1,0 +1,59 @@
+/* ContractAddressesPage — scoped styles, prefix `cooper-contract-addresses-*`. No Tailwind. */
+
+.cooper-contract-addresses-page {
+  width: 100%;
+}
+
+.cooper-contract-addresses-chain-picker {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--vocs-color-border);
+  margin-bottom: 1.5rem;
+}
+
+.cooper-contract-addresses-chain-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.cooper-contract-addresses-chain-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--doc-tint-subtle);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+
+.cooper-contract-addresses-chain-button:hover {
+  color: var(--doc-tint-strong);
+  background-color: var(--vocs-color-background2);
+}
+
+.cooper-contract-addresses-chain-button:focus-visible {
+  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline-offset: 2px;
+}
+
+.cooper-contract-addresses-chain-button[data-active="true"] {
+  color: var(--doc-tint-strong);
+  background-color: var(--vocs-color-background2);
+  border-color: var(--vocs-color-border);
+}
+
+.cooper-contract-addresses-empty {
+  margin: 0;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--doc-tint-subtle);
+}

@@ -1,0 +1,28 @@
+---
+title: Products
+description: Stablecoins & Savings
+subtitle: Stablecoins & Savings
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Introduction","href":"/introduction"}]} title={"Products"} subtitle={"Stablecoins & Savings"} />
+
+## Stablecoins
+
+Parallel stablecoins are decentralized stable currencies issued by the protocol. Their issuance is handled through minting modules, such as the Parallelizer Module, where users deposit an overcollateralized basket of assets (such as ETH, BTC, or other stablecoins) to mint new tokens.&#x20;
+
+Each stablecoin ([USDp](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp), etc.) can be configured independently with its own parameters, including the types of assets accepted as collateral, the fees applied, and the exposure limits set by the DAO.&#x20;
+
+To ensure price stability, the protocol automatically adjusts minting or burning fees whenever the token deviates from its reference currency. In practice, these stablecoins form the core of the Parallel system and serve as the foundation for all other ecosystem products.
+
+<a href="/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp" className="button primary" data-icon="circle-dollar">Discover USDp</a>
+
+## Savings
+
+Savings tokens are the “yield-bearing” versions of Parallel stablecoins. When a user deposits a standard stablecoin, such as [USDp](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp), they receive its Savings equivalent, like sUSDp.&#x20;
+
+This token represents a staked position that automatically accrues yield over time. The yield comes from the protocol’s revenues, such as fees from minting and burning operations or stablecoin reserve management. The calculation and distribution of these yields are managed by “keepers”, actors designated by the DAO to guarantee transparency and consistency.&#x20;
+
+As a result, Savings tokens allow users to grow their stablecoin holdings without leaving the Parallel ecosystem, while benefiting from a simple and integrated mechanism.
+
+<a href="/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp" className="button primary" data-icon="box-dollar">Discover sUSDp</a>

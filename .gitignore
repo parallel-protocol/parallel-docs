@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vocs/
+docs/dist/
+.env
+.env.local
+.DS_Store
+tmp/
+*.log

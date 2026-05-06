@@ -1,0 +1,25 @@
+---
+title: LayerZero Infrastructure
+description: ''
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Products","href":"/products"},{"label":"Parallel V2","href":"/products/parallel-v2"},{"label":"How It Works","href":"/products/parallel-v2/how-it-works"},{"label":"Bridging Module","href":"/products/parallel-v2/how-it-works/bridging-module"}]} title={"LayerZero Infrastructure"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+## **Overview**
+
+LayerZero is an immutable, censorship-resistant, and permissionless smart contract protocol that enables anyone to send, verify, and execute arbitrary messages on a supported blockchain. Using smart contracts deployed on each chain, in combination with [Decentralized Verifier Networks (DVNs)](https://docs.layerzero.network/v2/home/modular-security/security-stack-dvns) and [Executors](https://docs.layerzero.network/v2/home/permissionless-execution/executors), LayerZero enables different blockchains to seamlessly interact with one another. In LayerZero, message verification and execution are separated into two distinct phases, providing developers with more control over their application’s [security configuration](https://docs.layerzero.network/v2/home/v2-overview#x-of-y-of-n-message-authentication) and [independent execution](https://docs.layerzero.network/v2/home/v2-overview#independent-message-execution)
+
+<div align="left"><figure><img src="/images/MG2PE2GChOavTPKsY9Dz.png" alt="" /><figcaption><p>LayerZero Overview</p></figcaption></figure></div>
+
+## **Decentralized Verifier Networks (DVNs)**
+
+DVNs verify cross-chain messages. This permissionless role empowers any entity capable of verifying cross-chain data packets to join LayerZero as a DVN. Any native bridge, third-party bridge, middle chain, oracle, or other verification method may be used as a DVN, thereby avoiding vendor lock-in at the security level. As LayerZero has a modular design, application owners can combine DVNs to maximize verification for characteristics like security, cost, speed, or any parameter an application might want. In other words, LayerZero allows applications to configure any number and type of decentralized verifier networks (DVNs) to verify their cross-chain messages.
+
+## **Permissionless Execution (executors)**
+
+Any entity can run an Executor, as it is an entirely permissionless role. The Executor ensures the smooth execution of a message on the destination chain by offering gas abstraction to the end-user. Executors do this by quoting end-users on the source chain in the source chain gas token while executing the transaction automatically on the destination chain. Much like applications can select a DVN set, they can also configure their application to choose a certain Executor or group of Executors. Applications also have the ability to build and run their own executor (as they can for DVNs) or operate without an Executor and have end-users manually invoke ‘lzReceive’ via [LayerZero Scan](https://layerzeroscan.com/).

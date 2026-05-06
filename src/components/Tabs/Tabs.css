@@ -1,0 +1,53 @@
+/* Tabs — scoped styles, prefix `cooper-tabs-*`. No Tailwind. */
+
+.cooper-tabs-root {
+  width: 100%;
+}
+
+.cooper-tabs-list {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--vocs-color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.cooper-tabs-list::-webkit-scrollbar {
+  display: none;
+}
+
+.cooper-tabs-trigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.625rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--doc-tint-subtle);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-bottom: -1px;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.cooper-tabs-trigger:hover {
+  color: var(--doc-tint-strong);
+}
+
+.cooper-tabs-trigger:focus-visible {
+  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline-offset: -2px;
+  border-radius: 2px;
+}
+
+.cooper-tabs-trigger[data-state="active"] {
+  color: var(--vocs-color-textAccent, var(--doc-tint-strong));
+  border-bottom-color: var(--vocs-color-textAccent, var(--doc-tint-strong));
+}
+
+.cooper-tabs-content {
+  padding-top: 1.25rem;
+  outline: none;
+}

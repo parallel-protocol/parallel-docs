@@ -1,0 +1,114 @@
+---
+title: MIMOAutoRebalance
+description: >-
+  The `MIMOAutoRebalance` action contract handle the super vault empty vault
+  logic described in [Automated
+  Rebalance](/products/parallel-v2/how-it-works/super-va…
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMOAutoRebalance"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+The `MIMOAutoRebalance` action contract handle the super vault empty vault logic described in [Automated Rebalance](/products/parallel-v2/how-it-works/super-vaults-sv/automated-rebalance).
+
+### Process Flow
+
+<figure><img src="/images/4Z35G3l9R6AWrE8R0Yr7.svg" alt="" /><figcaption></figcaption></figure>
+
+### Write Methods
+
+#### `setAutomation(uint256 vaultId, AutomatedVault calldata autoParams)`
+
+Sets a vault automation parameters.
+
+Requirements :&#x20;
+
+* Caller must be the `MIMOProxy` owner the vault or the `MIMOProxy` owner
+
+| Param Name   | Type    | Description                                                |
+| ------------ | ------- | ---------------------------------------------------------- |
+| `vaultId`    | uint256 |                                                            |
+| `autoParams` | struct  | AutomatedVault struct containing all automation parameters |
+
+**`AutomatedVault`**
+
+| Param Name         | Type    | Description                                                                        |
+| ------------------ | ------- | ---------------------------------------------------------------------------------- |
+| `isAutomated`      | bool    | `true` if vault is automated `false` if not                                        |
+| `toCollateral`     | address | Collateral to rebalance to                                                         |
+| `allowedVariation` | uint256 | The maximum allowed slippage on rebalancing swaps                                  |
+| `targetRatio`      | uint256 | Target ratio that must be reach upon each rebalance operation                      |
+| `triggerRatio`     | uint256 | Minimum vault ratio that must be reached in order to perform a rebalance operation |
+| `mcrBuffer`        | uint256 | Rebalancing vault MCR buffer padding                                               |
+| `fixedFee`         | uint256 | Fixed fee paid to the keeper                                                       |
+| `varFee`           | uint256 | Variable fee paid to the keeper                                                    |
+
+#### `rebalance(uint256 vaultId, IMIMOSwap.SwapData calldata swapData)`
+
+Performs a rebalance on a vault on behalf of a vault owner.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Vault must have been created through the user's `MIMOProxy`
+* Vault must be automated
+* Maximum daily operation must have not been reached
+* Rebalanced vault ratio must lower or equal then set `triggerRatio`
+* The change in vault value due to the rebalance operation must be lower or equal then the `allowedVariation` set by the owner
+* The final vault ratio must be greater or equal then the `minRatio` set by the owner
+
+| Param Name | Type    | Description                                             |
+| ---------- | ------- | ------------------------------------------------------- |
+| `vaultId`  | uint256 | Id of the vault to rebalance                            |
+| `swapData` | struct  | `SwapData` struct containing aggregator swap parameters |
+
+#### `executeOperation(address[] calldata assets, uint256[] calldata amounts, uint256[] calldata premiums, address initiator, bytes calldata params`
+
+AAVE `Pool` contract flash loan callback function.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Can only be called by the AAVE `Pool` contract
+* Flash loan initiator must be the `MIMOProxy`
+
+<table><thead><tr><th>Param Name</th><th width="301.3333333333333">Type</th><th>Description</th></tr></thead><tbody><tr><td><code>assets</code></td><td>address[]</td><td>Address array with one element corresponding to the address of the target vault asset</td></tr><tr><td><code>amounts</code></td><td>uint256[]</td><td>Uint array with one element corresponding to the amount of the target vault asset</td></tr><tr><td><code>premiums</code></td><td>uint256[]</td><td>Uint array with one element corresponding to the flashLoan fees</td></tr><tr><td><code>initiator</code></td><td>address</td><td>Initiator of the flashloan; can only be MIMOProxy owner</td></tr><tr><td><code>params</code></td><td>bytes</td><td>Bytes sent by this contract containing MIMOProxy owner, target vault id, SwapData struct</td></tr></tbody></table>
+
+### View Methods
+
+#### `getAmounts(uint256 vaultId, address toCollateral)`
+
+Returns the rebalance amounts for specific vault id.
+
+**Call Params**
+
+| Name           | Type    | Description                  |
+| -------------- | ------- | ---------------------------- |
+| `vaultId`      | uint256 | Id of the vault to rebalance |
+| `toCollateral` | address | Collateral to rebalance to   |
+
+**Return Values**
+
+| Name              | Type    | Description               |
+| ----------------- | ------- | ------------------------- |
+| `rebalanceAmount` | uint256 | Amount to rebalance       |
+| `mintAmount`      | uint256 | Amount to mint on vault B |
+| `autoFee`         | uint256 | Automation fee            |
+
+`rebalanceAmount` calculation :&#x20;
+
+$$
+rebalanceValue = \frac{targetRatio * (vaultDebt + fixedFee) - collateralValue}{\frac{targetRatio - (mcrB + mcrBuffer) * flashLoanfee}{mcrB + mcrBuffer} - targetRatio * variableFee - 1}
+$$
+
+Where `mcrB` is the rebalancing vault (e.g. vault with the less volatile collateral) MCR.
+
+The rebalance value is then converted to a rebalance amount using the core protocol `PriceFeed` contract.
+
+#### `mimoRebalance()`
+
+Returns the `MIMORebalance` action contract address.

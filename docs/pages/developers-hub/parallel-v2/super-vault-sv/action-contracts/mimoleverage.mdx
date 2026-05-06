@@ -1,0 +1,76 @@
+---
+title: MIMOLeverage
+description: >-
+  The `MIMOLeverage` action contract handle the super vault empty vault logic
+  described in
+  [Leveraging](/products/parallel-v2/how-it-works/super-vaults-sv/levera…
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMOLeverage"} />
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+The `MIMOLeverage` action contract handle the super vault empty vault logic described in [Leveraging](/products/parallel-v2/how-it-works/super-vaults-sv/leveraging).
+
+### Process Flow
+
+<figure><img src="/images/yM5QQlfdpYAph1D8VEW5.svg" alt="" /><figcaption></figcaption></figure>
+
+### Write Methods
+
+#### `executeAction(bytes calldata _calldata) external`
+
+Uses a flashloan to repay all debts for a vault and send all collateral in the vault to the owner.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Must be called through the `MIMOProxy` `execute()` function
+* Targeted vault must have been created by the `MIMOProxy`
+
+| Param Name | Type  | Description                                                                                                                                                                                                   |
+| ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| \_callData | bytes | <p>Abi encoded bytes with : </p><ul><li><code>uint256 depositAmount</code> </li><li><code>uint256 swapAmout</code></li><li><code>FlashloanData flData</code></li><li><code>SwapData swapData</code></li></ul> |
+
+#### `executeOperation(address[] calldata assets, uint256[] calldata amounts, uint256[] calldata premiums, address initiator, bytes calldata params`
+
+AAVE `Pool` contract flash loan callback function.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Can only be called by the AAVE `Pool` contract
+* Flash loan initiator must be the `MIMOProxy`
+
+| Param Name  | Type       | Description                                                                              |
+| ----------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `assets`    | address\[] | Address array with one element corresponding to the address of the target vault asset    |
+| `amounts`   | uint256\[] | Uint array with one element corresponding to the amount of the target vault asset        |
+| `premiums`  | uint256\[] | Uint array with one element corresponding to the flashLoan fees                          |
+| `initiator` | address    | Initiator of the flashloan; can only be MIMOProxy owner                                  |
+| `params`    | bytes      | Bytes sent by this contract containing MIMOProxy owner, target vault id, SwapData struct |
+
+#### leverageOperation`(IERC20 token, uint256 swapAmount, uint256 flashLoanRepayAmount, SwapData calldata swapData)`
+
+Performs a leverage logic within MIMOProxy context.
+
+Requirements :&#x20;
+
+* Contract must be unpaused
+* Must be called through the `MIMOProxy` `execute()` function
+
+| Param Name             | Type    | Description                                                                        |
+| ---------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `token`                | IERC20  | Collateral of the vault to leverage                                                |
+| `swapAmount`           | uint256 | Stablex swap amount                                                                |
+| `flashLoanRepayAmount` | uint256 | Amount of collateral to repay to flash loan protocol at the end of the transaction |
+| `swapData`             | struct  | SwapData passed from the flash loan call                                           |
+
+### View Methods
+
+`proxyFactory()`
+
+Returns the `MIMOProxyFactory` address.

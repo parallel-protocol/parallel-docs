@@ -1,0 +1,58 @@
+---
+title: Staking Mechanisms
+description: >-
+  PRL holders have the option to stake their tokens in 2 different forms: sPRL1,
+  single PRL staking; and sPRL2, PRL/wETH 80/20 BPT staking. Each option allows
+  ho…
+subtitle: Understanding Staking Mechanisms
+---
+import { PageHeader } from '@/components/PageHeader'
+
+<PageHeader breadcrumb={[{"label":"Governance","href":"/governance"},{"label":"Parallel Governance Token Prl","href":"/governance/parallel-governance-token-prl"},{"label":"Tokenomics","href":"/governance/parallel-governance-token-prl/tokenomics"}]} title={"Staking Mechanisms"} subtitle={"Understanding Staking Mechanisms"} />
+
+PRL holders have the option to stake their tokens in 2 different forms: sPRL1, single PRL staking; and sPRL2, PRL/wETH 80/20 BPT staking. Each option allows holders to choose the risk they are willing to take.
+
+:::warning
+sPRL1 & sPRL2 are represented in form of tokens and will be freely transferable, however in case of transfer, the accumulated Paraboost will be lost (more details about Paraboost [here](/governance/parallel-governance-token-prl/tokenomics/paraboost)).
+:::
+
+:::info
+The PRL staking modules can be deployed on several blockchains at once.
+:::
+
+<figure><img src="https://lh7-rt.googleusercontent.com/docsz/AD_4nXd9e9vhPUKbd2YUr_rweZl_d5mlTLdjuVPrpqAozapb56ke85rl2zCAeNSiJki8JvGniUNoYAejUjERY49Uv8EhOY8bzsgwHDir_7rjJBteG1x3syFrDwdtOnwOk_byxt7xNKdU?key=uOHfGKisLsmo3vlkLWSaDkLF" alt="" /><figcaption><p>Staking Mechanisms Summary</p></figcaption></figure>
+
+It is possible for sPRL1 and sPRL2 to initiate unstaking at any time, against a cooldown period of 1 epoch. However, they are able to bypass the vesting period by paying a penalty fee, starting at 50% and decreasing linearly over time. The penalty fee is taken from the amount of sPRL1 or sPRL2 being unstaked and is sent to the DAO Treasury.
+
+<figure><img src="https://lh7-rt.googleusercontent.com/docsz/AD_4nXci-Irsgw1RejbBF6baHptCcp5GGlP8L_HI4rRuyV9fH7R7VoY9fi_-IuCmZxLIIDH7hf3nAM_HG70LI6x4nXpVB_yEW_ZItCV_ErfxdfI57N35-kCcnRCsO7DVscxEu9gpBBYt?key=uOHfGKisLsmo3vlkLWSaDkLF" alt="" /><figcaption><p>Penalty Fee Over Time</p></figcaption></figure>
+
+### sPRL1: Single PRL Staking
+
+A basic single-sided staking for users who do not want to take an impermanent loss from tokens in liquidity pools. Each PRL staked as sPRL1 will count as x1 voting power, with a 1 epoch unstaking cooldown.
+
+sPRL1 is currently deployed on:
+
+* Ethereum
+* Polygon PoS
+* Base
+* Sonic
+
+:::info
+sPRL1 can technically be deployed on more chains in the future, conditioned to the availability of PRL on the chain.
+:::
+
+### sPRL2: Liquidity Pool Staking
+
+A PRL/wETH 80/20 Balancer Pool Token staking for users who want to get the maximum voting power. The staked LP as sPRL2 is itself staked on Aura under the hood, with rewards in $BAL and $AURA automatically sent to the DAO treasury.
+
+As these stakers help Parallel increase the PRL liquidity a x2.5 boost on the equivalent value of PRL tokens staked (in $) is applied. This boost ise applied for ParaBoost. sPRL2 holders are able to unstake their BPT tokens against a 1 epoch unstaking cooldown.
+
+sPRL2 is currently deployed on:
+
+* Ethereum
+
+:::info
+sPRL2 can technically be deployed on more chains in the future, conditioned to the availability of PRL, Balancer/Beets & Aura on the chain.
+:::
+
+<br />

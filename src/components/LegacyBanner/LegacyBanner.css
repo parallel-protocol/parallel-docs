@@ -1,0 +1,37 @@
+/* LegacyBanner — scoped styles, prefix `cooper-legacy-banner-*`. No Tailwind. */
+
+.cooper-legacy-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  border-radius: 6px;
+  /* Amber/warning tone — falls back gracefully when Vocs warning vars are absent */
+  background-color: var(--vocs-color-noteBackground, rgb(254 243 199 / 70%));
+  border: 1px solid var(--vocs-color-noteBorder, rgb(252 211 77 / 50%));
+  color: var(--vocs-color-noteText, #92400e);
+  margin-bottom: 1.5rem;
+}
+
+.cooper-legacy-banner-icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: var(--vocs-color-noteIcon, #d97706);
+}
+
+.cooper-legacy-banner-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.cooper-legacy-banner-text a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cooper-legacy-banner-text a:hover {
+  opacity: 0.8;
+}
