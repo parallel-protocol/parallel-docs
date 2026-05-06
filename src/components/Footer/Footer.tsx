@@ -1,45 +1,46 @@
 import "./Footer.css";
 
-interface FooterLink {
+export interface FooterLink {
   text: string;
   href: string;
 }
 
-interface FooterColumn {
+export interface FooterColumn {
   heading: string;
   links: FooterLink[];
 }
 
-const COLUMNS: FooterColumn[] = [
-  {
-    heading: "Resources",
-    links: [
-      { text: "Landing Page", href: "https://parallel.best/" },
-      { text: "App", href: "https://app.parallel.best/" },
-      { text: "Brand Assets", href: "https://brand.parallel.best/" },
-      { text: "Github", href: "https://github.com/parallel-protocol/" },
-    ],
-  },
-  {
-    heading: "Follow",
-    links: [
-      { text: "Blog", href: "https://blog.parallel.best/" },
-      { text: "X", href: "https://x.com/ParallelMoney" },
-      { text: "Telegram", href: "https://t.me/parallel_money" },
-      { text: "Discord", href: "https://discord.gg/vuuAVAxpcF" },
-    ],
-  },
-];
+export interface FooterProps {
+  /**
+   * Columns to render. The component is config-driven so each docs-X repo
+   * can supply its own column layout in `docs/layout.tsx` without touching
+   * the shared component code.
+   */
+  columns: FooterColumn[];
+}
 
-export default function Footer() {
+/**
+ * Site footer — full-viewport-width tinted band, rendered at the root of
+ * `docs/layout.tsx` so it spans below the entire DocsLayout (sidebar +
+ * content + outline).
+ *
+ * The CSS adapts the column count automatically:
+ *   - desktop (≥ 1080px) : N columns side-by-side
+ *   - tablet  (≥ 720px)  : 2 columns
+ *   - mobile  (< 720px)  : 1 column stacked
+ */
+export default function Footer({ columns }: FooterProps) {
+  if (columns.length === 0) return null;
+
   return (
     <footer
       className="cooper-footer-bleed"
       role="contentinfo"
       aria-label="Site footer"
+      data-cols={columns.length}
     >
       <div className="cooper-footer">
-        {COLUMNS.map((col) => (
+        {columns.map((col) => (
           <div key={col.heading} className="cooper-footer-column">
             <h2 className="cooper-footer-heading">{col.heading}</h2>
             <ul className="cooper-footer-list">

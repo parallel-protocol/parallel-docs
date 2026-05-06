@@ -51,7 +51,15 @@
 }
 
 /* Inner content : centered, max-width matched to the typical doc content
- * column so the columns line up roughly with the page content above. */
+ * column so the columns line up roughly with the page content above.
+ *
+ * Responsive column count :
+ *   < 720px  : 1 col stacked
+ *   < 1080px : 2 cols (paired into 2×N rows)
+ *   ≥ 1080px : N cols where N = data-cols (set by the React component to
+ *              match the columns prop). Falls back gracefully if data-cols
+ *              is unset.
+ */
 .cooper-footer {
   display: grid;
   grid-template-columns: 1fr;
@@ -62,12 +70,26 @@
 
 @media (min-width: 720px) {
   .cooper-footer {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 3rem;
   }
 
   .cooper-footer-bleed {
     padding: 3.5rem 2rem;
+  }
+}
+
+@media (min-width: 1080px) {
+  .cooper-footer-bleed[data-cols="3"] .cooper-footer {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cooper-footer-bleed[data-cols="4"] .cooper-footer {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .cooper-footer-bleed[data-cols="5"] .cooper-footer {
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
