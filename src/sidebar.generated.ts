@@ -11,12 +11,12 @@ import type { Sidebar } from "vocs";
 
 export const sidebar: Sidebar = [
   {
-    "text": "Overview",
-    "link": "/"
-  },
-  {
     "text": "Introduction",
     "items": [
+      {
+        "text": "Overview",
+        "link": "/"
+      },
       {
         "text": "Products",
         "link": "/introduction/products"
@@ -30,6 +30,62 @@ export const sidebar: Sidebar = [
   {
     "text": "Products",
     "items": [
+      {
+        "text": "Parallel V3",
+        "items": [
+          {
+            "text": "Governance",
+            "link": "/products/parallel-v3/governance"
+          },
+          {
+            "text": "How It Works",
+            "items": [
+              {
+                "text": "Bridging Module",
+                "link": "/products/parallel-v3/how-it-works/bridging-module"
+              },
+              {
+                "text": "Flashloan Module",
+                "link": "/products/parallel-v3/how-it-works/flashloan-module"
+              },
+              {
+                "text": "Parallelizer Module",
+                "link": "/products/parallel-v3/how-it-works/parallelizer-module"
+              },
+              {
+                "text": "Savings Module",
+                "link": "/products/parallel-v3/how-it-works/savings-module"
+              }
+            ],
+            "link": "/products/parallel-v3/how-it-works"
+          },
+          {
+            "text": "Licensing",
+            "link": "/products/parallel-v3/licensing"
+          },
+          {
+            "text": "Stablecoins & Savings",
+            "items": [
+              {
+                "text": "USDp & sUSDp",
+                "items": [
+                  {
+                    "text": "Fee Distribution",
+                    "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/fee-distribution"
+                  },
+                  {
+                    "text": "Implementation",
+                    "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation"
+                  }
+                ],
+                "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp"
+              }
+            ],
+            "link": "/products/parallel-v3/stablecoins-and-savings"
+          }
+        ],
+        "link": "/products/parallel-v3"
+      },
       {
         "text": "Parallel V2",
         "items": [
@@ -179,62 +235,6 @@ export const sidebar: Sidebar = [
         ],
         "link": "/products/parallel-v2",
         "collapsed": true
-      },
-      {
-        "text": "Parallel V3",
-        "items": [
-          {
-            "text": "Governance",
-            "link": "/products/parallel-v3/governance"
-          },
-          {
-            "text": "How It Works",
-            "items": [
-              {
-                "text": "Bridging Module",
-                "link": "/products/parallel-v3/how-it-works/bridging-module"
-              },
-              {
-                "text": "Flashloan Module",
-                "link": "/products/parallel-v3/how-it-works/flashloan-module"
-              },
-              {
-                "text": "Parallelizer Module",
-                "link": "/products/parallel-v3/how-it-works/parallelizer-module"
-              },
-              {
-                "text": "Savings Module",
-                "link": "/products/parallel-v3/how-it-works/savings-module"
-              }
-            ],
-            "link": "/products/parallel-v3/how-it-works"
-          },
-          {
-            "text": "Licensing",
-            "link": "/products/parallel-v3/licensing"
-          },
-          {
-            "text": "Stablecoins & Savings",
-            "items": [
-              {
-                "text": "USDp & sUSDp",
-                "items": [
-                  {
-                    "text": "Fee Distribution",
-                    "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/fee-distribution"
-                  },
-                  {
-                    "text": "Implementation",
-                    "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation"
-                  }
-                ],
-                "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp"
-              }
-            ],
-            "link": "/products/parallel-v3/stablecoins-and-savings"
-          }
-        ],
-        "link": "/products/parallel-v3"
       }
     ]
   },
@@ -272,8 +272,88 @@ export const sidebar: Sidebar = [
     ]
   },
   {
-    "text": "Governance",
+    "text": "DAO & Governance",
     "items": [
+      {
+        "text": "Parallel Governance Token (PRL)",
+        "items": [
+          {
+            "text": "Bridging Module",
+            "items": [
+              {
+                "text": "Implementation",
+                "link": "/governance/parallel-governance-token-prl/bridging-module/implementation"
+              },
+              {
+                "text": "Specifications",
+                "link": "/governance/parallel-governance-token-prl/bridging-module/specifications"
+              }
+            ],
+            "link": "/governance/parallel-governance-token-prl/bridging-module"
+          },
+          {
+            "text": "Governance",
+            "link": "/governance/parallel-governance-token-prl/governance"
+          },
+          {
+            "text": "Issuance",
+            "link": "/governance/parallel-governance-token-prl/issuance"
+          },
+          {
+            "text": "MIMO to PRL Migration",
+            "link": "/governance/parallel-governance-token-prl/mimo-to-prl-migration"
+          },
+          {
+            "text": "Tokenomics",
+            "items": [
+              {
+                "text": "Epoch Concept",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/epoch-concept"
+              },
+              {
+                "text": "Fee Distribution",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/fee-distribution"
+              },
+              {
+                "text": "ParaBoost",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/paraboost"
+              },
+              {
+                "text": "Staking Mechanisms",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms"
+              }
+            ],
+            "link": "/governance/parallel-governance-token-prl/tokenomics"
+          }
+        ],
+        "link": "/governance/parallel-governance-token-prl"
+      },
+      {
+        "text": "sPRL and Voting Power",
+        "link": "/governance/sprl"
+      },
+      {
+        "text": "Governance Process",
+        "link": "/governance/governance-process"
+      },
+      {
+        "text": "Proposal Framework",
+        "items": [
+          {
+            "text": "Parallel Governance Proposal (PGP)",
+            "link": "/governance/proposal-framework/parallel-governance-proposal-pgp"
+          },
+          {
+            "text": "Parallel Improvement Protocol (PIP)",
+            "link": "/governance/proposal-framework/parallel-improvement-protocol-pip"
+          },
+          {
+            "text": "Parallel Integration Request (PIR)",
+            "link": "/governance/proposal-framework/parallel-integration-request-pir"
+          }
+        ],
+        "link": "/governance/proposal-framework"
+      },
       {
         "text": "DAO Multisigs",
         "items": [
@@ -330,86 +410,6 @@ export const sidebar: Sidebar = [
         ],
         "link": "/governance/dao-treasury",
         "collapsed": true
-      },
-      {
-        "text": "Governance Process",
-        "link": "/governance/governance-process"
-      },
-      {
-        "text": "Parallel Governance Token (PRL)",
-        "items": [
-          {
-            "text": "Bridging Module",
-            "items": [
-              {
-                "text": "Implementation",
-                "link": "/governance/parallel-governance-token-prl/bridging-module/implementation"
-              },
-              {
-                "text": "Specifications",
-                "link": "/governance/parallel-governance-token-prl/bridging-module/specifications"
-              }
-            ],
-            "link": "/governance/parallel-governance-token-prl/bridging-module"
-          },
-          {
-            "text": "Governance",
-            "link": "/governance/parallel-governance-token-prl/governance"
-          },
-          {
-            "text": "Issuance",
-            "link": "/governance/parallel-governance-token-prl/issuance"
-          },
-          {
-            "text": "MIMO to PRL Migration",
-            "link": "/governance/parallel-governance-token-prl/mimo-to-prl-migration"
-          },
-          {
-            "text": "Tokenomics",
-            "items": [
-              {
-                "text": "Epoch Concept",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/epoch-concept"
-              },
-              {
-                "text": "Fee Distribution",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/fee-distribution"
-              },
-              {
-                "text": "ParaBoost",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/paraboost"
-              },
-              {
-                "text": "Staking Mechanisms",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms"
-              }
-            ],
-            "link": "/governance/parallel-governance-token-prl/tokenomics"
-          }
-        ],
-        "link": "/governance/parallel-governance-token-prl"
-      },
-      {
-        "text": "Proposal Framework",
-        "items": [
-          {
-            "text": "Parallel Governance Proposal (PGP)",
-            "link": "/governance/proposal-framework/parallel-governance-proposal-pgp"
-          },
-          {
-            "text": "Parallel Improvement Protocol (PIP)",
-            "link": "/governance/proposal-framework/parallel-improvement-protocol-pip"
-          },
-          {
-            "text": "Parallel Integration Request (PIR)",
-            "link": "/governance/proposal-framework/parallel-integration-request-pir"
-          }
-        ],
-        "link": "/governance/proposal-framework"
-      },
-      {
-        "text": "sPRL and Voting Power",
-        "link": "/governance/sprl"
       }
     ]
   },
@@ -417,69 +417,98 @@ export const sidebar: Sidebar = [
     "text": "Developers Hub",
     "items": [
       {
-        "text": "Addresses",
-        "items": [
-          {
-            "text": "Parallel V2",
-            "items": [
-              {
-                "text": "MIMO-DEPRECATED Contract Addresses",
-                "link": "/developers-hub/contract-addresses/parallel-v2/mimo-deprecated"
-              },
-              {
-                "text": "PAR Contract Addresses",
-                "link": "/developers-hub/contract-addresses/parallel-v2/par"
-              },
-              {
-                "text": "PAUSD-DEPRECATED Contract Addresses",
-                "link": "/developers-hub/contract-addresses/parallel-v2/pausd-deprecated"
-              }
-            ],
-            "link": "/developers-hub/contract-addresses/parallel-v2",
-            "collapsed": true
-          },
-          {
-            "text": "Parallel V3",
-            "items": [
-              {
-                "text": "PRL Contract Addresses",
-                "link": "/developers-hub/contract-addresses/parallel-v3/prl"
-              },
-              {
-                "text": "USDP Contract Addresses",
-                "link": "/developers-hub/contract-addresses/parallel-v3/usdp"
-              }
-            ],
-            "link": "/developers-hub/contract-addresses/parallel-v3",
-            "collapsed": true
-          }
-        ],
-        "link": "/developers-hub/contract-addresses",
-        "collapsed": true
-      },
-      {
         "text": "Introduction",
         "link": "/developers-hub/developers-guide"
       },
       {
-        "text": "Parallel Governance Token (PRL)",
+        "text": "Parallel V3",
         "items": [
           {
-            "text": "Tokenomics",
+            "text": "Bridging Module",
+            "link": "/developers-hub/parallel-v3/bridging-module"
+          },
+          {
+            "text": "Build on Parallel",
             "items": [
               {
-                "text": "Contracts",
-                "link": "/developers-hub/parallel-governance-token-prl/tokenomics/contracts"
+                "text": "Flashloan Module Integration",
+                "link": "/developers-hub/parallel-v3/build-on-parallel/flashloan-module-integration"
               },
               {
-                "text": "Key Operations Flows",
-                "link": "/developers-hub/parallel-governance-token-prl/tokenomics/key-operations-flows"
+                "text": "Parallelizer Module Integration",
+                "link": "/developers-hub/parallel-v3/build-on-parallel/parallelizer-module-integration"
+              },
+              {
+                "text": "Savings Module Integration",
+                "link": "/developers-hub/parallel-v3/build-on-parallel/savings-module-integration"
               }
             ],
-            "link": "/developers-hub/parallel-governance-token-prl/tokenomics"
+            "link": "/developers-hub/parallel-v3/build-on-parallel"
+          },
+          {
+            "text": "Flashloan Module",
+            "link": "/developers-hub/parallel-v3/flashloan-module"
+          },
+          {
+            "text": "Offchain Tools",
+            "items": [
+              {
+                "text": "Dune",
+                "link": "/developers-hub/parallel-v3/offchain-tools/dune"
+              },
+              {
+                "text": "Subgraphs",
+                "link": "/developers-hub/parallel-v3/offchain-tools/subgraphs"
+              }
+            ],
+            "link": "/developers-hub/parallel-v3/offchain-tools"
+          },
+          {
+            "text": "Onchain Tools",
+            "items": [
+              {
+                "text": "Oracles",
+                "items": [
+                  {
+                    "text": "DIA",
+                    "items": [
+                      {
+                        "text": "Fundamental",
+                        "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia/fundamental"
+                      },
+                      {
+                        "text": "Market",
+                        "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia/market"
+                      }
+                    ],
+                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia"
+                  },
+                  {
+                    "text": "RedStone",
+                    "items": [
+                      {
+                        "text": "Fundamental",
+                        "link": "/developers-hub/parallel-v3/onchain-tools/oracles/redstone/fundamental"
+                      }
+                    ],
+                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/redstone"
+                  }
+                ],
+                "link": "/developers-hub/parallel-v3/onchain-tools/oracles"
+              }
+            ],
+            "link": "/developers-hub/parallel-v3/onchain-tools"
+          },
+          {
+            "text": "Parallelizer Module",
+            "link": "/developers-hub/parallel-v3/parallelizer-module"
+          },
+          {
+            "text": "Savings Module",
+            "link": "/developers-hub/parallel-v3/savings-module"
           }
         ],
-        "link": "/developers-hub/parallel-governance-token-prl"
+        "link": "/developers-hub/parallel-v3"
       },
       {
         "text": "Parallel V2",
@@ -592,94 +621,65 @@ export const sidebar: Sidebar = [
         "collapsed": true
       },
       {
-        "text": "Parallel V3",
+        "text": "Parallel Governance Token (PRL)",
         "items": [
           {
-            "text": "Bridging Module",
-            "link": "/developers-hub/parallel-v3/bridging-module"
-          },
-          {
-            "text": "Build on Parallel",
+            "text": "Tokenomics",
             "items": [
               {
-                "text": "Flashloan Module Integration",
-                "link": "/developers-hub/parallel-v3/build-on-parallel/flashloan-module-integration"
+                "text": "Contracts",
+                "link": "/developers-hub/parallel-governance-token-prl/tokenomics/contracts"
               },
               {
-                "text": "Parallelizer Module Integration",
-                "link": "/developers-hub/parallel-v3/build-on-parallel/parallelizer-module-integration"
-              },
-              {
-                "text": "Savings Module Integration",
-                "link": "/developers-hub/parallel-v3/build-on-parallel/savings-module-integration"
+                "text": "Key Operations Flows",
+                "link": "/developers-hub/parallel-governance-token-prl/tokenomics/key-operations-flows"
               }
             ],
-            "link": "/developers-hub/parallel-v3/build-on-parallel"
-          },
-          {
-            "text": "Flashloan Module",
-            "link": "/developers-hub/parallel-v3/flashloan-module"
-          },
-          {
-            "text": "Offchain Tools",
-            "items": [
-              {
-                "text": "Dune",
-                "link": "/developers-hub/parallel-v3/offchain-tools/dune"
-              },
-              {
-                "text": "Subgraphs",
-                "link": "/developers-hub/parallel-v3/offchain-tools/subgraphs"
-              }
-            ],
-            "link": "/developers-hub/parallel-v3/offchain-tools"
-          },
-          {
-            "text": "Onchain Tools",
-            "items": [
-              {
-                "text": "Oracles",
-                "items": [
-                  {
-                    "text": "DIA",
-                    "items": [
-                      {
-                        "text": "Fundamental",
-                        "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia/fundamental"
-                      },
-                      {
-                        "text": "Market",
-                        "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia/market"
-                      }
-                    ],
-                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia"
-                  },
-                  {
-                    "text": "RedStone",
-                    "items": [
-                      {
-                        "text": "Fundamental",
-                        "link": "/developers-hub/parallel-v3/onchain-tools/oracles/redstone/fundamental"
-                      }
-                    ],
-                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/redstone"
-                  }
-                ],
-                "link": "/developers-hub/parallel-v3/onchain-tools/oracles"
-              }
-            ],
-            "link": "/developers-hub/parallel-v3/onchain-tools"
-          },
-          {
-            "text": "Parallelizer Module",
-            "link": "/developers-hub/parallel-v3/parallelizer-module"
-          },
-          {
-            "text": "Savings Module",
-            "link": "/developers-hub/parallel-v3/savings-module"
+            "link": "/developers-hub/parallel-governance-token-prl/tokenomics"
           }
         ],
-        "link": "/developers-hub/parallel-v3"
+        "link": "/developers-hub/parallel-governance-token-prl"
+      },
+      {
+        "text": "Addresses",
+        "items": [
+          {
+            "text": "Parallel V2",
+            "items": [
+              {
+                "text": "MIMO-DEPRECATED Contract Addresses",
+                "link": "/developers-hub/contract-addresses/parallel-v2/mimo-deprecated"
+              },
+              {
+                "text": "PAR Contract Addresses",
+                "link": "/developers-hub/contract-addresses/parallel-v2/par"
+              },
+              {
+                "text": "PAUSD-DEPRECATED Contract Addresses",
+                "link": "/developers-hub/contract-addresses/parallel-v2/pausd-deprecated"
+              }
+            ],
+            "link": "/developers-hub/contract-addresses/parallel-v2",
+            "collapsed": true
+          },
+          {
+            "text": "Parallel V3",
+            "items": [
+              {
+                "text": "PRL Contract Addresses",
+                "link": "/developers-hub/contract-addresses/parallel-v3/prl"
+              },
+              {
+                "text": "USDP Contract Addresses",
+                "link": "/developers-hub/contract-addresses/parallel-v3/usdp"
+              }
+            ],
+            "link": "/developers-hub/contract-addresses/parallel-v3",
+            "collapsed": true
+          }
+        ],
+        "link": "/developers-hub/contract-addresses",
+        "collapsed": true
       }
     ]
   },

@@ -46,6 +46,39 @@ const TOP_LEVEL_ORDER: string[] = [
   "resources",
 ];
 
+/**
+ * Override the rendered text for a given path. Default text comes from the
+ * MDX frontmatter `title`, falling back to the slug. Use this to rename
+ * top-level sections without touching the source MDX.
+ */
+const LABEL_OVERRIDES: Record<string, string> = {
+  "/governance": "DAO & Governance",
+};
+
+/**
+ * Force a specific child ordering for some parents (slug → ordered list of
+ * child slugs). Children not listed are appended alphabetically. Matches
+ * docs.parallel.best canonical sidebar order.
+ */
+const CHILDREN_ORDER: Record<string, string[]> = {
+  "/products": ["parallel-v3", "parallel-v2"],
+  "/developers-hub": [
+    "developers-guide",
+    "parallel-v3",
+    "parallel-v2",
+    "parallel-governance-token-prl",
+    "contract-addresses",
+  ],
+  "/governance": [
+    "parallel-governance-token-prl",
+    "sprl",
+    "governance-process",
+    "proposal-framework",
+    "dao-multisigs",
+    "dao-treasury",
+  ],
+};
+
 const COLLAPSED_BY_DEFAULT_PATTERNS = [
   /\/parallel-v2(\/|$)/,
   /\/dao-multisigs(\/|$)/,
@@ -102,15 +135,17 @@ function buildItem(absPath: string): SidebarItem | null {
   if (stats.isDirectory()) {
     const entries = readdirSync(absPath);
     const indexMdx = entries.includes("index.mdx") ? join(absPath, "index.mdx") : null;
-    const children: SidebarItem[] = [];
+    const childMap = new Map<string, SidebarItem>();
 
     for (const entry of entries) {
       if (entry === "index.mdx") continue;
       const child = buildItem(join(absPath, entry));
-      if (child) children.push(child);
+      if (!child) continue;
+      const slug = entry.replace(/\.mdx$/, "");
+      childMap.set(slug, child);
     }
 
-    children.sort((a, b) => a.text.localeCompare(b.text));
+    const children = sortChildren(childMap, pathToRoute(absPath));
 
     if (children.length === 0) {
       // Directory with only an index — treat as a leaf
@@ -124,9 +159,10 @@ function buildItem(absPath: string): SidebarItem | null {
     }
 
     const slug = absPath.split("/").pop() || "";
-    const text = indexMdx
-      ? readTitle(indexMdx) || slugToText(slug)
-      : slugToText(slug);
+    const route = pathToRoute(absPath);
+    const text =
+      LABEL_OVERRIDES[route] ||
+      (indexMdx ? readTitle(indexMdx) || slugToText(slug) : slugToText(slug));
     const item: SidebarItem = { text, items: children };
     if (indexMdx) item.link = pathToRoute(indexMdx);
     if (shouldBeCollapsed(absPath)) item.collapsed = true;
@@ -136,12 +172,53 @@ function buildItem(absPath: string): SidebarItem | null {
   return null;
 }
 
+function sortChildren(childMap: Map<string, SidebarItem>, parentRoute: string): SidebarItem[] {
+  const order = CHILDREN_ORDER[parentRoute];
+  if (!order) {
+    return [...childMap.values()].sort((a, b) => a.text.localeCompare(b.text));
+  }
+  const ordered: SidebarItem[] = [];
+  for (const slug of order) {
+    const found = childMap.get(slug);
+    if (found) {
+      ordered.push(found);
+      childMap.delete(slug);
+    }
+  }
+  // Append remaining (alphabetical) so a missing override entry doesn't drop pages
+  const remaining = [...childMap.values()].sort((a, b) => a.text.localeCompare(b.text));
+  return [...ordered, ...remaining];
+}
+
+function sectionKey(item: SidebarItem): string {
+  // Prefer the section's own link (when an index.mdx exists), then fall back
+  // to the first descendant's link, then to the text (slugified). The first
+  // two cover label-renamed sections like "DAO & Governance" whose own
+  // index doesn't exist but whose children share a `/governance/...` prefix.
+  const fromLink = item.link?.split("/")[1];
+  if (fromLink) return fromLink.toLowerCase();
+  const firstChildLink = findFirstLink(item);
+  if (firstChildLink) {
+    const parts = firstChildLink.split("/").filter(Boolean);
+    if (parts[0]) return parts[0].toLowerCase();
+  }
+  return item.text.toLowerCase().replace(/\s+/g, "-");
+}
+
+function findFirstLink(item: SidebarItem): string | undefined {
+  if (item.link) return item.link;
+  if (!item.items) return undefined;
+  for (const child of item.items) {
+    const found = findFirstLink(child);
+    if (found) return found;
+  }
+  return undefined;
+}
+
 function orderTopLevel(items: SidebarItem[]): SidebarItem[] {
   const indexed = new Map<string, SidebarItem>();
   for (const it of items) {
-    const key = (it.link?.split("/")[1] || it.text.toLowerCase().replace(/\s+/g, "-"))
-      .toLowerCase();
-    indexed.set(key, it);
+    indexed.set(sectionKey(it), it);
   }
   const ordered: SidebarItem[] = [];
   for (const key of TOP_LEVEL_ORDER) {
@@ -168,9 +245,14 @@ function main(): void {
 
   const ordered = orderTopLevel(root);
 
-  // Prepend Overview
-  const homepage: SidebarItem = { text: "Overview", link: "/" };
-  const finalSidebar = [homepage, ...ordered];
+  // GitBook puts "Overview" (the homepage) as the FIRST child of "Introduction",
+  // not as a separate top-level entry. Inject it there if Introduction exists.
+  const introduction = ordered.find((it) => it.link === "/introduction" || it.text === "Introduction");
+  if (introduction) {
+    introduction.items = [{ text: "Overview", link: "/" }, ...(introduction.items ?? [])];
+  }
+
+  const finalSidebar = ordered;
 
   const banner = `/**
  * AUTO-GENERATED via \`pnpm generate:sidebar\` — DO NOT EDIT MANUALLY.
