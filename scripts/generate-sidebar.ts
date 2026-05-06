@@ -56,12 +56,33 @@ const LABEL_OVERRIDES: Record<string, string> = {
 };
 
 /**
- * Force a specific child ordering for some parents (slug → ordered list of
+ * Force a specific child ordering for some parents (route → ordered list of
  * child slugs). Children not listed are appended alphabetically. Matches
  * docs.parallel.best canonical sidebar order.
+ *
+ * Source : visual diff against docs.parallel.best (the GitBook curated order
+ * is non-alphabetical and reflects information architecture, not file names).
  */
 const CHILDREN_ORDER: Record<string, string[]> = {
   "/products": ["parallel-v3", "parallel-v2"],
+  "/products/parallel-v3": [
+    "how-it-works",
+    "stablecoins-and-savings",
+    "governance",
+    "licensing",
+  ],
+  "/products/parallel-v3/how-it-works": [
+    "parallelizer-module",
+    "savings-module",
+    "flashloan-module",
+    "bridging-module",
+  ],
+  "/products/parallel-v2": ["stablecoins", "how-it-works", "licensing"],
+  "/products/parallel-v2/how-it-works": [
+    "vaults",
+    "super-vaults-sv",
+    "bridging-module",
+  ],
   "/developers-hub": [
     "developers-guide",
     "parallel-v3",
@@ -119,7 +140,7 @@ function pathToRoute(absPath: string): string {
   return route || "/";
 }
 
-function buildItem(absPath: string): SidebarItem | null {
+function buildItem(absPath: string, depth: number): SidebarItem | null {
   const stats = statSync(absPath);
   if (stats.isFile()) {
     if (!absPath.endsWith(".mdx")) return null;
@@ -139,7 +160,7 @@ function buildItem(absPath: string): SidebarItem | null {
 
     for (const entry of entries) {
       if (entry === "index.mdx") continue;
-      const child = buildItem(join(absPath, entry));
+      const child = buildItem(join(absPath, entry), depth + 1);
       if (!child) continue;
       const slug = entry.replace(/\.mdx$/, "");
       childMap.set(slug, child);
@@ -165,7 +186,16 @@ function buildItem(absPath: string): SidebarItem | null {
       (indexMdx ? readTitle(indexMdx) || slugToText(slug) : slugToText(slug));
     const item: SidebarItem = { text, items: children };
     if (indexMdx) item.link = pathToRoute(indexMdx);
-    if (shouldBeCollapsed(absPath)) item.collapsed = true;
+    // Collapse rules :
+    //  - depth ≥ 3 with children → ALWAYS collapsed (matches GitBook UX where
+    //    only the top 2 levels are exposed without click; deeper levels show
+    //    a chevron and expand on demand).
+    //  - depth ≤ 2 → only collapse when explicitly opted in via
+    //    COLLAPSED_BY_DEFAULT_PATTERNS (e.g. `parallel-v2` is always collapsed
+    //    even at depth 2, since it's the legacy branch).
+    if (depth >= 3 || shouldBeCollapsed(absPath)) {
+      item.collapsed = true;
+    }
     return item;
   }
 
@@ -239,7 +269,7 @@ function main(): void {
 
   for (const entry of entries) {
     if (entry === "index.mdx") continue; // homepage, treated as Overview
-    const child = buildItem(join(PAGES_DIR, entry));
+    const child = buildItem(join(PAGES_DIR, entry), 1);
     if (child) root.push(child);
   }
 

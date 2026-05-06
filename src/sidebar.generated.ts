@@ -34,20 +34,8 @@ export const sidebar: Sidebar = [
         "text": "Parallel V3",
         "items": [
           {
-            "text": "Governance",
-            "link": "/products/parallel-v3/governance"
-          },
-          {
             "text": "How It Works",
             "items": [
-              {
-                "text": "Bridging Module",
-                "link": "/products/parallel-v3/how-it-works/bridging-module"
-              },
-              {
-                "text": "Flashloan Module",
-                "link": "/products/parallel-v3/how-it-works/flashloan-module"
-              },
               {
                 "text": "Parallelizer Module",
                 "link": "/products/parallel-v3/how-it-works/parallelizer-module"
@@ -55,13 +43,18 @@ export const sidebar: Sidebar = [
               {
                 "text": "Savings Module",
                 "link": "/products/parallel-v3/how-it-works/savings-module"
+              },
+              {
+                "text": "Flashloan Module",
+                "link": "/products/parallel-v3/how-it-works/flashloan-module"
+              },
+              {
+                "text": "Bridging Module",
+                "link": "/products/parallel-v3/how-it-works/bridging-module"
               }
             ],
-            "link": "/products/parallel-v3/how-it-works"
-          },
-          {
-            "text": "Licensing",
-            "link": "/products/parallel-v3/licensing"
+            "link": "/products/parallel-v3/how-it-works",
+            "collapsed": true
           },
           {
             "text": "Stablecoins & Savings",
@@ -78,10 +71,20 @@ export const sidebar: Sidebar = [
                     "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation"
                   }
                 ],
-                "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp"
+                "link": "/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp",
+                "collapsed": true
               }
             ],
-            "link": "/products/parallel-v3/stablecoins-and-savings"
+            "link": "/products/parallel-v3/stablecoins-and-savings",
+            "collapsed": true
+          },
+          {
+            "text": "Governance",
+            "link": "/products/parallel-v3/governance"
+          },
+          {
+            "text": "Licensing",
+            "link": "/products/parallel-v3/licensing"
           }
         ],
         "link": "/products/parallel-v3"
@@ -90,38 +93,45 @@ export const sidebar: Sidebar = [
         "text": "Parallel V2",
         "items": [
           {
-            "text": "How It Works",
+            "text": "Stablecoins",
             "items": [
               {
-                "text": "Bridging Module",
+                "text": "PAR",
                 "items": [
                   {
-                    "text": "Implementation",
-                    "items": [
-                      {
-                        "text": "PAR",
-                        "link": "/products/parallel-v2/how-it-works/bridging-module/implementation/par"
-                      },
-                      {
-                        "text": "paUSD",
-                        "link": "/products/parallel-v2/how-it-works/bridging-module/implementation/pausd"
-                      }
-                    ],
-                    "link": "/products/parallel-v2/how-it-works/bridging-module/implementation",
-                    "collapsed": true
+                    "text": "How does PAR work?",
+                    "link": "/products/parallel-v2/stablecoins/par/how-does-par-work"
                   },
                   {
-                    "text": "LayerZero Infrastructure",
-                    "link": "/products/parallel-v2/how-it-works/bridging-module/layerzero-infrastructure"
-                  },
-                  {
-                    "text": "Specifications",
-                    "link": "/products/parallel-v2/how-it-works/bridging-module/specifications"
+                    "text": "Where can I get PAR ?",
+                    "link": "/products/parallel-v2/stablecoins/par/where-can-i-get-par"
                   }
                 ],
-                "link": "/products/parallel-v2/how-it-works/bridging-module",
+                "link": "/products/parallel-v2/stablecoins/par",
                 "collapsed": true
               },
+              {
+                "text": "paUSD",
+                "items": [
+                  {
+                    "text": "How does paUSD work?",
+                    "link": "/products/parallel-v2/stablecoins/par-1/how-does-pausd-work"
+                  },
+                  {
+                    "text": "Where can I get paUSD ?",
+                    "link": "/products/parallel-v2/stablecoins/par-1/where-can-i-get-pausd"
+                  }
+                ],
+                "link": "/products/parallel-v2/stablecoins/par-1",
+                "collapsed": true
+              }
+            ],
+            "link": "/products/parallel-v2/stablecoins",
+            "collapsed": true
+          },
+          {
+            "text": "How It Works",
+            "items": [
               {
                 "text": "Classic Vaults",
                 "items": [
@@ -186,6 +196,36 @@ export const sidebar: Sidebar = [
                 ],
                 "link": "/products/parallel-v2/how-it-works/super-vaults-sv",
                 "collapsed": true
+              },
+              {
+                "text": "Bridging Module",
+                "items": [
+                  {
+                    "text": "Implementation",
+                    "items": [
+                      {
+                        "text": "PAR",
+                        "link": "/products/parallel-v2/how-it-works/bridging-module/implementation/par"
+                      },
+                      {
+                        "text": "paUSD",
+                        "link": "/products/parallel-v2/how-it-works/bridging-module/implementation/pausd"
+                      }
+                    ],
+                    "link": "/products/parallel-v2/how-it-works/bridging-module/implementation",
+                    "collapsed": true
+                  },
+                  {
+                    "text": "LayerZero Infrastructure",
+                    "link": "/products/parallel-v2/how-it-works/bridging-module/layerzero-infrastructure"
+                  },
+                  {
+                    "text": "Specifications",
+                    "link": "/products/parallel-v2/how-it-works/bridging-module/specifications"
+                  }
+                ],
+                "link": "/products/parallel-v2/how-it-works/bridging-module",
+                "collapsed": true
               }
             ],
             "link": "/products/parallel-v2/how-it-works",
@@ -194,43 +234,6 @@ export const sidebar: Sidebar = [
           {
             "text": "Licensing",
             "link": "/products/parallel-v2/licensing"
-          },
-          {
-            "text": "Stablecoins",
-            "items": [
-              {
-                "text": "PAR",
-                "items": [
-                  {
-                    "text": "How does PAR work?",
-                    "link": "/products/parallel-v2/stablecoins/par/how-does-par-work"
-                  },
-                  {
-                    "text": "Where can I get PAR ?",
-                    "link": "/products/parallel-v2/stablecoins/par/where-can-i-get-par"
-                  }
-                ],
-                "link": "/products/parallel-v2/stablecoins/par",
-                "collapsed": true
-              },
-              {
-                "text": "paUSD",
-                "items": [
-                  {
-                    "text": "How does paUSD work?",
-                    "link": "/products/parallel-v2/stablecoins/par-1/how-does-pausd-work"
-                  },
-                  {
-                    "text": "Where can I get paUSD ?",
-                    "link": "/products/parallel-v2/stablecoins/par-1/where-can-i-get-pausd"
-                  }
-                ],
-                "link": "/products/parallel-v2/stablecoins/par-1",
-                "collapsed": true
-              }
-            ],
-            "link": "/products/parallel-v2/stablecoins",
-            "collapsed": true
           }
         ],
         "link": "/products/parallel-v2",
@@ -289,7 +292,8 @@ export const sidebar: Sidebar = [
                 "link": "/governance/parallel-governance-token-prl/bridging-module/specifications"
               }
             ],
-            "link": "/governance/parallel-governance-token-prl/bridging-module"
+            "link": "/governance/parallel-governance-token-prl/bridging-module",
+            "collapsed": true
           },
           {
             "text": "Governance",
@@ -323,7 +327,8 @@ export const sidebar: Sidebar = [
                 "link": "/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms"
               }
             ],
-            "link": "/governance/parallel-governance-token-prl/tokenomics"
+            "link": "/governance/parallel-governance-token-prl/tokenomics",
+            "collapsed": true
           }
         ],
         "link": "/governance/parallel-governance-token-prl"
@@ -443,7 +448,8 @@ export const sidebar: Sidebar = [
                 "link": "/developers-hub/parallel-v3/build-on-parallel/savings-module-integration"
               }
             ],
-            "link": "/developers-hub/parallel-v3/build-on-parallel"
+            "link": "/developers-hub/parallel-v3/build-on-parallel",
+            "collapsed": true
           },
           {
             "text": "Flashloan Module",
@@ -461,7 +467,8 @@ export const sidebar: Sidebar = [
                 "link": "/developers-hub/parallel-v3/offchain-tools/subgraphs"
               }
             ],
-            "link": "/developers-hub/parallel-v3/offchain-tools"
+            "link": "/developers-hub/parallel-v3/offchain-tools",
+            "collapsed": true
           },
           {
             "text": "Onchain Tools",
@@ -481,7 +488,8 @@ export const sidebar: Sidebar = [
                         "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia/market"
                       }
                     ],
-                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia"
+                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/dia",
+                    "collapsed": true
                   },
                   {
                     "text": "RedStone",
@@ -491,13 +499,16 @@ export const sidebar: Sidebar = [
                         "link": "/developers-hub/parallel-v3/onchain-tools/oracles/redstone/fundamental"
                       }
                     ],
-                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/redstone"
+                    "link": "/developers-hub/parallel-v3/onchain-tools/oracles/redstone",
+                    "collapsed": true
                   }
                 ],
-                "link": "/developers-hub/parallel-v3/onchain-tools/oracles"
+                "link": "/developers-hub/parallel-v3/onchain-tools/oracles",
+                "collapsed": true
               }
             ],
-            "link": "/developers-hub/parallel-v3/onchain-tools"
+            "link": "/developers-hub/parallel-v3/onchain-tools",
+            "collapsed": true
           },
           {
             "text": "Parallelizer Module",
@@ -635,7 +646,8 @@ export const sidebar: Sidebar = [
                 "link": "/developers-hub/parallel-governance-token-prl/tokenomics/key-operations-flows"
               }
             ],
-            "link": "/developers-hub/parallel-governance-token-prl/tokenomics"
+            "link": "/developers-hub/parallel-governance-token-prl/tokenomics",
+            "collapsed": true
           }
         ],
         "link": "/developers-hub/parallel-governance-token-prl"
