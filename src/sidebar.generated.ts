@@ -25,7 +25,8 @@ export const sidebar: Sidebar = [
         "text": "Use Cases",
         "link": "/introduction/use-cases"
       }
-    ]
+    ],
+    "collapsed": false
   },
   {
     "text": "PRODUCTS",
@@ -240,7 +241,8 @@ export const sidebar: Sidebar = [
         "link": "/products/parallel-v2",
         "collapsed": true
       }
-    ]
+    ],
+    "collapsed": false
   },
   {
     "text": "SECURITY",
@@ -273,7 +275,8 @@ export const sidebar: Sidebar = [
         "text": "Audits",
         "link": "/security/audits"
       }
-    ]
+    ],
+    "collapsed": false
   },
   {
     "text": "DAO & GOVERNANCE",
@@ -419,7 +422,8 @@ export const sidebar: Sidebar = [
         "link": "/governance/dao-treasury",
         "collapsed": true
       }
-    ]
+    ],
+    "collapsed": false
   },
   {
     "text": "DEVELOPERS HUB",
@@ -698,7 +702,8 @@ export const sidebar: Sidebar = [
         "link": "/developers-hub/contract-addresses",
         "collapsed": true
       }
-    ]
+    ],
+    "collapsed": false
   },
   {
     "text": "RESOURCES",
@@ -707,6 +712,7 @@ export const sidebar: Sidebar = [
         "text": "User Guides",
         "link": "/resources/user-guides"
       }
-    ]
+    ],
+    "collapsed": false
   }
 ];

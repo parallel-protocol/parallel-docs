@@ -305,15 +305,16 @@ function main(): void {
     introduction.items = [{ text: "Overview", link: "/" }, ...(introduction.items ?? [])];
   }
 
-  // Top-level sections are static UPPERCASE headers (à la GitBook) :
-  //  - no `link` (not clickable)
-  //  - no `collapsed` (always-expanded, no chevron)
-  //  - text in UPPERCASE
+  // Top-level sections are UPPERCASE collapsible headers :
+  //  - no `link` (the header itself isn't a navigation target)
+  //  - `collapsed: false` so they render expanded by default but with a
+  //    chevron the user can click to collapse the whole section
+  //  - text in UPPERCASE for the GitBook visual hierarchy
   // Items at depth ≥ 2 keep their link/collapsed/normal-case as built.
   for (const it of ordered) {
     it.text = it.text.toUpperCase();
     delete it.link;
-    delete it.collapsed;
+    it.collapsed = false;
   }
 
   const finalSidebar = ordered;
