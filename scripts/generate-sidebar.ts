@@ -83,6 +83,15 @@ const CHILDREN_ORDER: Record<string, string[]> = {
     "super-vaults-sv",
     "bridging-module",
   ],
+  "/security": [
+    "proof-of-solvency",
+    "parallel-emergency-guardians",
+    "hypernative",
+    "keepers",
+    "bug-bounty-program",
+    "insurance-fund",
+    "audits",
+  ],
   "/developers-hub": [
     "developers-guide",
     "parallel-v3",
@@ -97,6 +106,24 @@ const CHILDREN_ORDER: Record<string, string[]> = {
     "proposal-framework",
     "dao-multisigs",
     "dao-treasury",
+  ],
+  "/governance/parallel-governance-token-prl": [
+    "issuance",
+    "tokenomics",
+    "governance",
+    "bridging-module",
+    "mimo-to-prl-migration",
+  ],
+  "/governance/parallel-governance-token-prl/tokenomics": [
+    "epoch-concept",
+    "staking-mechanisms",
+    "paraboost",
+    "fee-distribution",
+  ],
+  "/governance/proposal-framework": [
+    "parallel-integration-request-pir",
+    "parallel-governance-proposal-pgp",
+    "parallel-improvement-protocol-pip",
   ],
 };
 

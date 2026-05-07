@@ -245,32 +245,32 @@ export const sidebar: Sidebar = [
     "text": "Security",
     "items": [
       {
-        "text": "Audits",
-        "link": "/security/audits"
-      },
-      {
-        "text": "Bug Bounty Program",
-        "link": "/security/bug-bounty-program"
-      },
-      {
-        "text": "Hypernative",
-        "link": "/security/hypernative"
-      },
-      {
-        "text": "Insurance Fund",
-        "link": "/security/insurance-fund"
-      },
-      {
-        "text": "Keepers",
-        "link": "/security/keepers"
+        "text": "Proof of Solvency",
+        "link": "/security/proof-of-solvency"
       },
       {
         "text": "Parallel Emergency Guardians",
         "link": "/security/parallel-emergency-guardians"
       },
       {
-        "text": "Proof of Solvency",
-        "link": "/security/proof-of-solvency"
+        "text": "Hypernative",
+        "link": "/security/hypernative"
+      },
+      {
+        "text": "Keepers",
+        "link": "/security/keepers"
+      },
+      {
+        "text": "Bug Bounty Program",
+        "link": "/security/bug-bounty-program"
+      },
+      {
+        "text": "Insurance Fund",
+        "link": "/security/insurance-fund"
+      },
+      {
+        "text": "Audits",
+        "link": "/security/audits"
       }
     ]
   },
@@ -280,6 +280,37 @@ export const sidebar: Sidebar = [
       {
         "text": "Parallel Governance Token (PRL)",
         "items": [
+          {
+            "text": "Issuance",
+            "link": "/governance/parallel-governance-token-prl/issuance"
+          },
+          {
+            "text": "Tokenomics",
+            "items": [
+              {
+                "text": "Epoch Concept",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/epoch-concept"
+              },
+              {
+                "text": "Staking Mechanisms",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms"
+              },
+              {
+                "text": "ParaBoost",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/paraboost"
+              },
+              {
+                "text": "Fee Distribution",
+                "link": "/governance/parallel-governance-token-prl/tokenomics/fee-distribution"
+              }
+            ],
+            "link": "/governance/parallel-governance-token-prl/tokenomics",
+            "collapsed": true
+          },
+          {
+            "text": "Governance",
+            "link": "/governance/parallel-governance-token-prl/governance"
+          },
           {
             "text": "Bridging Module",
             "items": [
@@ -296,39 +327,8 @@ export const sidebar: Sidebar = [
             "collapsed": true
           },
           {
-            "text": "Governance",
-            "link": "/governance/parallel-governance-token-prl/governance"
-          },
-          {
-            "text": "Issuance",
-            "link": "/governance/parallel-governance-token-prl/issuance"
-          },
-          {
             "text": "MIMO to PRL Migration",
             "link": "/governance/parallel-governance-token-prl/mimo-to-prl-migration"
-          },
-          {
-            "text": "Tokenomics",
-            "items": [
-              {
-                "text": "Epoch Concept",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/epoch-concept"
-              },
-              {
-                "text": "Fee Distribution",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/fee-distribution"
-              },
-              {
-                "text": "ParaBoost",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/paraboost"
-              },
-              {
-                "text": "Staking Mechanisms",
-                "link": "/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms"
-              }
-            ],
-            "link": "/governance/parallel-governance-token-prl/tokenomics",
-            "collapsed": true
           }
         ],
         "link": "/governance/parallel-governance-token-prl"
@@ -345,16 +345,16 @@ export const sidebar: Sidebar = [
         "text": "Proposal Framework",
         "items": [
           {
+            "text": "Parallel Integration Request (PIR)",
+            "link": "/governance/proposal-framework/parallel-integration-request-pir"
+          },
+          {
             "text": "Parallel Governance Proposal (PGP)",
             "link": "/governance/proposal-framework/parallel-governance-proposal-pgp"
           },
           {
             "text": "Parallel Improvement Protocol (PIP)",
             "link": "/governance/proposal-framework/parallel-improvement-protocol-pip"
-          },
-          {
-            "text": "Parallel Integration Request (PIR)",
-            "link": "/governance/proposal-framework/parallel-integration-request-pir"
           }
         ],
         "link": "/governance/proposal-framework"
