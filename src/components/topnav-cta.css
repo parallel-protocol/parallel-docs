@@ -1,0 +1,30 @@
+/**
+ * Top-nav CTA pills — applied to external links pointing at app.parallel.best.
+ * Vocs renders top-nav items inside `.vocs_DesktopTopNav_item`. Targeting via
+ * `[href*="..."]` keeps the styling colocated with the URL — change the topNav
+ * link in vocs.config.tsx and the pill follows; no component override needed.
+ */
+.vocs_DesktopTopNav_item[href*="parallel.best/mint"],
+.vocs_DesktopTopNav_item[href*="parallel.best/earn"] {
+  background: #5a42b8; /* purple-heart-700, matches theme.accentColor.light */
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 150ms ease;
+}
+
+.vocs_DesktopTopNav_item[href*="parallel.best/mint"]:hover,
+.vocs_DesktopTopNav_item[href*="parallel.best/earn"]:hover {
+  background: #6d51d3; /* purple-heart-600 */
+}
+
+:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/mint"],
+:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/earn"] {
+  background: #7d72e4; /* purple-heart-500, matches theme.accentColor.dark */
+}
+
+:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/mint"]:hover,
+:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/earn"]:hover {
+  background: #9b8df0;
+}
