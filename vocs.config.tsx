@@ -4,10 +4,28 @@ import remarkMath from "remark-math";
 import { defineConfig } from "vocs";
 import { sidebar } from "./src/sidebar.generated";
 
-// Site origin used for `baseUrl` (powers `<base href>` + `og:url`) and the
-// absolute `og:image`. Overridable in CI (Vercel preview deploys) by setting
-// `SITE_URL` in the build env — fallback to the canonical prod domain.
-const SITE_URL = process.env.SITE_URL || "https://docs.parallel.best";
+// Site origin used for `baseUrl` (powers asset prefixing + `og:url`) and the
+// absolute `og:image`. Resolution order :
+//   1. `SITE_URL` — manual override (set this in Vercel prod env vars to
+//      `https://docs.parallel.best` once Cooper Labs cuts over to the
+//      custom domain).
+//   2. `VERCEL_PROJECT_PRODUCTION_URL` — auto-injected on Vercel production
+//      deploys (matches the project's canonical URL alias).
+//   3. `VERCEL_URL` — auto-injected on every Vercel deploy (per-deploy URL
+//      with the random hash). Used for previews.
+//   4. Fallback : the canonical preview domain.
+//
+// Without this resolution, hardcoding `docs.parallel.best` makes Vocs
+// prepend ALL asset paths (logos, hero, og:image) with that origin at
+// build time, so `/logo-b.png` becomes `https://docs.parallel.best/logo-b.png`
+// on Vercel deploys — which 404s because Vercel serves from a different host.
+const SITE_URL = (() => {
+  if (process.env.SITE_URL) return process.env.SITE_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "https://docs-parallel.vercel.app";
+})();
 
 export default defineConfig({
   title: "Parallel Documentation",
