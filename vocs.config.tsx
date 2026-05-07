@@ -44,7 +44,7 @@ export default defineConfig({
       },
     },
   },
-  iconUrl: "/logo-b.png",
+  iconUrl: "/favicon.png",
   // Vocs swaps automatically based on prefers-color-scheme + theme toggle.
   logoUrl: {
     light: "/logo-b.png", // black wordmark on light backgrounds
@@ -66,7 +66,7 @@ export default defineConfig({
   // social cards for free without maintaining a parallel set of meta tags.
   head: () => (
     <>
-      <link rel="apple-touch-icon" href="/logo-b.png" />
+      <link rel="apple-touch-icon" href="/favicon.png" />
       <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
