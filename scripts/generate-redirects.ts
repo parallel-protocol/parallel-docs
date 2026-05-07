@@ -102,9 +102,11 @@ async function main(): Promise<void> {
     const destination = entry.pathname;
     if (source !== destination) {
       sourceDestMismatches.push(`${entry.url}: ${source} !== ${destination}`);
+      redirects.push({ source, destination, permanent: true });
     }
-
-    redirects.push({ source, destination, permanent: true });
+    // source === destination redirects are skipped — Vercel turns them into
+    // infinite 308 loops (especially for `/`). The `mdxPath` exists check
+    // above already proves the URL is reachable, so no redirect is needed.
   }
 
   // Détecter les orphan MDX (présents dans docs/pages/ mais pas référencés
