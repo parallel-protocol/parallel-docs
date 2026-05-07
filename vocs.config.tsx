@@ -99,18 +99,8 @@ export default defineConfig({
     },
   },
   topNav: [
-    { text: "Guide", link: "/" },
-    { text: "Developers", link: "/developers-hub/parallel-v3" },
-    { text: "Governance", link: "/governance/parallel-governance-token-prl" },
-    {
-      text: "v3",
-      items: [
-        { text: "v3 (current)", link: "/products/parallel-v3" },
-        { text: "v2 (legacy)", link: "/products/parallel-v2" },
-      ],
-    },
-    { text: "GitHub", link: "https://github.com/parallel-protocol/" },
-    { text: "App", link: "https://app.parallel.best" },
+    { text: "Get USDp", link: "https://app.parallel.best/mint/" },
+    { text: "Stake USDp", link: "https://app.parallel.best/earn/" },
   ],
   sidebar,
 
