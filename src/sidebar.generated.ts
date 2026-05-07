@@ -11,12 +11,12 @@ import type { Sidebar } from "vocs";
 
 export const sidebar: Sidebar = [
   {
+    "text": "Overview",
+    "link": "/"
+  },
+  {
     "text": "Introduction",
     "items": [
-      {
-        "text": "Overview",
-        "link": "/"
-      },
       {
         "text": "Products",
         "link": "/introduction/products"
@@ -25,7 +25,8 @@ export const sidebar: Sidebar = [
         "text": "Use Cases",
         "link": "/introduction/use-cases"
       }
-    ]
+    ],
+    "collapsed": true
   },
   {
     "text": "Products",
@@ -37,20 +38,20 @@ export const sidebar: Sidebar = [
             "text": "How It Works",
             "items": [
               {
-                "text": "Parallelizer Module",
-                "link": "/products/parallel-v3/how-it-works/parallelizer-module"
-              },
-              {
-                "text": "Savings Module",
-                "link": "/products/parallel-v3/how-it-works/savings-module"
+                "text": "Bridging Module",
+                "link": "/products/parallel-v3/how-it-works/bridging-module"
               },
               {
                 "text": "Flashloan Module",
                 "link": "/products/parallel-v3/how-it-works/flashloan-module"
               },
               {
-                "text": "Bridging Module",
-                "link": "/products/parallel-v3/how-it-works/bridging-module"
+                "text": "Parallelizer Module",
+                "link": "/products/parallel-v3/how-it-works/parallelizer-module"
+              },
+              {
+                "text": "Savings Module",
+                "link": "/products/parallel-v3/how-it-works/savings-module"
               }
             ],
             "link": "/products/parallel-v3/how-it-works",
@@ -87,7 +88,8 @@ export const sidebar: Sidebar = [
             "link": "/products/parallel-v3/licensing"
           }
         ],
-        "link": "/products/parallel-v3"
+        "link": "/products/parallel-v3",
+        "collapsed": true
       },
       {
         "text": "Parallel V2",
@@ -239,7 +241,8 @@ export const sidebar: Sidebar = [
         "link": "/products/parallel-v2",
         "collapsed": true
       }
-    ]
+    ],
+    "collapsed": true
   },
   {
     "text": "Security",
@@ -272,7 +275,8 @@ export const sidebar: Sidebar = [
         "text": "Audits",
         "link": "/security/audits"
       }
-    ]
+    ],
+    "collapsed": true
   },
   {
     "text": "DAO & Governance",
@@ -331,7 +335,8 @@ export const sidebar: Sidebar = [
             "link": "/governance/parallel-governance-token-prl/mimo-to-prl-migration"
           }
         ],
-        "link": "/governance/parallel-governance-token-prl"
+        "link": "/governance/parallel-governance-token-prl",
+        "collapsed": true
       },
       {
         "text": "sPRL and Voting Power",
@@ -357,7 +362,8 @@ export const sidebar: Sidebar = [
             "link": "/governance/proposal-framework/parallel-improvement-protocol-pip"
           }
         ],
-        "link": "/governance/proposal-framework"
+        "link": "/governance/proposal-framework",
+        "collapsed": true
       },
       {
         "text": "DAO Multisigs",
@@ -416,7 +422,8 @@ export const sidebar: Sidebar = [
         "link": "/governance/dao-treasury",
         "collapsed": true
       }
-    ]
+    ],
+    "collapsed": true
   },
   {
     "text": "Developers Hub",
@@ -519,7 +526,8 @@ export const sidebar: Sidebar = [
             "link": "/developers-hub/parallel-v3/savings-module"
           }
         ],
-        "link": "/developers-hub/parallel-v3"
+        "link": "/developers-hub/parallel-v3",
+        "collapsed": true
       },
       {
         "text": "Parallel V2",
@@ -650,7 +658,8 @@ export const sidebar: Sidebar = [
             "collapsed": true
           }
         ],
-        "link": "/developers-hub/parallel-governance-token-prl"
+        "link": "/developers-hub/parallel-governance-token-prl",
+        "collapsed": true
       },
       {
         "text": "Addresses",
@@ -693,7 +702,8 @@ export const sidebar: Sidebar = [
         "link": "/developers-hub/contract-addresses",
         "collapsed": true
       }
-    ]
+    ],
+    "collapsed": true
   },
   {
     "text": "Resources",
@@ -702,6 +712,7 @@ export const sidebar: Sidebar = [
         "text": "User Guides",
         "link": "/resources/user-guides"
       }
-    ]
+    ],
+    "collapsed": true
   }
 ];
