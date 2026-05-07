@@ -11,12 +11,12 @@ import type { Sidebar } from "vocs";
 
 export const sidebar: Sidebar = [
   {
-    "text": "Overview",
-    "link": "/"
-  },
-  {
-    "text": "Introduction",
+    "text": "INTRODUCTION",
     "items": [
+      {
+        "text": "Overview",
+        "link": "/"
+      },
       {
         "text": "Products",
         "link": "/introduction/products"
@@ -25,11 +25,10 @@ export const sidebar: Sidebar = [
         "text": "Use Cases",
         "link": "/introduction/use-cases"
       }
-    ],
-    "collapsed": true
+    ]
   },
   {
-    "text": "Products",
+    "text": "PRODUCTS",
     "items": [
       {
         "text": "Parallel V3",
@@ -241,11 +240,10 @@ export const sidebar: Sidebar = [
         "link": "/products/parallel-v2",
         "collapsed": true
       }
-    ],
-    "collapsed": true
+    ]
   },
   {
-    "text": "Security",
+    "text": "SECURITY",
     "items": [
       {
         "text": "Proof of Solvency",
@@ -275,11 +273,10 @@ export const sidebar: Sidebar = [
         "text": "Audits",
         "link": "/security/audits"
       }
-    ],
-    "collapsed": true
+    ]
   },
   {
-    "text": "DAO & Governance",
+    "text": "DAO & GOVERNANCE",
     "items": [
       {
         "text": "Parallel Governance Token (PRL)",
@@ -422,11 +419,10 @@ export const sidebar: Sidebar = [
         "link": "/governance/dao-treasury",
         "collapsed": true
       }
-    ],
-    "collapsed": true
+    ]
   },
   {
-    "text": "Developers Hub",
+    "text": "DEVELOPERS HUB",
     "items": [
       {
         "text": "Introduction",
@@ -662,7 +658,7 @@ export const sidebar: Sidebar = [
         "collapsed": true
       },
       {
-        "text": "Addresses",
+        "text": "Contract Addresses",
         "items": [
           {
             "text": "Parallel V2",
@@ -702,17 +698,15 @@ export const sidebar: Sidebar = [
         "link": "/developers-hub/contract-addresses",
         "collapsed": true
       }
-    ],
-    "collapsed": true
+    ]
   },
   {
-    "text": "Resources",
+    "text": "RESOURCES",
     "items": [
       {
         "text": "User Guides",
         "link": "/resources/user-guides"
       }
-    ],
-    "collapsed": true
+    ]
   }
 ];

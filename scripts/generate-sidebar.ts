@@ -49,10 +49,11 @@ const TOP_LEVEL_ORDER: string[] = [
 /**
  * Override the rendered text for a given path. Default text comes from the
  * MDX frontmatter `title`, falling back to the slug. Use this to rename
- * top-level sections without touching the source MDX.
+ * sections without touching the source MDX.
  */
 const LABEL_OVERRIDES: Record<string, string> = {
   "/governance": "DAO & Governance",
+  "/developers-hub/contract-addresses": "Contract Addresses",
 };
 
 /**
@@ -294,11 +295,28 @@ function main(): void {
 
   const ordered = orderTopLevel(root);
 
-  // Overview = single link to the homepage, kept as the very first sidebar
-  // entry (above Introduction). Matches docs.parallel.best where the GitBook
-  // home is its own top-level slot, not nested under any section.
-  const overview: SidebarItem = { text: "Overview", link: "/" };
-  const finalSidebar = [overview, ...ordered];
+  // Inject "Overview" (the homepage at /) as the FIRST child of the
+  // Introduction section, matching docs.parallel.best where the GitBook home
+  // sits inside the INTRODUCTION header (not as a separate top-level slot).
+  const introduction = ordered.find(
+    (it) => sectionKey(it) === "introduction" || it.text.toLowerCase() === "introduction",
+  );
+  if (introduction) {
+    introduction.items = [{ text: "Overview", link: "/" }, ...(introduction.items ?? [])];
+  }
+
+  // Top-level sections are static UPPERCASE headers (à la GitBook) :
+  //  - no `link` (not clickable)
+  //  - no `collapsed` (always-expanded, no chevron)
+  //  - text in UPPERCASE
+  // Items at depth ≥ 2 keep their link/collapsed/normal-case as built.
+  for (const it of ordered) {
+    it.text = it.text.toUpperCase();
+    delete it.link;
+    delete it.collapsed;
+  }
+
+  const finalSidebar = ordered;
 
   const banner = `/**
  * AUTO-GENERATED via \`pnpm generate:sidebar\` — DO NOT EDIT MANUALLY.
