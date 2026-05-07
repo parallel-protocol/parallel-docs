@@ -44,7 +44,7 @@ export default defineConfig({
       },
     },
   },
-  iconUrl: "/favicon.png",
+  iconUrl: "/favicon.ico",
   // Vocs swaps automatically based on prefers-color-scheme + theme toggle.
   logoUrl: {
     light: "/logo-b.png", // black wordmark on light backgrounds
