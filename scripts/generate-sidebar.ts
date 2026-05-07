@@ -71,12 +71,8 @@ const CHILDREN_ORDER: Record<string, string[]> = {
     "governance",
     "licensing",
   ],
-  "/products/parallel-v3/how-it-works": [
-    "parallelizer-module",
-    "savings-module",
-    "flashloan-module",
-    "bridging-module",
-  ],
+  // /products/parallel-v3/how-it-works : alphabetical matches GitBook
+  // (Bridging → Flashloan → Parallelizer → Savings).
   "/products/parallel-v2": ["stablecoins", "how-it-works", "licensing"],
   "/products/parallel-v2/how-it-works": [
     "vaults",
@@ -213,16 +209,12 @@ function buildItem(absPath: string, depth: number): SidebarItem | null {
       (indexMdx ? readTitle(indexMdx) || slugToText(slug) : slugToText(slug));
     const item: SidebarItem = { text, items: children };
     if (indexMdx) item.link = pathToRoute(indexMdx);
-    // Collapse rules :
-    //  - depth ≥ 3 with children → ALWAYS collapsed (matches GitBook UX where
-    //    only the top 2 levels are exposed without click; deeper levels show
-    //    a chevron and expand on demand).
-    //  - depth ≤ 2 → only collapse when explicitly opted in via
-    //    COLLAPSED_BY_DEFAULT_PATTERNS (e.g. `parallel-v2` is always collapsed
-    //    even at depth 2, since it's the legacy branch).
-    if (depth >= 3 || shouldBeCollapsed(absPath)) {
-      item.collapsed = true;
-    }
+    // Collapse rule : every section with children is collapsed by default
+    // (chevron always visible, content hidden until click). Matches GitBook
+    // UX where only depth-1 section headers are shown on first load and the
+    // user expands progressively. Vocs auto-expands the branch matching the
+    // current URL, so navigation never lands on a collapsed page.
+    item.collapsed = true;
     return item;
   }
 
@@ -302,14 +294,11 @@ function main(): void {
 
   const ordered = orderTopLevel(root);
 
-  // GitBook puts "Overview" (the homepage) as the FIRST child of "Introduction",
-  // not as a separate top-level entry. Inject it there if Introduction exists.
-  const introduction = ordered.find((it) => it.link === "/introduction" || it.text === "Introduction");
-  if (introduction) {
-    introduction.items = [{ text: "Overview", link: "/" }, ...(introduction.items ?? [])];
-  }
-
-  const finalSidebar = ordered;
+  // Overview = single link to the homepage, kept as the very first sidebar
+  // entry (above Introduction). Matches docs.parallel.best where the GitBook
+  // home is its own top-level slot, not nested under any section.
+  const overview: SidebarItem = { text: "Overview", link: "/" };
+  const finalSidebar = [overview, ...ordered];
 
   const banner = `/**
  * AUTO-GENERATED via \`pnpm generate:sidebar\` — DO NOT EDIT MANUALLY.
