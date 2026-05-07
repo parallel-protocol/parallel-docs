@@ -1,4 +1,7 @@
 {
+  "buildCommand": "pnpm build",
+  "outputDirectory": "docs/dist",
+  "installCommand": "pnpm install --frozen-lockfile=false",
   "redirects": [
     {
       "source": "/",
