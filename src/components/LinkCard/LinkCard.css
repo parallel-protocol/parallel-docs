@@ -8,11 +8,11 @@
   gap: 0.875rem;
   padding: 0.875rem 1rem;
   margin: 1.25rem 0;
-  /* Stroke explicite (gris ~12% opacity) — `--vocs-color-border` du theme
+  /* Stroke explicite (gris ~12% opacity) — `--vocs-color_border` du theme
    * Vocs est trop subtil et invisible à l'œil sur la card embed. */
   border: 1px solid rgb(0 0 0 / 12%);
   border-radius: var(--doc-card-radius);
-  background: var(--vocs-color-background);
+  background: var(--vocs-color_background);
   color: inherit;
   text-decoration: none;
   transition: border-color 150ms ease;
@@ -25,11 +25,11 @@
 
 .cooper-lc-card:hover,
 .cooper-lc-card:focus-visible {
-  border-color: var(--vocs-color-textAccent, var(--vocs-color-border));
+  border-color: var(--vocs-color_textAccent, var(--vocs-color_border));
 }
 
 .cooper-lc-card:focus-visible {
-  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline: 2px solid var(--vocs-color_textAccent, currentColor);
   outline-offset: 2px;
 }
 
@@ -77,6 +77,6 @@
 
 .cooper-lc-card:hover .cooper-lc-icon,
 .cooper-lc-card:focus-visible .cooper-lc-icon {
-  color: var(--vocs-color-textAccent, var(--doc-tint-strong));
+  color: var(--vocs-color_textAccent, var(--doc-tint-strong));
   transform: translateX(2px);
 }

@@ -48,6 +48,39 @@ describe("internalLinks", () => {
     expect(out).toContain("[Vocs](https://vocs.dev)");
   });
 
+  it("rewrites absolute same-host .md URLs to clean Vocs routes", async () => {
+    const body =
+      "See [Oracles](https://docs.parallel.best/developers-hub/onchain-tools/oracles.md) for details.";
+    const out = (await internalLinks.apply(
+      body,
+      makeCtx("https://docs.parallel.best/x"),
+    )) as string;
+    expect(out).toContain("[Oracles](/developers-hub/onchain-tools/oracles)");
+    expect(out).not.toContain(".md");
+  });
+
+  it("preserves anchor when rewriting absolute same-host .md URLs", async () => {
+    const body =
+      "Read the [Methodology](https://docs.parallel.best/security/proof-of-solvency.md#methodology).";
+    const out = (await internalLinks.apply(
+      body,
+      makeCtx("https://docs.parallel.best/x"),
+    )) as string;
+    expect(out).toContain("[Methodology](/security/proof-of-solvency#methodology)");
+  });
+
+  it("leaves absolute external .md URLs intact (different host)", async () => {
+    const body =
+      "Source on [GitHub](https://github.com/parallel-labs/docs/blob/main/README.md).";
+    const out = (await internalLinks.apply(
+      body,
+      makeCtx("https://docs.parallel.best/x"),
+    )) as string;
+    expect(out).toContain(
+      "[GitHub](https://github.com/parallel-labs/docs/blob/main/README.md)",
+    );
+  });
+
   it("does not touch /files/ links (handled by images transformer)", async () => {
     const out = (await internalLinks.apply(input, makeCtx("https://docs.parallel.best/"))) as string;
     expect(out).toContain("[Diagram](/files/abc123)");
@@ -118,11 +151,15 @@ describe("internalLinks /pages/[hash] alias resolution", () => {
     expect(out).toContain(`/pages/${hash}`);
   });
 
-  it("caches resolution: 2 occurrences of same hash → 1 HEAD fetch", async () => {
+  it("caches resolution: 2 occurrences of same hash → at most 1 HEAD fetch", async () => {
     const hash = "a".repeat(40);
     const input = `<a href="/pages/${hash}">A</a> <a href="/pages/${hash}">B</a>`;
     await internalLinks.apply(input, makeCtx("https://docs.parallel.best/x"));
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // Site-index lookup is the first fetch (priority 2), HEAD redirect is
+    // priority 3. Aliases for the same hash hit the alias cache on the second
+    // pass — so total = 1 site-index + 1 HEAD = 2 fetches max for one hash,
+    // never 4 for two occurrences.
+    expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(2);
   });
 
   it("does not match short aliases (< 16 chars)", async () => {

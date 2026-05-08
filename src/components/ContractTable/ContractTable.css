@@ -50,9 +50,9 @@
   line-height: 1;
   vertical-align: middle;
   border-radius: 4px;
-  border: 1px solid var(--vocs-color-noteBorder, rgb(252 211 77 / 50%));
-  background: var(--vocs-color-noteBackground, rgb(254 243 199 / 70%));
-  color: var(--vocs-color-noteText, #92400e);
+  border: 1px solid var(--vocs-color_noteBorder, rgb(252 211 77 / 50%));
+  background: var(--vocs-color_noteBackground, rgb(254 243 199 / 70%));
+  color: var(--vocs-color_noteText, #92400e);
 }
 
 .cooper-ct-compact .cooper-ct-network-badge {
@@ -70,7 +70,7 @@
 }
 
 .cooper-ct-row:hover {
-  background-color: var(--vocs-color-background2);
+  background-color: var(--vocs-color_background2);
 }
 
 .cooper-ct-row td {
@@ -129,17 +129,17 @@
 .cooper-ct-copy:focus-visible,
 .cooper-ct-link:focus-visible {
   color: var(--doc-tint-strong);
-  background-color: var(--vocs-color-background2);
+  background-color: var(--vocs-color_background2);
 }
 
 .cooper-ct-copy:focus-visible,
 .cooper-ct-link:focus-visible {
-  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline: 2px solid var(--vocs-color_textAccent, currentColor);
   outline-offset: 2px;
 }
 
 .cooper-ct-copy[data-copied="true"] {
-  color: var(--vocs-color-success, #10b981);
+  color: var(--vocs-color_success, #10b981);
 }
 
 .cooper-ct-empty {
@@ -185,11 +185,11 @@
     padding: 0.75rem 1rem;
     margin-bottom: 0.5rem;
     box-shadow: var(--doc-card-shadow);
-    background-color: var(--vocs-color-background);
+    background-color: var(--vocs-color_background);
   }
 
   .cooper-ct-row:hover {
-    background-color: var(--vocs-color-background);
+    background-color: var(--vocs-color_background);
     box-shadow: var(--doc-card-shadow-hover);
   }
 

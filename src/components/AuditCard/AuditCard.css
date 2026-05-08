@@ -8,7 +8,7 @@
   border: var(--doc-card-border);
   border-radius: var(--doc-card-radius);
   box-shadow: var(--doc-card-shadow);
-  background: var(--vocs-color-background);
+  background: var(--vocs-color_background);
   color: inherit;
   text-decoration: none;
   transition: box-shadow 150ms ease, transform 150ms ease;
@@ -20,7 +20,7 @@
 }
 
 .cooper-ac-card:focus-visible {
-  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline: 2px solid var(--vocs-color_textAccent, currentColor);
   outline-offset: 2px;
 }
 
@@ -36,7 +36,7 @@
   height: 40px;
   border-radius: 8px;
   object-fit: contain;
-  background: var(--vocs-color-background2, transparent);
+  background: var(--vocs-color_background2, transparent);
 }
 
 .cooper-ac-initials {
@@ -50,7 +50,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--doc-tint-strong);
-  background: var(--vocs-color-background2, rgb(0 0 0 / 5%));
+  background: var(--vocs-color_background2, rgb(0 0 0 / 5%));
 }
 
 .cooper-ac-heading {
@@ -86,8 +86,8 @@
   letter-spacing: 0.02em;
   border-radius: 999px;
   color: var(--doc-tint-strong);
-  background: var(--vocs-color-background2, rgb(0 0 0 / 5%));
-  border: 1px solid var(--vocs-color-border);
+  background: var(--vocs-color_background2, rgb(0 0 0 / 5%));
+  border: 1px solid var(--vocs-color_border);
 }
 
 .cooper-ac-scope {
