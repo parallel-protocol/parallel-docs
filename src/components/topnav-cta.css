@@ -10,7 +10,7 @@
   background: var(--vocs-color_textAccent);
   color: var(--vocs-color_background) !important;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 0;
   font-weight: 500;
   transition: filter 150ms ease;
 }
