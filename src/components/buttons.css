@@ -2,12 +2,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-radius: 0;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--vocs-color_textAccent);
+  border-radius: 12px;
   background: var(--vocs-color_textAccent);
-  color: var(--vocs-color_background) !important;
+  color: #fff !important;
   text-decoration: none !important;
-  font-weight: 500;
+  font-weight: 400;
   transition: all 150ms ease;
   margin-top: 0.5rem;
 }
