@@ -38,10 +38,13 @@ function humanize(segment: string): string {
 
 interface BreadcrumbEntry {
   label: string;
-  href: string;
+  href?: string;
 }
 
-function buildBreadcrumb(pathname: string): BreadcrumbEntry[] {
+function buildBreadcrumb(
+  pathname: string,
+  validRoutes?: ReadonlySet<string>,
+): BreadcrumbEntry[] {
   if (pathname === "/" || pathname === "") return [];
   const segments = pathname.split("/").filter((s) => s.length > 0);
   // Exclure le dernier segment (= page courante, redondant avec H1)
@@ -49,7 +52,14 @@ function buildBreadcrumb(pathname: string): BreadcrumbEntry[] {
   let cumulative = "";
   return breadcrumbSegments.map((seg) => {
     cumulative += `/${seg}`;
-    return { label: humanize(seg), href: cumulative };
+    const entry: BreadcrumbEntry = { label: humanize(seg) };
+    // Si validRoutes est fourni, on n'émet un href que pour les routes qui
+    // existent réellement (sinon → 404 au clic). Sans validRoutes, fallback
+    // legacy : on émet toujours un href.
+    if (!validRoutes || validRoutes.has(cumulative)) {
+      entry.href = cumulative;
+    }
+    return entry;
   });
 }
 
@@ -58,7 +68,7 @@ export const pageHeader: Transformer = {
   apply: (source: string, ctx: TransformContext) => {
     const parsed = matter(source);
     const pathname = new URL(ctx.url).pathname;
-    const breadcrumb = buildBreadcrumb(pathname);
+    const breadcrumb = buildBreadcrumb(pathname, ctx.validRoutes);
     const title = parsed.data.title as string | undefined;
     const subtitle = parsed.data.subtitle as string | undefined;
     const hasTitle = Boolean(title && title.trim().length > 0);
