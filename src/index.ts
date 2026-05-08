@@ -6,6 +6,12 @@ export {
 } from "./components/ContractTable";
 export { DiagramFigure, type DiagramFigureProps } from "./components/DiagramFigure";
 export { default as Footer } from "./components/Footer/Footer";
+export { LinkCard, type LinkCardProps } from "./components/LinkCard";
+export {
+  PageCardGrid,
+  type PageCardGridProps,
+  type PageCardItem,
+} from "./components/PageCardGrid";
 export { PageHeader, type PageHeaderProps, type BreadcrumbItem } from "./components/PageHeader";
 export { CHAIN_LABELS, type ChainSlug, EXPLORERS } from "./lib/chains";
 export { formatDate, getInitials, truncateAddress } from "./lib/utils";
