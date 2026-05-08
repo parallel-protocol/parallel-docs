@@ -23,7 +23,7 @@ const FOOTER_REGEX =
 // Match une ligne de bullet list de la forme `- [text](url-finissant-en.md)` ou
 // `* [text](url-finissant-en.md)`. GitBook utilise les deux indifféremment.
 // On accepte path absolu (`/foo/bar.md`), URL complète, ou path relatif.
-const BULLET_LINE_REGEX = /^\s*[-*]\s+\[([^\]]+)\]\(([^)]+\.md)\)\s*$/;
+const BULLET_LINE_REGEX = /^\s*[-*]\s+\[([^\]]+)\]\(([^)]+\.md)\)(?:\s*[:\-–—]\s*.*)?\s*$/;
 
 interface AutoTocPage {
   path: string;

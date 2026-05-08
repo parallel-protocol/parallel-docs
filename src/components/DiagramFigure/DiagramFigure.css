@@ -31,7 +31,7 @@
   transform: scale(1.02);
 }
 .cooper-df-zoomable:focus-visible {
-  outline: 2px solid var(--vocs-color-textAccent, #3b82f6);
+  outline: 2px solid var(--vocs-color_textAccent, #3b82f6);
   outline-offset: 2px;
 }
 .cooper-df-caption {
