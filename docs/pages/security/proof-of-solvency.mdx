@@ -5,9 +5,11 @@ subtitle: Parallel V3 Proof of Solvency
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Security","href":"/security"}]} title={"Proof of Solvency"} subtitle={"Parallel V3 Proof of Solvency"} />
+<PageHeader breadcrumb={[{"label":"Security"}]} title={"Proof of Solvency"} subtitle={"Parallel V3 Proof of Solvency"} />
 
 import { Tabs, Tab } from '@/components/Tabs';
+
+import { LinkCard } from '@/components/LinkCard'
 
 
 ## Introduction
@@ -27,6 +29,6 @@ The DAO, nor protocol contributors have access to Parallel V3 stablecoins backin
 | HyperEVM   | ParallelizerUSDp | [0x1250304F66404cd153fA39388DDCDAec7E0f1707](https://hyperevmscan.io/address/0x1250304F66404cd153fA39388DDCDAec7E0f1707#code) |
 | Avalanche  | ParallelizerUSDp | [0x41d58951cbd12d4ef49b0437897677bbf5547c80](https://snowscan.xyz/address/0x41d58951cbd12d4ef49b0437897677bbf5547c80#code)    |
 
-[Parallel | Proof of Solvency Dashboard]([https://app.parallel.best/transparency](https://app.parallel.best/transparency))
+<LinkCard href="https://app.parallel.best/transparency" title="Parallel | Proof of Solvency Dashboard" favicon="https://app.parallel.best/logo/parallel_icon_w.svg" hostname="app.parallel" />
   </Tab>
 </Tabs>
