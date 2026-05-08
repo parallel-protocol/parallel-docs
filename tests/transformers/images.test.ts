@@ -182,7 +182,7 @@ describe("images", () => {
 
     expect(out).toBe(input); // pas réécrit
     expect(warn).toHaveBeenCalledWith(
-      expect.stringMatching(/count mismatch \(2 markdown refs vs 1 HTML/),
+      expect.stringMatching(/count mismatch \(2 markdown imgs vs 1 HTML/),
     );
     warn.mockRestore();
   });

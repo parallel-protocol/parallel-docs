@@ -22,6 +22,16 @@ export interface TransformContext {
   outputPath: string;
   imagesDir: string;
   cache: ImageCache;
+  /**
+   * Set des routes Vocs valides (ex. `/products`, `/products/parallel-v3`).
+   * Quand fourni, les transformeurs qui génèrent des liens internes (notamment
+   * `pageHeader` pour le breadcrumb) n'émettent un `href` que si la route est
+   * présente dans le set ; sinon ils rendent un `<span>` plain text. Évite les
+   * 404 pour les segments intermédiaires sans `index.mdx` (ex. `/security`,
+   * `/governance`). Optionnel pour rester rétro-compat avec les tests unitaires
+   * qui ne fournissent pas ce contexte (fallback : tous les `href` sont émis).
+   */
+  validRoutes?: ReadonlySet<string>;
 }
 
 /**
