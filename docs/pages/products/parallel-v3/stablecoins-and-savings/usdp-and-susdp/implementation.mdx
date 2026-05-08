@@ -5,11 +5,11 @@ subtitle: Detailing current USDp production implementation
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Products","href":"/products"},{"label":"Parallel V3","href":"/products/parallel-v3"},{"label":"Stablecoins And Savings","href":"/products/parallel-v3/stablecoins-and-savings"},{"label":"Usdp And Susdp","href":"/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp"}]} title={"Implementation"} subtitle={"Detailing current USDp production implementation"} />
+<PageHeader breadcrumb={[{"label":"Products"},{"label":"Parallel V3","href":"/products/parallel-v3"},{"label":"Stablecoins And Savings","href":"/products/parallel-v3/stablecoins-and-savings"},{"label":"Usdp And Susdp","href":"/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp"}]} title={"Implementation"} subtitle={"Detailing current USDp production implementation"} />
 
 ## Parallelizer Module
 
-The Parallelizer Module, which is going to serve as the main minting module, is deployed on what we believe to be the main drivers for growth for the protocol. Tokens allowed in the backing of USDp have been carefully reviewed for their stability, robustness, sustainable yield generation and business development potential. Allowed assets and their parameters can be updated at any time by the DAO.&#x20;
+The Parallelizer Module, which is going to serve as the main minting module, is deployed on what we believe to be the main drivers for growth for the protocol. Tokens allowed in the backing of USDp have been carefully reviewed for their stability, robustness, sustainable yield generation and business development potential. Allowed assets and their parameters can be updated at any time by the DAO.
 
 The Parallelizer Module is deployed on several initial chains with these parameters:
 
@@ -564,7 +564,7 @@ Deploying the Bridging Module on all the chains where the core protocol is deplo
 
 ## Flashloan Module
 
-Flashloans play an important role in Parallel V3, enabling USDp assets in backing to be rebalanced in the Parallelizer Module, and allowing future USDp liquidity pools to be arbitraged in order to maintain the best price between all pools.&#x20;
+Flashloans play an important role in Parallel V3, enabling USDp assets in backing to be rebalanced in the Parallelizer Module, and allowing future USDp liquidity pools to be arbitraged in order to maintain the best price between all pools.
 
 To facilitate these operations, the flashloan module is deployed on all chains where the core protocol is also deployed. Fees will be sent to the FeeCollector contract in order to be redistributed. Below are current DAO-approved parameters:
 

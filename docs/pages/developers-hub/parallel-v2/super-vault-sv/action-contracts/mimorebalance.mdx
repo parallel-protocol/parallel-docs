@@ -7,7 +7,7 @@ description: >-
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMORebalance"} />
+<PageHeader breadcrumb={[{"label":"Developers Hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMORebalance"} />
 
 :::warning
 You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
@@ -23,7 +23,7 @@ The `MIMOLeverage` action contract handle the super vault empty vault logic desc
 
 Uses a flash loan to repay all debts for a vault and send all collateral in the vault to the owner.
 
-Requirements :&#x20;
+Requirements :
 
 * Contract must be unpaused
 * Must be called through the `MIMOProxy` `execute()` function
@@ -33,7 +33,7 @@ Requirements :&#x20;
 | ---------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | \_callData | bytes | <p>Abi encoded bytes with : </p><ul><li><code>FlashloanData flData</code></li><li><code>RebalanceData rbData</code></li><li><code>SwapData swapData</code></li></ul> |
 
-**`RebalanceData`**&#x20;
+**`RebalanceData`**
 
 | Param Name     | Type    | Description                                                                 |
 | -------------- | ------- | --------------------------------------------------------------------------- |
@@ -45,7 +45,7 @@ Requirements :&#x20;
 
 AAVE `Pool` contract flash loan callback function.
 
-Requirements :&#x20;
+Requirements :
 
 * Contract must be unpaused
 * Can only be called by the AAVE `Pool` contract
@@ -57,7 +57,7 @@ Requirements :&#x20;
 
 Performs a rebalance logic within MIMOProxy context.
 
-Requirements :&#x20;
+Requirements :
 
 * Contract must be unpaused
 * Contract must be unpaused

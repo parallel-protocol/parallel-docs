@@ -1,16 +1,16 @@
 ---
 title: MIMOProxyFactory
-description: 'The `MIMOProxyFactory` handles :&#x20;'
+description: 'The `MIMOProxyFactory` handles :'
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Proxy Design","href":"/developers-hub/parallel-v2/super-vault-sv/proxy-design"}]} title={"MIMOProxyFactory"} />
+<PageHeader breadcrumb={[{"label":"Developers Hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Proxy Design","href":"/developers-hub/parallel-v2/super-vault-sv/proxy-design"}]} title={"MIMOProxyFactory"} />
 
 :::warning
 You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
 :::
 
-The `MIMOProxyFactory` handles :&#x20;
+The `MIMOProxyFactory` handles :
 
 * MIMOProxys' deployments
 * MIMOProxys' ownerhip transfers
@@ -26,7 +26,7 @@ Deploys a new `MIMOProxy` and `MIMOProxy` guard for the caller. The caller must 
 
 Initiates the ownership transfer process to a new owner and must be followed by a `claimOwnership` call by the new owner to complete the transfer. Sets the `newOwner` address as a `pendingOwner` of the transferred `MIMOProxy`.
 
-Requirements :&#x20;
+Requirements :
 
 * Must be called by the transferred `MIMOProxy` owner
 * Cannot transfer ownership to `address(0)`
@@ -41,7 +41,7 @@ Requirements :&#x20;
 
 Completes the ownership transfer process.
 
-Requirements :&#x20;
+Requirements :
 
 * Must be called by the `pendingOwner` of `proxy`
 * Caller must not own any other `MIMOProxy`
@@ -55,7 +55,7 @@ Requirements :&#x20;
 
 Deploys a new `MIMOProxyGuard` for the targeted `proxy` therefore clearing all existing permissions.
 
-Requirements :&#x20;
+Requirements :
 
 * Must be called by `proxy` owner
 
@@ -67,7 +67,7 @@ Requirements :&#x20;
 
 Sets a new `minGas` value for the targeted `proxy`.
 
-Requirements :&#x20;
+Requirements :
 
 * Must be called by `proxy` owner
 

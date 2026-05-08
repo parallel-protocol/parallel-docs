@@ -8,7 +8,10 @@ subtitle: Understanding the proposal framework.
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Governance","href":"/governance"}]} title={"Proposal Framework"} subtitle={"Understanding the proposal framework."} />
+<PageHeader breadcrumb={[{"label":"Governance"}]} title={"Proposal Framework"} subtitle={"Understanding the proposal framework."} />
+
+import { LinkCard } from '@/components/LinkCard'
+
 
 With the recent Parallel Governance Framework Proposal [update](https://gov.parallel.best/t/mip-29-l-update-the-governance-framework/384), the Parallel protocol and its governance are officially laid out, voted on, and put into action.
 
@@ -24,9 +27,9 @@ Posting a proposal on the governance forum and discussing it there and on discor
 
 <figure><img src="/images/k5F6LHJYnzsPwbIlTZ8N.png" alt="" /><figcaption><p>Summary</p></figcaption></figure>
 
-[Governance Forum]([https://gov.parallel.best/](https://gov.parallel.best/))
+<LinkCard href="https://gov.parallel.best/" title="Governance Forum" favicon="https://europe1.discourse-cdn.com/flex005/uploads/mimo1/optimized/1X/f5af8aa63e52694e07a0eca08ea868cb8b59bfe0_2_180x180.png" hostname="gov.parallel" />
 
-[Vote]([https://vote.parallel.best/#/](https://vote.parallel.best/#/))
+<LinkCard href="https://vote.parallel.best/#/" title="Vote" favicon="https://vote.parallel.best/favicon.svg" hostname="vote.parallel" />
 
 ## Required Informations for any Proposal:
 
@@ -39,7 +42,7 @@ Posting a proposal on the governance forum and discussing it there and on discor
 * **Rationale:** Detailed explanation of the proposal and milestones for its execution.
 * **Means:** Resources needed for this proposal
   * Human resources: Special skills required (dev or others)
-  * Treasury ressources: Proposal cost (in PRL and in $), % of the treasury required
+  * Treasury ressources: Proposal cost (in PRL and in \$), % of the treasury required
 * **Technical implementation:** Highlight the technical implementations of this proposal if any
 * **Voting options:** Mention the options that will be included on the snapshot vote, including an “Abstain” one.
 

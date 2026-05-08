@@ -6,7 +6,7 @@ description: >-
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Classic Vaults","href":"/developers-hub/parallel-v2/classic-vaults"}]} title={"Opening a vault"} />
+<PageHeader breadcrumb={[{"label":"Developers Hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Classic Vaults","href":"/developers-hub/parallel-v2/classic-vaults"}]} title={"Opening a vault"} />
 
 :::warning
 You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
@@ -16,7 +16,7 @@ You're reading the legacy **v2** documentation. For current Parallel features, s
 
 To create a vault and deposit WETH collateral equal to `DEPOSIT_AMOUNT` to it, follow these steps:
 
-* Approve the collateral ERC20 asset (WETH) to the [**VaultsCore** address](https://app.gitbook.com/@mimo-defi/s/mimo-defi/~/drafts/-MewpTJxUIffxdZakurk/developers/contract-addresses) equal to at least the `DEPOSIT_AMOUNT`.&#x20;
+* Approve the collateral ERC20 asset (WETH) to the [**VaultsCore** address](https://app.gitbook.com/@mimo-defi/s/mimo-defi/~/drafts/-MewpTJxUIffxdZakurk/developers/contract-addresses) equal to at least the `DEPOSIT_AMOUNT`.
 
 ```
 WETH.approve(VaultsCore address, DEPOSIT_AMOUNT)

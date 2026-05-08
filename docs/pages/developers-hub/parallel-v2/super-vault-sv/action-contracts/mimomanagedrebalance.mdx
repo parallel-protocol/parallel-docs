@@ -7,7 +7,7 @@ description: >-
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMOManagedRebalance"} />
+<PageHeader breadcrumb={[{"label":"Developers Hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMOManagedRebalance"} />
 
 :::warning
 You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
@@ -25,7 +25,7 @@ The `MIMOManagedRebalance` action contract handle the super vault empty vault lo
 
 Sets a vault management parameters.
 
-Requirements :&#x20;
+Requirements :
 
 * Caller must be the `MIMOProxy` owner the vault or the `MIMOProxy` owner
 * Selected manager must be whitelisted
@@ -51,7 +51,7 @@ Requirements :&#x20;
 
 Performs a rebalance on a vault by an appointed whitelisted manager on behalf of the vault owner.
 
-Requirements :&#x20;
+Requirements :
 
 * Contract must be unpaused
 * Vault must have been created through the user's `MIMOProxy`
@@ -73,7 +73,7 @@ Requirements :&#x20;
 
 AAVE `Pool` contract flash loan callback function.
 
-Requirements :&#x20;
+Requirements :
 
 * Contract must be unpaused
 * Can only be called by the AAVE `Pool` contract
