@@ -1,0 +1,82 @@
+/* LinkCard — scoped styles, prefix `cooper-lc-*`. No Tailwind.
+ * Reproduit le rendu "embed card" GitBook : favicon + titre OG + hostname
+ * court + chevron, hover ring sur la border (pas de translate Y). */
+
+.cooper-lc-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  margin: 1.25rem 0;
+  /* Stroke explicite (gris ~12% opacity) — `--vocs-color-border` du theme
+   * Vocs est trop subtil et invisible à l'œil sur la card embed. */
+  border: 1px solid rgb(0 0 0 / 12%);
+  border-radius: var(--doc-card-radius);
+  background: var(--vocs-color-background);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 150ms ease;
+}
+
+[data-theme="dark"] .cooper-lc-card,
+.dark .cooper-lc-card {
+  border-color: rgb(255 255 255 / 14%);
+}
+
+.cooper-lc-card:hover,
+.cooper-lc-card:focus-visible {
+  border-color: var(--vocs-color-textAccent, var(--vocs-color-border));
+}
+
+.cooper-lc-card:focus-visible {
+  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline-offset: 2px;
+}
+
+.cooper-lc-favicon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.cooper-lc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.cooper-lc-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--doc-tint-strong);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.cooper-lc-description {
+  font-size: 0.875rem;
+  color: var(--doc-tint-subtle);
+  line-height: 1.4;
+}
+
+.cooper-lc-host {
+  font-size: 0.875rem;
+  color: var(--doc-tint-subtle);
+  line-height: 1.35;
+}
+
+.cooper-lc-icon {
+  flex-shrink: 0;
+  color: var(--doc-tint-subtle);
+  transition: transform 150ms ease, color 150ms ease;
+}
+
+.cooper-lc-card:hover .cooper-lc-icon,
+.cooper-lc-card:focus-visible .cooper-lc-icon {
+  color: var(--vocs-color-textAccent, var(--doc-tint-strong));
+  transform: translateX(2px);
+}
