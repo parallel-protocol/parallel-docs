@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { CHAIN_LABELS, type ChainSlug, EXPLORERS } from "./chains";
 
-const SLUGS: ChainSlug[] = ["ethereum", "sei", "base", "sonic", "arbitrum", "polygon", "fantom"];
+const SLUGS: ChainSlug[] = [
+  "ethereum",
+  "sei",
+  "base",
+  "sonic",
+  "arbitrum",
+  "polygon",
+  "fantom",
+  "eden-mainnet",
+  "eden-testnet",
+];
 
 describe("CHAIN_LABELS", () => {
   it("provides a non-empty label for every ChainSlug", () => {
@@ -31,5 +41,18 @@ describe("EXPLORERS", () => {
     expect(EXPLORERS.arbitrum(ADDR)).toContain("arbiscan.io");
     expect(EXPLORERS.polygon(ADDR)).toContain("polygonscan.com");
     expect(EXPLORERS.fantom(ADDR)).toContain("ftmscan.com");
+    expect(EXPLORERS["eden-mainnet"](ADDR)).toBe(`https://explorer.eden.network/address/${ADDR}`);
+    expect(EXPLORERS["eden-testnet"](ADDR)).toBe(
+      `https://testnet-explorer.eden.network/address/${ADDR}`,
+    );
+  });
+
+  it("distinguishes Eden mainnet from Eden testnet by host", () => {
+    const mainnetUrl = EXPLORERS["eden-mainnet"](ADDR);
+    const testnetUrl = EXPLORERS["eden-testnet"](ADDR);
+    expect(mainnetUrl).not.toBe(testnetUrl);
+    expect(mainnetUrl).toContain("explorer.eden.network");
+    expect(mainnetUrl).not.toContain("testnet-explorer.eden.network");
+    expect(testnetUrl).toContain("testnet-explorer.eden.network");
   });
 });
