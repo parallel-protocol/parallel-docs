@@ -20,7 +20,8 @@
     "build:content": "tsx scripts/crawl-and-convert.ts build",
     "check:images": "tsx scripts/check-image-refs.ts",
     "generate:redirects": "tsx scripts/generate-redirects.ts",
-    "generate:sidebar": "tsx scripts/generate-sidebar.ts"
+    "generate:sidebar": "tsx scripts/generate-sidebar.ts",
+    "linkinator": "linkinator docs/dist --skip ^https?://docs-parallel\\.vercel\\.app"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.2",
@@ -47,6 +48,7 @@
     "fast-xml-parser": "^5.7.3",
     "gray-matter": "^4.0.3",
     "jsdom": "^26.0.0",
+    "linkinator": "^7.6.1",
     "mime-types": "^3.0.2",
     "tsx": "^4.20.0",
     "typescript": "^5.7.2",

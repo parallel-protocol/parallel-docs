@@ -40,6 +40,26 @@
   white-space: nowrap;
 }
 
+.cooper-ct-network-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 2px 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  vertical-align: middle;
+  border-radius: 4px;
+  border: 1px solid var(--vocs-color-noteBorder, rgb(252 211 77 / 50%));
+  background: var(--vocs-color-noteBackground, rgb(254 243 199 / 70%));
+  color: var(--vocs-color-noteText, #92400e);
+}
+
+.cooper-ct-compact .cooper-ct-network-badge {
+  font-size: 0.625rem;
+  padding: 1px 5px;
+}
+
 .cooper-ct-row {
   border-bottom: var(--doc-card-border);
   transition: background-color 120ms ease;
