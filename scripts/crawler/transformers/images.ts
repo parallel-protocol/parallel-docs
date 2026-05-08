@@ -31,6 +31,19 @@ import type { Transformer, TransformContext } from "../types";
 
 const FILES_REF_REGEX = /\/files\/([a-zA-Z0-9_-]+)/g;
 
+// Toutes les images du markdown source, dans l'ordre du document. On capture
+// les deux syntaxes que GitBook utilise indifféremment :
+//   - markdown    : ![alt](url)
+//   - HTML inline : <img src="url" …>
+// On a besoin de TOUTES les images (et pas seulement celles en /files/HASH)
+// pour pouvoir matcher 1:1 avec les zoom-images du HTML rendu — qui inclut
+// aussi les images dont le src markdown est une URL externe (ex.
+// `https://files.gitbook.com/...` directement dans le source). Ignorer les URLs
+// externes côté markdown casse le matching par index quand la page mélange
+// les deux types.
+const MD_IMG_REGEX = /!\[[^\]]*\]\(([^)]+)\)/g;
+const HTML_IMG_SRC_REGEX = /<img\b[^>]*?\bsrc="([^"]+)"/g;
+
 // Match <img ... data-testid="zoom-image" ... src="..."> peu importe l'ordre
 // des attributs (data-testid avant src OU inversement). Capture l'URL src.
 const HTML_IMG_DATA_FIRST = /<img\b[^>]*?\bdata-testid="zoom-image"[^>]*?\bsrc="([^"]+)"/g;
@@ -68,6 +81,42 @@ function extractContentImageUrls(html: string): string[] {
   }
   matches.sort((a, b) => a.index - b.index);
   return matches.map((m) => m.url);
+}
+
+/**
+ * Extrait du markdown source toutes les images que GitBook rendrait comme
+ * `<img data-testid="zoom-image">` côté HTML, dans l'ordre du document.
+ *
+ * Inclut :
+ *   - `/files/HASH` (markdown ou HTML inline) → renvoie `{ hash }`
+ *   - URL externe `http(s)://…` (markdown ou HTML inline) → renvoie `{ hash: null }`
+ *     (slot conservé pour aligner par index avec les zoom-images du HTML, mais
+ *     pas de download — c'est déjà une URL absolue côté source)
+ *
+ * Exclut explicitement :
+ *   - `/images/…` (déjà converti par une passe antérieure ou écrit à la main —
+ *     n'apparaît pas dans le HTML GitBook, donc casserait l'alignement)
+ *   - URLs autres / non-resolvables côté GitBook
+ */
+function extractMarkdownImageHashes(source: string): (string | null)[] {
+  const matches: { index: number; hash: string | null }[] = [];
+  const filesRefRegex = /^\/files\/([a-zA-Z0-9_-]+)$/;
+  const collect = (m: RegExpMatchArray) => {
+    const src = m[1].trim();
+    const fileMatch = src.match(filesRefRegex);
+    if (fileMatch) {
+      matches.push({ index: m.index ?? 0, hash: fileMatch[1] });
+      return;
+    }
+    if (src.startsWith("http://") || src.startsWith("https://")) {
+      matches.push({ index: m.index ?? 0, hash: null });
+    }
+    // Anything else is intentionally skipped (no slot reserved).
+  };
+  for (const m of source.matchAll(MD_IMG_REGEX)) collect(m);
+  for (const m of source.matchAll(HTML_IMG_SRC_REGEX)) collect(m);
+  matches.sort((a, b) => a.index - b.index);
+  return matches.map((m) => m.hash);
 }
 
 function injectSubtitleIntoFrontmatter(source: string, subtitle: string): string {
@@ -140,20 +189,27 @@ export const images: Transformer = {
     // Étape 2 : images (uniquement si la page a des /files/).
     if (!hasFiles) return out;
 
+    // On extrait TOUTES les images du markdown (pas seulement /files/HASH),
+    // pour matcher 1:1 par index avec les zoom-images du HTML. Les URLs
+    // externes côté markdown (ex. `https://files.gitbook.com/...`) sont
+    // présentes dans les deux côtés mais avec `hash: null` côté markdown —
+    // on les saute lors du download mais elles préservent l'alignement.
+    const allMdHashes = extractMarkdownImageHashes(source);
     const htmlUrls = extractContentImageUrls(html);
 
-    if (htmlUrls.length !== refs.length) {
+    if (htmlUrls.length !== allMdHashes.length) {
       console.warn(
-        `[images] ${ctx.url}: count mismatch (${refs.length} markdown refs vs ${htmlUrls.length} HTML zoom-images), skipping rewrite`,
+        `[images] ${ctx.url}: count mismatch (${allMdHashes.length} markdown imgs vs ${htmlUrls.length} HTML zoom-images), skipping rewrite`,
       );
       return out;
     }
 
-    // Match par ordre, dédup downloads pour mêmes hashes.
+    // Match par ordre, dédup downloads pour mêmes hashes. On skip les entrées
+    // où hash est null (URL externe — pas besoin de download).
     const filenames = new Map<string, string>();
-    for (let i = 0; i < refs.length; i++) {
-      const hash = refs[i];
-      if (filenames.has(hash)) continue;
+    for (let i = 0; i < allMdHashes.length; i++) {
+      const hash = allMdHashes[i];
+      if (hash === null || filenames.has(hash)) continue;
       const filename = await downloadOne(htmlUrls[i], hash, ctx);
       if (filename) filenames.set(hash, filename);
     }

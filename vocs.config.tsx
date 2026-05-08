@@ -43,6 +43,20 @@ export default defineConfig({
         "@": resolve(process.cwd(), "./src"),
       },
     },
+    optimizeDeps: {
+      // Pre-bundle pour le client (cf. ssr.noExternal pour le SSR).
+      include: ["nuqs", "nuqs/adapters/react"],
+    },
+    ssr: {
+      // nuqs@2.8.x ESM fait `import { createContext } from 'react'`. Côté SSR,
+      // Vite délègue par défaut à la résolution ESM Node, qui résout react@18
+      // via son interop CJS et ne supporte PAS les named exports → exception
+      // au render → hydratation client cassée (sidebar inerte, Prev/Next
+      // absent). `noExternal` force Vite à transformer nuqs avant exec SSR :
+      // ses imports React sont réécrits en CJS-compat. À retirer si on
+      // passe à React 19 (qui expose les named exports natively).
+      noExternal: ["nuqs"],
+    },
   },
   iconUrl: "/favicon.ico",
   // Vocs swaps automatically based on prefers-color-scheme + theme toggle.

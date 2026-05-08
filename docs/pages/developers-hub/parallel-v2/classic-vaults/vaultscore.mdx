@@ -7,13 +7,13 @@ description: >-
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Classic Vaults","href":"/developers-hub/parallel-v2/classic-vaults"}]} title={"VaultsCore"} />
+<PageHeader breadcrumb={[{"label":"Developers Hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Classic Vaults","href":"/developers-hub/parallel-v2/classic-vaults"}]} title={"VaultsCore"} />
 
 :::warning
 You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
 :::
 
-The **VaultsCore** contract is the main interface for the user to interact with the Parallel protocol’s collateralized debt system, such as depositing, borrowing, repaying, and liquidating debt. It stores the collateral, manages the safety reserve, and handles all debt calculations.&#x20;
+The **VaultsCore** contract is the main interface for the user to interact with the Parallel protocol’s collateralized debt system, such as depositing, borrowing, repaying, and liquidating debt. It stores the collateral, manages the safety reserve, and handles all debt calculations.
 
 The VaultsCore contract has the following interface:
 
@@ -31,7 +31,7 @@ uint256 _borrowAmount ) external ;
   function repay ( uint256 _vaultId , uint256 _amount ) external ;
   function liquidate ( uint256 _vaultId ) external ;
 
-  ...  
+  ...
 }
 ```
 

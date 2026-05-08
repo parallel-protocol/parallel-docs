@@ -5,7 +5,7 @@ subtitle: Explaining the Parallelizer Module
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Products","href":"/products"},{"label":"Parallel V3","href":"/products/parallel-v3"},{"label":"How It Works","href":"/products/parallel-v3/how-it-works"}]} title={"Parallelizer Module"} subtitle={"Explaining the Parallelizer Module"} />
+<PageHeader breadcrumb={[{"label":"Products"},{"label":"Parallel V3","href":"/products/parallel-v3"},{"label":"How It Works","href":"/products/parallel-v3/how-it-works"}]} title={"Parallelizer Module"} subtitle={"Explaining the Parallelizer Module"} />
 
 ## Introduction
 
@@ -25,7 +25,7 @@ Practically speaking, the three operations work as follows:
 
 Built as an improvement of classic price stability modules (e.g. Sky) for stablecoin protocols, the Parallelizer system is designed with the following key properties:
 
-* **Scalability:** The Parallelizer enables minting and burning with limited fees from a wide range of assets. Its mechanisms work similarly with $1m TVL as with $1bn TVL.
+* **Scalability:** The Parallelizer enables minting and burning with limited fees from a wide range of assets. Its mechanisms work similarly with \$1m TVL as with \$1bn TVL.
 * **Resilience:** The underlying mechanisms of the Parallelizer system are all fully autonomous and predictable by all types of stakeholders. In case of a black swan event, the Parallelizer provides reasons to bet on the stablecoin returning to its target price.
 * **Trustlessness:** The Parallelizer is able to autonomously withstand unforeseen events, such as collateral depegs or hacks, without requiring any governance intervention.
 * **Fairness:** There cannot be any bank run as redemptions are thought to break sequentiality between users.
@@ -81,7 +81,7 @@ The redeem feature allows users to exchange their stablecoins for a proportional
   * **Deter Bank Runs:** Users receive less than the fair value if they attempt mass redemptions during downturns.
   * **Incentivize Stability:** Encourages users to hold their stablecoins, allowing the system time to recover.
 
-For example, if the collateral ratio drops to 98.5% due to a depeg, and the penalty factor is set to 0.98, a user redeeming 10 USDp might receive assets worth approximately $9.65 instead of $9.85, thereby contributing to the protocol’s re-collateralization.
+For example, if the collateral ratio drops to 98.5% due to a depeg, and the penalty factor is set to 0.98, a user redeeming 10 USDp might receive assets worth approximately \$9.65 instead of \$9.85, thereby contributing to the protocol’s re-collateralization.
 
 The figures below show the effect of burning with respect to redeeming in different collateral ratio settings:
 
