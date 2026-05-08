@@ -3,7 +3,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--vocs-color_textAccent);
   color: var(--vocs-color_background) !important;
   text-decoration: none !important;
