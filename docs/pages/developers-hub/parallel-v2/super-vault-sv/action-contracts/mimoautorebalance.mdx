@@ -7,7 +7,7 @@ description: >-
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMOAutoRebalance"} />
+<PageHeader breadcrumb={[{"label":"Developers Hub"},{"label":"Parallel V2","href":"/developers-hub/parallel-v2"},{"label":"Super Vault Sv","href":"/developers-hub/parallel-v2/super-vault-sv"},{"label":"Action Contracts","href":"/developers-hub/parallel-v2/super-vault-sv/action-contracts"}]} title={"MIMOAutoRebalance"} />
 
 :::warning
 You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
@@ -25,7 +25,7 @@ The `MIMOAutoRebalance` action contract handle the super vault empty vault logic
 
 Sets a vault automation parameters.
 
-Requirements :&#x20;
+Requirements :
 
 * Caller must be the `MIMOProxy` owner the vault or the `MIMOProxy` owner
 
@@ -51,7 +51,7 @@ Requirements :&#x20;
 
 Performs a rebalance on a vault on behalf of a vault owner.
 
-Requirements :&#x20;
+Requirements :
 
 * Contract must be unpaused
 * Vault must have been created through the user's `MIMOProxy`
@@ -70,7 +70,7 @@ Requirements :&#x20;
 
 AAVE `Pool` contract flash loan callback function.
 
-Requirements :&#x20;
+Requirements :
 
 * Contract must be unpaused
 * Can only be called by the AAVE `Pool` contract
@@ -99,7 +99,7 @@ Returns the rebalance amounts for specific vault id.
 | `mintAmount`      | uint256 | Amount to mint on vault B |
 | `autoFee`         | uint256 | Automation fee            |
 
-`rebalanceAmount` calculation :&#x20;
+`rebalanceAmount` calculation :
 
 $$
 rebalanceValue = \frac{targetRatio * (vaultDebt + fixedFee) - collateralValue}{\frac{targetRatio - (mcrB + mcrBuffer) * flashLoanfee}{mcrB + mcrBuffer} - targetRatio * variableFee - 1}

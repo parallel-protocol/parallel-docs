@@ -4,7 +4,10 @@ description: ''
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Governance","href":"/governance"}]} title={"DAO Treasury"} />
+<PageHeader breadcrumb={[{"label":"Governance"}]} title={"DAO Treasury"} />
+
+import { LinkCard } from '@/components/LinkCard'
+
 
 ## Overview
 
@@ -12,14 +15,14 @@ To support the growth of the Parallel Protocol a protocol treasury has been set 
 
 Aggregated DAO Treasury can be seen using Octav in real time thanks to their analytics feature:
 
-[Real Time Aggregated DAO Treasury]([https://pro.octav.fi/parallelprotocol/treasury](https://pro.octav.fi/parallelprotocol/treasury))
+<LinkCard href="https://pro.octav.fi/parallelprotocol/treasury" title="Real Time Aggregated DAO Treasury" favicon="https://pro.octav.fi/apple-touch-icon.png" hostname="pro.octav" />
 
 ## Strategy
 
-Initiated by [MGP-12](https://gov.parallel.best/t/mgp-12-launch-mimo-treasury-strategy/264) and updated with [MGP-15](https://gov.parallel.best/t/mgp-15-update-treasury-strategy/294), [PGP-24](https://gov.parallel.best/t/pgp-24-l-update-treasury-strategy/434) & [PGP-30](https://gov.parallel.best/t/pgp-30-l-update-dao-treasury-strategy/481) a strategy treasury has been implemented by the Parallel DAO. The strategy is performed by the [DAO Multisig](broken://pages/hepjdmdhckhqmj8ffpq5).
+Initiated by [MGP-12](https://gov.parallel.best/t/mgp-12-launch-mimo-treasury-strategy/264) and updated with [MGP-15](https://gov.parallel.best/t/mgp-15-update-treasury-strategy/294), [PGP-24](https://gov.parallel.best/t/pgp-24-l-update-treasury-strategy/434) & [PGP-30](https://gov.parallel.best/t/pgp-30-l-update-dao-treasury-strategy/481) a strategy treasury has been implemented by the Parallel DAO. The strategy is performed by the DAO Multisig.
 
 * General:
-  * Every month, swap net accumulated (after service providers payment, etc…) paUSD, PAR & USDp to get a 30/70 split in $ equivalent in wETH (30%) and USDp
+  * Every month, swap net accumulated (after service providers payment, etc…) paUSD, PAR & USDp to get a 30/70 split in \$ equivalent in wETH (30%) and USDp
   * Every month, deposit and stake wETH with PRL from the treasury in PRL/wETH pools. chains, protocols and pools will be determined by the DAO multisigs with the advisory of Cooper Labs & Mimo Labs. This in order to bring greater flexibility in terms of management.
   * Every month, if there are not enough PRL in the treasury to get correct PRL/wETH ratio for LP, the DAO will buyback PRL tokens at the market via TWAP in order to get the right ratio to deposit in liquidity pools
   * Every month, deposit and stake USDp from the treasury in USDp/XYZ pools. Chains, protocols and pools will be determined by DAO multisig signers with advice from Cooper Labs & Mimo Labs. However pools must be non-IL, which means that USDp tokens can only be deposited in pools with another USD stablecoin. This in order to bring greater flexibility in terms of management.

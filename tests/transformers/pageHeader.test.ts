@@ -9,12 +9,13 @@ const noopCache: ImageCache = {
   set: () => undefined,
 };
 
-function ctx(url: string): TransformContext {
+function ctx(url: string, validRoutes?: ReadonlySet<string>): TransformContext {
   return {
     url,
     outputPath: "docs/pages/test.mdx",
     imagesDir: "docs/public/images",
     cache: noopCache,
+    validRoutes,
   };
 }
 
@@ -180,6 +181,43 @@ describe("pageHeader", () => {
       expect(typeof item.href).toBe("string");
       expect(item.href.startsWith("/")).toBe(true);
     }
+  });
+
+  it("drops href on segments not present in validRoutes", () => {
+    const input = `---\ntitle: Bridging Module\n---\n\n${PLAIN_BODY}`;
+    // /products has no index.mdx, but /products/parallel-v3 and /products/parallel-v3/how-it-works do.
+    const validRoutes = new Set([
+      "/products/parallel-v3",
+      "/products/parallel-v3/how-it-works",
+      "/products/parallel-v3/how-it-works/bridging-module",
+    ]);
+    const out = pageHeader.apply(
+      input,
+      ctx(
+        "https://docs.parallel.best/products/parallel-v3/how-it-works/bridging-module",
+        validRoutes,
+      ),
+    ) as string;
+
+    const m = out.match(/breadcrumb=\{(\[.*?\])\}/);
+    expect(m).not.toBeNull();
+    const breadcrumb = JSON.parse(m![1]);
+    expect(breadcrumb).toEqual([
+      { label: "Products" }, // no href — /products is a 404
+      { label: "Parallel V3", href: "/products/parallel-v3" },
+      { label: "How It Works", href: "/products/parallel-v3/how-it-works" },
+    ]);
+  });
+
+  it("emits all hrefs when validRoutes is undefined (legacy fallback)", () => {
+    const input = `---\ntitle: Page\n---\n\n${PLAIN_BODY}`;
+    const out = pageHeader.apply(
+      input,
+      ctx("https://docs.parallel.best/security/audits"),
+    ) as string;
+    const m = out.match(/breadcrumb=\{(\[.*?\])\}/);
+    const breadcrumb = JSON.parse(m![1]);
+    expect(breadcrumb).toEqual([{ label: "Security", href: "/security" }]);
   });
 
   it("exposes its name", () => {

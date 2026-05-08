@@ -10,9 +10,12 @@
  * - Pour chaque dossier sans `index.mdx`, le rend en tant que section sans
  *   `link`, juste `items`.
  * - Pour chaque fichier MDX sans dossier enfant, le rend en tant que leaf.
- * - Ordre : utilise un `SECTION_ORDER` manuel pour les top-level (Overview,
- *   Introduction, Products, Security, Governance, Developers Hub, Resources).
- *   Au-delà, ordre alphabétique sur les `text`.
+ * - **Ordre des enfants : position dans le sitemap GitBook** (chargé depuis
+ *   `tmp/gitbook-source/_sitemap.json` si dispo). Fallback alphabétique si
+ *   sitemap absent ou route inconnue. `CHILDREN_ORDER` reste un override
+ *   manuel quand la décision UX Cooper Labs diffère de GitBook.
+ * - Ordre top-level : `TOP_LEVEL_ORDER` manuel (Introduction, Products, …)
+ *   parce que ce sont des regroupements logiques (UPPERCASE), pas des routes.
  * - `collapsed: true` par défaut sur :
  *    - tout ce qui contient `parallel-v2` (legacy)
  *    - `dao-multisigs` (sous-dossier élections, peu consulté)
@@ -20,15 +23,58 @@
  *
  * À régénérer après chaque `pnpm convert`. Idempotent.
  */
-import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import matter from "gray-matter";
 
 const __dirname_ = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname_, "..");
 const PAGES_DIR = join(ROOT, "docs/pages");
 const OUTPUT = join(ROOT, "src/sidebar.generated.ts");
+const SITEMAP_CACHE = join(ROOT, "tmp/gitbook-source/_sitemap.json");
+
+interface SitemapEntry {
+  url: string;
+  pathname: string;
+  outputPath: string;
+}
+
+/**
+ * Charge l'ordre canonique des routes depuis le sitemap GitBook crawlé.
+ * Map: route Vocs (ex. `/products/parallel-v3/how-it-works/parallelizer-module`)
+ * → position dans le sitemap (entier, plus petit = plus haut).
+ *
+ * Si le sitemap n'existe pas (premier crawl pas encore fait, ou env CI minimal),
+ * renvoie une map vide → `sortChildren` tombera sur le fallback alphabétique
+ * avec un warning explicite.
+ */
+export function loadSitemapOrder(sitemapPath: string = SITEMAP_CACHE): Map<string, number> {
+  const order = new Map<string, number>();
+  if (!existsSync(sitemapPath)) {
+    console.warn(
+      `[generate-sidebar] sitemap not found at ${sitemapPath} — sidebar order will fall back to alphabetical. Run \`pnpm crawl <sitemap-url>\` to fix.`,
+    );
+    return order;
+  }
+  try {
+    const raw = readFileSync(sitemapPath, "utf-8");
+    const entries = JSON.parse(raw) as SitemapEntry[];
+    for (let i = 0; i < entries.length; i++) {
+      // Normalise la route Vocs : strip trailing slash sauf root.
+      let route = entries[i].pathname || "/";
+      if (route.length > 1 && route.endsWith("/")) route = route.slice(0, -1);
+      order.set(route, i);
+    }
+  } catch (err) {
+    console.warn(
+      `[generate-sidebar] failed to parse sitemap cache: ${(err as Error).message} — falling back to alphabetical`,
+    );
+  }
+  return order;
+}
+
+const SITEMAP_ORDER = loadSitemapOrder();
 
 interface SidebarItem {
   text: string;
@@ -57,72 +103,15 @@ const LABEL_OVERRIDES: Record<string, string> = {
 };
 
 /**
- * Force a specific child ordering for some parents (route → ordered list of
- * child slugs). Children not listed are appended alphabetically. Matches
- * docs.parallel.best canonical sidebar order.
+ * Override exceptionnel pour des parents où l'ordre Cooper Labs diffère de
+ * GitBook (ex. promotion d'une page peu rangée GitBook). Vide par défaut :
+ * tout l'ordre vient du sitemap (cf. `SITEMAP_ORDER`). À utiliser uniquement
+ * pour des cas où le sitemap dit la mauvaise chose, sinon laisser passer.
  *
- * Source : visual diff against docs.parallel.best (the GitBook curated order
- * is non-alphabetical and reflects information architecture, not file names).
+ * Format : route parent → liste ordonnée de slugs enfants. Les enfants non
+ * listés sont appendés selon l'ordre du sitemap (donc fallback automatique).
  */
-const CHILDREN_ORDER: Record<string, string[]> = {
-  "/products": ["parallel-v3", "parallel-v2"],
-  "/products/parallel-v3": [
-    "how-it-works",
-    "stablecoins-and-savings",
-    "governance",
-    "licensing",
-  ],
-  // /products/parallel-v3/how-it-works : alphabetical matches GitBook
-  // (Bridging → Flashloan → Parallelizer → Savings).
-  "/products/parallel-v2": ["stablecoins", "how-it-works", "licensing"],
-  "/products/parallel-v2/how-it-works": [
-    "vaults",
-    "super-vaults-sv",
-    "bridging-module",
-  ],
-  "/security": [
-    "proof-of-solvency",
-    "parallel-emergency-guardians",
-    "hypernative",
-    "keepers",
-    "bug-bounty-program",
-    "insurance-fund",
-    "audits",
-  ],
-  "/developers-hub": [
-    "developers-guide",
-    "parallel-v3",
-    "parallel-v2",
-    "parallel-governance-token-prl",
-    "contract-addresses",
-  ],
-  "/governance": [
-    "parallel-governance-token-prl",
-    "sprl",
-    "governance-process",
-    "proposal-framework",
-    "dao-multisigs",
-    "dao-treasury",
-  ],
-  "/governance/parallel-governance-token-prl": [
-    "issuance",
-    "tokenomics",
-    "governance",
-    "bridging-module",
-    "mimo-to-prl-migration",
-  ],
-  "/governance/parallel-governance-token-prl/tokenomics": [
-    "epoch-concept",
-    "staking-mechanisms",
-    "paraboost",
-    "fee-distribution",
-  ],
-  "/governance/proposal-framework": [
-    "parallel-integration-request-pir",
-    "parallel-governance-proposal-pgp",
-    "parallel-improvement-protocol-pip",
-  ],
-};
+const CHILDREN_ORDER: Record<string, string[]> = {};
 
 const COLLAPSED_BY_DEFAULT_PATTERNS = [
   /\/parallel-v2(\/|$)/,
@@ -222,22 +211,41 @@ function buildItem(absPath: string, depth: number): SidebarItem | null {
   return null;
 }
 
-function sortChildren(childMap: Map<string, SidebarItem>, parentRoute: string): SidebarItem[] {
-  const order = CHILDREN_ORDER[parentRoute];
-  if (!order) {
-    return [...childMap.values()].sort((a, b) => a.text.localeCompare(b.text));
-  }
-  const ordered: SidebarItem[] = [];
-  for (const slug of order) {
-    const found = childMap.get(slug);
-    if (found) {
-      ordered.push(found);
-      childMap.delete(slug);
+export function sortChildren(
+  childMap: Map<string, SidebarItem>,
+  parentRoute: string,
+  sitemapOrder: Map<string, number> = SITEMAP_ORDER,
+): SidebarItem[] {
+  // Snapshot positions avant le tri pour éviter que `sitemapPosition` ne soit
+  // recalculé n fois quand l'arg `sitemapOrder` est custom (pour les tests).
+  const positionFor = (item: SidebarItem): number => {
+    const route = item.link ?? findFirstLink(item);
+    if (!route) return Number.MAX_SAFE_INTEGER;
+    return sitemapOrder.get(route) ?? Number.MAX_SAFE_INTEGER;
+  };
+
+  const manualOrder = CHILDREN_ORDER[parentRoute];
+  if (manualOrder) {
+    const ordered: SidebarItem[] = [];
+    for (const slug of manualOrder) {
+      const found = childMap.get(slug);
+      if (found) {
+        ordered.push(found);
+        childMap.delete(slug);
+      }
     }
+    // Reste (= non listé dans l'override) : ordre sitemap, puis alpha en fallback
+    const remaining = [...childMap.values()].sort((a, b) => {
+      const diff = positionFor(a) - positionFor(b);
+      return diff !== 0 ? diff : a.text.localeCompare(b.text);
+    });
+    return [...ordered, ...remaining];
   }
-  // Append remaining (alphabetical) so a missing override entry doesn't drop pages
-  const remaining = [...childMap.values()].sort((a, b) => a.text.localeCompare(b.text));
-  return [...ordered, ...remaining];
+
+  return [...childMap.values()].sort((a, b) => {
+    const diff = positionFor(a) - positionFor(b);
+    return diff !== 0 ? diff : a.text.localeCompare(b.text);
+  });
 }
 
 function sectionKey(item: SidebarItem): string {
@@ -345,4 +353,9 @@ export const sidebar: Sidebar = ${JSON.stringify(finalSidebar, null, 2)};
   console.log(`  ${total} sidebar entries (top-level: ${finalSidebar.length})`);
 }
 
-main();
+// Skip auto-execution when imported (e.g. by tests). `pathToFileURL` est
+// utilisé pour gérer correctement les chemins avec espaces (URL-encoded en
+// `%20` dans `import.meta.url`) — un simple `file://${argv[1]}` ne match pas.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

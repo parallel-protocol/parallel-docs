@@ -142,4 +142,32 @@ describe("internalLinks /pages/[hash] alias resolution", () => {
     expect(out).not.toContain("/pages/vmL3haFUBR6HbqbS6PLs");
     expect(fetchMock).not.toHaveBeenCalled(); // KNOWN_ALIASES lookup — no network call needed
   });
+
+  it("drops the link wrapper for [text](broken://pages/HASH) — keeps text only", async () => {
+    const input =
+      "See [paUSD Risk Parameters](broken://pages/rqx6kqeym5jrdmwd0mj2) for details.";
+    const out = (await internalLinks.apply(
+      input,
+      makeCtx("https://docs.parallel.best/x"),
+    )) as string;
+    expect(out).toBe("See paUSD Risk Parameters for details.");
+  });
+
+  it("drops the link wrapper for any broken:// URL, not just /pages/", async () => {
+    const input = "Check [Foo](broken://anything-else).";
+    const out = (await internalLinks.apply(
+      input,
+      makeCtx("https://docs.parallel.best/x"),
+    )) as string;
+    expect(out).toBe("Check Foo.");
+  });
+
+  it("does NOT touch real https external links when checking for broken://", async () => {
+    const input = "Visit [Vocs](https://vocs.dev).";
+    const out = (await internalLinks.apply(
+      input,
+      makeCtx("https://docs.parallel.best/x"),
+    )) as string;
+    expect(out).toContain("[Vocs](https://vocs.dev)");
+  });
 });

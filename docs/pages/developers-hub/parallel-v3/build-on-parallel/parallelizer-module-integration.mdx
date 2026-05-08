@@ -2,16 +2,16 @@
 title: Parallelizer Module Integration
 description: >-
   The Parallelizer module serves as the core minting and burning engine for
-  Parallel stablecoins.&#x20;
+  Parallel stablecoins.
 subtitle: >-
   Interact with the Parallelizer Module to mint, burn or redeem Parallel
   stablecoins
 ---
 import { PageHeader } from '@/components/PageHeader'
 
-<PageHeader breadcrumb={[{"label":"Developers Hub","href":"/developers-hub"},{"label":"Parallel V3","href":"/developers-hub/parallel-v3"},{"label":"Build On Parallel","href":"/developers-hub/parallel-v3/build-on-parallel"}]} title={"Parallelizer Module Integration"} subtitle={"Interact with the Parallelizer Module to mint, burn or redeem Parallel stablecoins"} />
+<PageHeader breadcrumb={[{"label":"Developers Hub"},{"label":"Parallel V3","href":"/developers-hub/parallel-v3"},{"label":"Build On Parallel","href":"/developers-hub/parallel-v3/build-on-parallel"}]} title={"Parallelizer Module Integration"} subtitle={"Interact with the Parallelizer Module to mint, burn or redeem Parallel stablecoins"} />
 
-The Parallelizer module serves as the core minting and burning engine for Parallel stablecoins.&#x20;
+The Parallelizer module serves as the core minting and burning engine for Parallel stablecoins.
 
 The contract works as a [Diamond Proxy](https://eips.ethereum.org/EIPS/eip-2535) with multiple implementation facets. This [repo](https://github.com/parallel-protocol/parallel-parallelizer/tree/main/contracts/parallelizer) contains the contract implementation with all its facets.
 
@@ -176,7 +176,7 @@ For enhanced user experience, the Parallelizer Module supports gasless minting o
 
 The system provides two permit-enabled functions that mirror the standard swap functions:
 
-**Exact Input Swaps with Permit (`swapExactInputWithPermit`)**&#x20;
+**Exact Input Swaps with Permit (`swapExactInputWithPermit`)**
 
 ```solidity
 function swapExactInputWithPermit(
@@ -205,7 +205,7 @@ function swapExactInputWithPermit(
 
 * For mint operations: Approve the contract using Permit2 to spend your `AmountIn` tokens
 
-**Exact Output Swaps with Permit (`swapExactOutputWithPermit`)**&#x20;
+**Exact Output Swaps with Permit (`swapExactOutputWithPermit`)**
 
 ```solidity
 function swapExactOutputWithPermit(
