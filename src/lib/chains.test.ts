@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { CHAIN_LABELS, type ChainSlug, EXPLORERS } from "./chains";
 
-const SLUGS: ChainSlug[] = ["ethereum", "sei", "base", "sonic", "arbitrum", "polygon", "fantom"];
+const SLUGS: ChainSlug[] = [
+  "ethereum",
+  "sei",
+  "base",
+  "sonic",
+  "arbitrum",
+  "polygon",
+  "fantom",
+];
 
 describe("CHAIN_LABELS", () => {
   it("provides a non-empty label for every ChainSlug", () => {

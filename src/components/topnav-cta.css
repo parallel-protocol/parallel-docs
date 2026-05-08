@@ -1,30 +1,20 @@
 /**
- * Top-nav CTA pills — applied to external links pointing at app.parallel.best.
+ * Top-nav CTA pills — applied to external top-nav links (target="_blank").
  * Vocs renders top-nav items inside `.vocs_DesktopTopNav_item`. Targeting via
- * `[href*="..."]` keeps the styling colocated with the URL — change the topNav
- * link in vocs.config.tsx and the pill follows; no component override needed.
+ * `[target="_blank"]` keeps the styling generic — every external CTA opens in
+ * a new tab, so the pill styling follows wherever the topNav adds an external
+ * link, regardless of host. Colors come from CSS vars so each doc inherits
+ * its own `theme.accentColor` automatically (no edit-on-copy-paste).
  */
-.vocs_DesktopTopNav_item[href*="parallel.best/mint"],
-.vocs_DesktopTopNav_item[href*="parallel.best/earn"] {
-  background: #5a42b8; /* purple-heart-700, matches theme.accentColor.light */
-  color: white !important;
+.vocs_DesktopTopNav_item[target="_blank"] {
+  background: var(--vocs-color_textAccent);
+  color: var(--vocs-color_background) !important;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 0;
   font-weight: 500;
-  transition: background 150ms ease;
+  transition: filter 150ms ease;
 }
 
-.vocs_DesktopTopNav_item[href*="parallel.best/mint"]:hover,
-.vocs_DesktopTopNav_item[href*="parallel.best/earn"]:hover {
-  background: #6d51d3; /* purple-heart-600 */
-}
-
-:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/mint"],
-:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/earn"] {
-  background: #7d72e4; /* purple-heart-500, matches theme.accentColor.dark */
-}
-
-:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/mint"]:hover,
-:root.dark .vocs_DesktopTopNav_item[href*="parallel.best/earn"]:hover {
-  background: #9b8df0;
+.vocs_DesktopTopNav_item[target="_blank"]:hover {
+  filter: brightness(1.1);
 }

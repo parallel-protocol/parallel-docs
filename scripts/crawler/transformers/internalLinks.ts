@@ -9,7 +9,9 @@ const BROKEN_LINK_PROTOCOL = "broken://";
 // standard 20-char alphanumeric page IDs (uppercase, digits, hyphens, underscores).
 const PAGES_ALIAS_REGEX = /\/pages\/([a-zA-Z0-9_-]{16,})\b/g;
 const GITBOOK_HOST = "https://docs.parallel.best";
+const SITE_INDEX_URL = `${GITBOOK_HOST}/~gitbook/site-index`;
 const aliasCache = new Map<string, string>();
+let siteIndexPromise: Promise<Map<string, string>> | null = null;
 
 /**
  * Mapping connu hash → URL Vocs résolue. Vérifié manuellement Phase 3.5
@@ -71,20 +73,64 @@ const KNOWN_ALIASES: Record<string, string> = {
 
 export function __clearAliasCache(): void {
   aliasCache.clear();
+  siteIndexPromise = null;
+}
+
+/**
+ * Build a `lowercased pageId → pathname` lookup from GitBook's site-index
+ * endpoint. GitBook resolves `/pages/<id>` URLs at HTML render time using this
+ * same data — the markdown source still contains the raw `/pages/<id>`
+ * reference, so we replicate that resolution at convert time.
+ *
+ * Avoids hand-maintaining KNOWN_ALIASES for every doc migration : on Monet
+ * the site-index resolved 100% of `/pages/<id>` references that the HEAD
+ * redirect couldn't.
+ */
+async function loadSiteIndex(): Promise<Map<string, string>> {
+  if (!siteIndexPromise) {
+    siteIndexPromise = (async () => {
+      const map = new Map<string, string>();
+      try {
+        const res = await fetch(SITE_INDEX_URL);
+        if (!res.ok) return map;
+        const data = (await res.json()) as { pages?: Array<{ id?: string; pathname?: string }> };
+        for (const p of data.pages ?? []) {
+          if (typeof p.id === "string" && typeof p.pathname === "string") {
+            map.set(p.id.toLowerCase(), p.pathname);
+          }
+        }
+      } catch {
+        // Network or JSON failure — fall back to HEAD redirect resolution.
+      }
+      return map;
+    })();
+  }
+  return siteIndexPromise;
 }
 
 async function resolvePagesAlias(hash: string): Promise<string | null> {
   if (aliasCache.has(hash)) return aliasCache.get(hash) ?? null;
 
-  // Priority 1 : mapping connu (vérifié manuellement)
+  // Priority 1 : mapping manuel — exceptions (page archivée/draft absente du
+  // site-index) ou overrides où la résolution canonique GitBook pointe vers
+  // une URL différente de celle qu'on veut servir.
   if (hash in KNOWN_ALIASES) {
     const path = KNOWN_ALIASES[hash];
     aliasCache.set(hash, path);
     return path;
   }
 
-  // Priority 2 : tentative HEAD redirect (fallback, peut marcher sur d'autres
-  // setups GitBook où l'alias serait vraiment résolu côté serveur)
+  // Priority 2 : `/~gitbook/site-index` — résolution canonique GitBook,
+  // même JSON que celui consommé par le runtime côté navigateur.
+  const siteIndex = await loadSiteIndex();
+  const fromIndex = siteIndex.get(hash.toLowerCase());
+  if (fromIndex) {
+    aliasCache.set(hash, fromIndex);
+    return fromIndex;
+  }
+
+  // Priority 3 : fallback HEAD redirect (peut marcher sur certains setups
+  // GitBook où l'alias est résolu côté serveur — pas le cas sur Parallel/Monet).
   try {
     const res = await fetch(`${GITBOOK_HOST}/pages/${hash}`, {
       method: "HEAD",
@@ -101,8 +147,22 @@ async function resolvePagesAlias(hash: string): Promise<string | null> {
 }
 
 function transformLink(linkUrl: string, sourcePageUrl: string): string {
-  if (/^(https?:|mailto:|tel:|#)/i.test(linkUrl)) return linkUrl;
+  if (linkUrl.startsWith(BROKEN_LINK_PROTOCOL)) return linkUrl;
   if (linkUrl.startsWith("/files/")) return linkUrl;
+  if (/^(mailto:|tel:|#)/i.test(linkUrl)) return linkUrl;
+
+  // Absolute URLs to GitBook host : strip and process IF the path ends in
+  // `.md` (canonical GitBook markdown link). Other absolute URLs — including
+  // same-host non-`.md` paths (in-narrative legacy page-id refs that lack a
+  // Vocs equivalent) — stay intact so we don't surface broken routes to
+  // Vocs's deadlink check.
+  if (/^https?:\/\//i.test(linkUrl)) {
+    if (!linkUrl.startsWith(GITBOOK_HOST)) return linkUrl;
+    const stripped = linkUrl.slice(GITBOOK_HOST.length) || "/";
+    const pathBare = stripped.split("#")[0].split("?")[0];
+    if (!pathBare.endsWith(".md")) return linkUrl;
+    linkUrl = stripped;
+  }
 
   const hashIdx = linkUrl.indexOf("#");
   const pathPart = hashIdx === -1 ? linkUrl : linkUrl.slice(0, hashIdx);
@@ -112,14 +172,12 @@ function transformLink(linkUrl: string, sourcePageUrl: string): string {
 
   const stripped = pathPart.slice(0, -3);
   let resolved: string;
-
   if (stripped.startsWith("/")) {
     resolved = stripped;
   } else {
     const base = new URL(sourcePageUrl);
     resolved = new URL(stripped, base).pathname;
   }
-
   return resolved + anchor;
 }
 

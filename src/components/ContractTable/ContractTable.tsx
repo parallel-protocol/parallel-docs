@@ -22,6 +22,13 @@ export interface ContractTableProps {
   contracts: Contract[];
   /** Visual density. `compact` reduces padding and font size. Defaults to `default`. */
   variant?: "default" | "compact";
+  /**
+   * Optional network qualifier. `testnet` renders a `TESTNET` badge in the
+   * `Contract` column header. `mainnet` (or omitted) renders no badge.
+   * The badge is purely visual reinforcement; the chain label already conveys
+   * mainnet vs testnet to assistive tech via the table caption.
+   */
+  network?: "mainnet" | "testnet";
 }
 
 /**
@@ -32,7 +39,12 @@ export interface ContractTableProps {
  * - Each row exposes a copy button and an explorer link.
  * - Contracts with a `description` render it inline beneath the contract name.
  */
-export function ContractTable({ chain, contracts, variant = "default" }: ContractTableProps) {
+export function ContractTable({
+  chain,
+  contracts,
+  variant = "default",
+  network,
+}: ContractTableProps) {
   const rootClass = `cooper-ct-root cooper-ct-${variant}`;
 
   if (contracts.length === 0) {
@@ -54,6 +66,11 @@ export function ContractTable({ chain, contracts, variant = "default" }: Contrac
           <tr>
             <th scope="col" className="cooper-ct-th">
               Contract
+              {network === "testnet" ? (
+                <span className="cooper-ct-network-badge" aria-hidden="true">
+                  TESTNET
+                </span>
+              ) : null}
             </th>
             <th scope="col" className="cooper-ct-th">
               Address

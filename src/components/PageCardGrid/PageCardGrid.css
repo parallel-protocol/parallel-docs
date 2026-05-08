@@ -39,7 +39,7 @@
   border: var(--doc-card-border);
   border-radius: var(--doc-card-radius);
   box-shadow: var(--doc-card-shadow);
-  background: var(--vocs-color-background);
+  background: var(--vocs-color_background);
   color: inherit;
   text-decoration: none;
   transition: box-shadow 150ms ease, transform 150ms ease,
@@ -50,12 +50,12 @@
 .cooper-pcg-card:hover,
 .cooper-pcg-card:focus-visible {
   box-shadow: var(--doc-card-shadow-hover);
-  border-color: var(--vocs-color-textAccent, var(--vocs-color-border));
+  border-color: var(--vocs-color_textAccent, var(--vocs-color_border));
   transform: translateY(-1px);
 }
 
 .cooper-pcg-card:focus-visible {
-  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline: 2px solid var(--vocs-color_textAccent, currentColor);
   outline-offset: 2px;
 }
 
@@ -77,5 +77,5 @@
 .cooper-pcg-card:hover .cooper-pcg-chevron,
 .cooper-pcg-card:focus-visible .cooper-pcg-chevron {
   transform: translateX(2px);
-  color: var(--vocs-color-textAccent, var(--doc-tint-strong));
+  color: var(--vocs-color_textAccent, var(--doc-tint-strong));
 }
