@@ -81,7 +81,7 @@ describe("ContractTable", () => {
 
   it("renders no TESTNET badge when the network prop is omitted", () => {
     render(
-      <ContractTable chain="eden-mainnet" contracts={[{ name: "USDMO", address: ADDR_1 }]} />,
+      <ContractTable chain="ethereum" contracts={[{ name: "USDMO", address: ADDR_1 }]} />,
     );
     expect(screen.queryByText("TESTNET")).not.toBeInTheDocument();
   });
@@ -89,7 +89,7 @@ describe("ContractTable", () => {
   it("renders no TESTNET badge when network='mainnet' is explicit", () => {
     render(
       <ContractTable
-        chain="eden-mainnet"
+        chain="ethereum"
         network="mainnet"
         contracts={[{ name: "USDMO", address: ADDR_1 }]}
       />,
@@ -100,7 +100,7 @@ describe("ContractTable", () => {
   it("renders the TESTNET badge in the Contract column header when network='testnet'", () => {
     render(
       <ContractTable
-        chain="eden-testnet"
+        chain="sei"
         network="testnet"
         contracts={[{ name: "USDMO", address: ADDR_1 }]}
       />,
@@ -117,7 +117,7 @@ describe("ContractTable", () => {
   it("has no detectable accessibility violations with the TESTNET badge", async () => {
     const { container } = render(
       <ContractTable
-        chain="eden-testnet"
+        chain="sei"
         network="testnet"
         contracts={[{ name: "USDMO", address: ADDR_1 }]}
       />,

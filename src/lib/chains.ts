@@ -23,9 +23,7 @@ export type ChainSlug =
   | "fraxtal"
   | "world"
   | "hemi"
-  | "fantom" // PRL only, not USDP
-  | "eden-mainnet"
-  | "eden-testnet";
+  | "fantom"; // PRL only, not USDP
 
 export const CHAIN_LABELS: Record<ChainSlug, string> = {
   ethereum: "Ethereum",
@@ -53,8 +51,6 @@ export const CHAIN_LABELS: Record<ChainSlug, string> = {
   world: "World Chain",
   hemi: "Hemi",
   fantom: "Fantom",
-  "eden-mainnet": "Eden Mainnet",
-  "eden-testnet": "Eden Testnet",
 };
 
 export const EXPLORERS: Record<ChainSlug, (addr: string) => string> = {
@@ -86,6 +82,4 @@ export const EXPLORERS: Record<ChainSlug, (addr: string) => string> = {
   world: (a) => `https://worldscan.org/address/${a}`,
   hemi: (a) => `https://explorer.hemi.xyz/address/${a}`,
   fantom: (a) => `https://ftmscan.com/address/${a}`,
-  "eden-mainnet": (a) => `https://explorer.eden.network/address/${a}`,
-  "eden-testnet": (a) => `https://testnet-explorer.eden.network/address/${a}`,
 };
