@@ -7,7 +7,7 @@
 .cooper-tabs-list {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--vocs-color-border);
+  border-bottom: 1px solid var(--vocs-color_border);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -37,14 +37,14 @@
 }
 
 .cooper-tabs-trigger:focus-visible {
-  outline: 2px solid var(--vocs-color-textAccent, currentColor);
+  outline: 2px solid var(--vocs-color_textAccent, currentColor);
   outline-offset: -2px;
   border-radius: 2px;
 }
 
 .cooper-tabs-trigger[data-state="active"] {
-  color: var(--vocs-color-textAccent, var(--doc-tint-strong));
-  border-bottom-color: var(--vocs-color-textAccent, var(--doc-tint-strong));
+  color: var(--vocs-color_textAccent, var(--doc-tint-strong));
+  border-bottom-color: var(--vocs-color_textAccent, var(--doc-tint-strong));
 }
 
 .cooper-tabs-content {

@@ -3,9 +3,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  border-radius: 12px;
-  background: #5a42b8; /* Parallel purple-heart-700, matches theme.accentColor.light */
-  color: white !important;
+  border-radius: 0;
+  background: var(--vocs-color_textAccent);
+  color: var(--vocs-color_background) !important;
   text-decoration: none !important;
   font-weight: 500;
   transition: all 150ms ease;
@@ -13,15 +13,7 @@
 }
 
 .button.primary:hover {
-  background: #6d51d3; /* Parallel purple-heart-600 */
+  filter: brightness(1.1);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-:root.dark .button.primary {
-  background: #7d72e4; /* purple-heart-500, matches theme.accentColor.dark */
-}
-
-:root.dark .button.primary:hover {
-  background: #9b8df0;
 }

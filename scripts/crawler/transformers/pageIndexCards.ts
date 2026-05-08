@@ -31,7 +31,7 @@ import type { Transformer, TransformContext } from "../types";
  * Idempotent : ne fait rien si le source contient déjà `<PageCardGrid`.
  */
 
-const BULLET_LINE_REGEX = /^\s*[-*]\s+\[([^\]]+)\]\(([^)]+)\)\s*$/;
+const BULLET_LINE_REGEX = /^\s*[-*]\s+\[([^\]]+)\]\(([^)]+)\)(?:\s*[:\-–—]\s*.*)?\s*$/;
 const COMPONENT_IMPORT = `import { PageCardGrid } from '@/components/PageCardGrid'`;
 const GITBOOK_HOST_PREFIX = "https://docs.parallel.best";
 
@@ -190,7 +190,11 @@ export const pageIndexCards: Transformer = {
 
     const parentRoute = currentRoute(ctx.url);
     const immediate = keepImmediateChildren(detection.items, parentRoute);
-    if (immediate.length < 2) return source;
+    // Render even when a single immediate child remains : GitBook auto-TOC
+    // pages often list immediate + grandchildren in the same bullet block, so
+    // post-filter we may legitimately end up with one card (cf. addresses or
+    // onchain-tools on Monet). Skip only when there's strictly nothing.
+    if (immediate.length < 1) return source;
 
     // Extract H1 text from the original body to preserve casing/punctuation.
     const h1Match = source.slice(detection.bodyStart).match(/^#\s+(.+?)\s*$/m);

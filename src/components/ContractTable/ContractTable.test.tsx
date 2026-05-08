@@ -78,4 +78,50 @@ describe("ContractTable", () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("renders no TESTNET badge when the network prop is omitted", () => {
+    render(
+      <ContractTable chain="ethereum" contracts={[{ name: "USDMO", address: ADDR_1 }]} />,
+    );
+    expect(screen.queryByText("TESTNET")).not.toBeInTheDocument();
+  });
+
+  it("renders no TESTNET badge when network='mainnet' is explicit", () => {
+    render(
+      <ContractTable
+        chain="ethereum"
+        network="mainnet"
+        contracts={[{ name: "USDMO", address: ADDR_1 }]}
+      />,
+    );
+    expect(screen.queryByText("TESTNET")).not.toBeInTheDocument();
+  });
+
+  it("renders the TESTNET badge in the Contract column header when network='testnet'", () => {
+    render(
+      <ContractTable
+        chain="sei"
+        network="testnet"
+        contracts={[{ name: "USDMO", address: ADDR_1 }]}
+      />,
+    );
+    const badge = screen.getByText("TESTNET");
+    expect(badge).toBeInTheDocument();
+    // The badge sits inside the Contract column header.
+    const contractHeader = screen.getByRole("columnheader", { name: /Contract/ });
+    expect(contractHeader).toContainElement(badge);
+    // It is decorative (the chain label in the caption already conveys testnet).
+    expect(badge).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("has no detectable accessibility violations with the TESTNET badge", async () => {
+    const { container } = render(
+      <ContractTable
+        chain="sei"
+        network="testnet"
+        contracts={[{ name: "USDMO", address: ADDR_1 }]}
+      />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
 });

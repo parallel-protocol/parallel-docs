@@ -155,7 +155,7 @@ describe("pageIndexCards", () => {
     expect(items).toHaveLength(2);
   });
 
-  it("skips when fewer than 2 immediate children remain after filtering", () => {
+  it("renders even when a single immediate child remains after filtering", () => {
     const body = [
       "# Single",
       "",
@@ -167,6 +167,26 @@ describe("pageIndexCards", () => {
     const out = pageIndexCards.apply(
       body,
       ctx("https://docs.parallel.best/single"),
+    ) as string;
+    expect(out).toContain("<PageCardGrid items={");
+    const m = out.match(/<PageCardGrid items=\{(\[[\s\S]*?\])\}/);
+    const items = JSON.parse(m![1]);
+    expect(items).toEqual([
+      { title: "Only Direct Child", href: "/single/only" },
+    ]);
+  });
+
+  it("skips when zero immediate children remain after filtering", () => {
+    const body = [
+      "# Empty",
+      "",
+      "- [Grandchild Foo](/empty/sub/foo.md)",
+      "- [Grandchild Bar](/empty/sub/bar.md)",
+      "",
+    ].join("\n");
+    const out = pageIndexCards.apply(
+      body,
+      ctx("https://docs.parallel.best/empty"),
     );
     expect(out).toBe(body);
   });
@@ -206,5 +226,94 @@ describe("pageIndexCards", () => {
 
   it("exposes its name", () => {
     expect(pageIndexCards.name).toBe("pageIndexCards");
+  });
+
+  it("matches bullets with inline `: description` (colon)", () => {
+    const body = [
+      "# Section",
+      "",
+      "- [Oracles](/section/oracles.md): Explore price feeds and reliability",
+      "- [USDp](/section/usdp.md): Deployed USDp smart contracts",
+      "",
+    ].join("\n");
+    const out = pageIndexCards.apply(
+      body,
+      ctx("https://docs.parallel.best/section"),
+    ) as string;
+    expect(out).toContain("<PageCardGrid items={");
+    const m = out.match(/<PageCardGrid items=\{(\[[\s\S]*?\])\}/);
+    const items = JSON.parse(m![1]);
+    expect(items).toEqual([
+      { title: "Oracles", href: "/section/oracles" },
+      { title: "USDp", href: "/section/usdp" },
+    ]);
+  });
+
+  it("matches bullets with inline `— description` (em-dash)", () => {
+    const body = [
+      "# Section",
+      "",
+      "- [Foo](/section/foo.md) — first description",
+      "- [Bar](/section/bar.md) — second description",
+      "",
+    ].join("\n");
+    const out = pageIndexCards.apply(
+      body,
+      ctx("https://docs.parallel.best/section"),
+    ) as string;
+    const m = out.match(/<PageCardGrid items=\{(\[[\s\S]*?\])\}/);
+    const items = JSON.parse(m![1]);
+    expect(items).toHaveLength(2);
+    expect(items[0]).toEqual({ title: "Foo", href: "/section/foo" });
+  });
+
+  it("matches bullets with inline `– description` (en-dash)", () => {
+    const body = [
+      "# Section",
+      "",
+      "- [Foo](/section/foo.md) – first description",
+      "- [Bar](/section/bar.md) – second description",
+      "",
+    ].join("\n");
+    const out = pageIndexCards.apply(
+      body,
+      ctx("https://docs.parallel.best/section"),
+    ) as string;
+    const m = out.match(/<PageCardGrid items=\{(\[[\s\S]*?\])\}/);
+    const items = JSON.parse(m![1]);
+    expect(items).toHaveLength(2);
+    expect(items[0]).toEqual({ title: "Foo", href: "/section/foo" });
+  });
+
+  it("still matches legacy bullets with no description", () => {
+    const body = [
+      "# Section",
+      "",
+      "- [Foo](/section/foo.md)",
+      "- [Bar](/section/bar.md)",
+      "",
+    ].join("\n");
+    const out = pageIndexCards.apply(
+      body,
+      ctx("https://docs.parallel.best/section"),
+    ) as string;
+    expect(out).toContain("<PageCardGrid items={");
+    const m = out.match(/<PageCardGrid items=\{(\[[\s\S]*?\])\}/);
+    const items = JSON.parse(m![1]);
+    expect(items).toHaveLength(2);
+  });
+
+  it("does NOT touch a narrative paragraph followed by bullets", () => {
+    const body = [
+      "# Section",
+      "",
+      "Welcome to this section, here is a long narrative intro.",
+      "",
+      "- [Foo](/section/foo.md): description",
+      "- [Bar](/section/bar.md): description",
+      "",
+    ].join("\n");
+    const out = pageIndexCards.apply(body, ctx("https://docs.parallel.best/section"));
+    expect(out).toBe(body);
   });
 });
