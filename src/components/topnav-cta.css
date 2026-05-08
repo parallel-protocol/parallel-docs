@@ -8,13 +8,16 @@
  */
 .vocs_DesktopTopNav_item[target="_blank"] {
   background: var(--vocs-color_textAccent);
-  color: var(--vocs-color_background) !important;
+  color: #fff !important;
   padding: 0.5rem 1rem;
-  border-radius: 0;
-  font-weight: 500;
-  transition: filter 150ms ease;
+  border: 1px solid var(--vocs-color_textAccent);
+  border-radius: 12px;
+  font-weight: 400;
+  transition: filter 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .vocs_DesktopTopNav_item[target="_blank"]:hover {
   filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
