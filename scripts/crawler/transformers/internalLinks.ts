@@ -1,6 +1,10 @@
 import type { Transformer, TransformContext } from "../types";
 
 const MD_LINK_REGEX = /\[([^\]]*)\]\(([^)]+)\)/g;
+// GitBook utilise `broken://...` quand un lien interne pointe vers une page
+// supprimée/déplacée. On retire complètement le lien (texte seul) pour ne pas
+// laisser un anchor cliquable avec href invalide.
+const BROKEN_LINK_PROTOCOL = "broken://";
 // Matches both 40-char lowercase-hex hashes (some GitBook versions) and GitBook's
 // standard 20-char alphanumeric page IDs (uppercase, digits, hyphens, underscores).
 const PAGES_ALIAS_REGEX = /\/pages\/([a-zA-Z0-9_-]{16,})\b/g;
@@ -134,7 +138,10 @@ export const internalLinks: Transformer = {
       resolved.get(hash) ?? full,
     );
 
-    out = out.replace(MD_LINK_REGEX, (_match, text, url) => {
+    out = out.replace(MD_LINK_REGEX, (_match, text: string, url: string) => {
+      // broken:// → drop the link, keep just the label text. Better than
+      // leaving a ghost anchor with an invalid href that errors on click.
+      if (url.startsWith(BROKEN_LINK_PROTOCOL)) return text;
       return `[${text}](${transformLink(url, ctx.url)})`;
     });
 
