@@ -13,6 +13,10 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  flushEmbedMetaCache,
+  initEmbedMetaCache,
+} from "./crawler/embedMeta";
 import { factorizeContractAddresses } from "./crawler/factorizers/contractAddressesFactorizer";
 import { runPipeline } from "./crawler/pipeline";
 import {
@@ -23,16 +27,19 @@ import {
 } from "./crawler/sitemap";
 import { autolinks } from "./crawler/transformers/autolinks";
 import { embeds } from "./crawler/transformers/embeds";
+import { escapeDollarSigns } from "./crawler/transformers/escapeDollarSigns";
 import { frontmatter } from "./crawler/transformers/frontmatter";
 import { hashtagHeadings } from "./crawler/transformers/hashtagHeadings";
 import { hero } from "./crawler/transformers/hero";
 import { hints } from "./crawler/transformers/hints";
-import { legacyBanner } from "./crawler/transformers/legacyBanner";
 import { htmlAttrs } from "./crawler/transformers/htmlAttrs";
+import { htmlEntities } from "./crawler/transformers/htmlEntities";
 import { images } from "./crawler/transformers/images";
 import { internalLinks } from "./crawler/transformers/internalLinks";
+import { legacyBanner } from "./crawler/transformers/legacyBanner";
 import { mathUnescape } from "./crawler/transformers/mathUnescape";
 import { pageHeader } from "./crawler/transformers/pageHeader";
+import { pageIndexCards } from "./crawler/transformers/pageIndexCards";
 import { steppers } from "./crawler/transformers/steppers";
 import { stripFooter } from "./crawler/transformers/stripFooter";
 import { tabs } from "./crawler/transformers/tabs";
@@ -47,14 +54,21 @@ const PAGES_DIR = join(ROOT, "docs/pages");
 // `@/*` → `./src/*` Vite alias (set in vocs.config.tsx).
 const DATA_DIR = join(ROOT, "src/data");
 const SITEMAP_CACHE = join(TMP_DIR, "_sitemap.json");
+// Stocké dans `tmp/` (pas `tmp/gitbook-source/`) pour éviter de polluer le
+// dossier des sources crawlées.
+const EMBED_META_CACHE = join(ROOT, "tmp", "_embed-meta.json");
 
 /**
  * Pipeline canonique. Ordre figé :
  * 1. stripFooter      — retire le footer Agent Instructions avant tout
+ * 1.5. htmlEntities   — décoder `&#x20;` + trim trailing whitespace (cleanup de noise GitBook)
  * 2. hashtagHeadings  — nettoie les pictos H2/H3 avant que `frontmatter` ne lise le H1
  * 3. htmlAttrs        — class= → className= + void elements self-close (compat MDX/JSX)
- * 4. internalLinks    — résout les `.md` avant `images` (qui ignore les links non-image)
+ * 3.5. escapeDollarSigns — escape les `$` monétaires hors blocs `$$…$$` (sinon KaTeX accidentel)
+ * 4. internalLinks    — résout les `.md` avant `images` (qui ignore les links non-image),
+ *                       drop aussi les `[text](broken://...)` ghost links
  * 5. hints            — `{% hint style="X" %}…{% endhint %}` → `:::X…:::` (Vocs callout natif)
+ * 6.5. pageIndexCards — détecte les pages parentes "auto-TOC" → <PageCardGrid>
  * 6. tabs             — `{% tabs %}…{% endtabs %}` → sections H4 empilées (cleanup quirk table)
  * 7. embeds           — `{% embed url="X" %}` → `[X](X)` lien markdown
  * 8. steppers         — `{% stepper %}…{% endstepper %}` → liste ordonnée markdown
@@ -66,14 +80,19 @@ const SITEMAP_CACHE = join(TMP_DIR, "_sitemap.json");
  */
 const PIPELINE: readonly Transformer[] = [
   stripFooter,
+  htmlEntities, // décoder &#x20; tôt pour que tout le reste voie un markdown propre
   hashtagHeadings,
   htmlAttrs,
+  embeds, // {% embed url="<X>" %} → <LinkCard /> AVANT autolinks (sinon
+  // autolinks transforme les `<url>` à l'intérieur des embeds → URL malformée)
   autolinks, // <url> → [url](url) avant tout, sinon MDX casse sur le `<`
+  escapeDollarSigns, // escape les $ monétaires hors blocs $$…$$ (sinon KaTeX rend MathML)
   mathUnescape, // unescape \* et \_ DANS $$...$$ pour que KaTeX rende multiplication/indices
   internalLinks,
+  pageIndexCards, // détecte les pages parentes "auto-TOC" (H1 + bullet list de liens .md uniquement)
+  // et les remplace par <PageCardGrid> des enfants directs (cf. brief Vocs / GitBook auto-TOC)
   hints,
   tabs,
-  embeds,
   steppers,
   images,
   frontmatter,
@@ -140,6 +159,18 @@ async function cmdCrawl(sitemapUrl: string): Promise<void> {
   );
 }
 
+/**
+ * Convertit `docs/pages/foo/bar.mdx` ou `docs/pages/foo/index.mdx` en route
+ * Vocs (`/foo/bar` ou `/foo`). Utilisé pour pré-calculer le set des routes
+ * valides injecté via `ctx.validRoutes` (cf. transformer `pageHeader`).
+ */
+function outputPathToRoute(outputPath: string): string {
+  let p = outputPath.replace(/\\/g, "/");
+  p = p.replace(/^docs\/pages/, "");
+  p = p.replace(/\/index\.mdx$/, "").replace(/\.mdx$/, "");
+  return p === "" ? "/" : p;
+}
+
 async function cmdConvert(): Promise<void> {
   if (!existsSync(SITEMAP_CACHE)) {
     throw new Error(
@@ -151,6 +182,12 @@ async function cmdConvert(): Promise<void> {
   );
   await mkdir(IMAGES_DIR, { recursive: true });
   const cache = await loadCacheFromDisk(IMAGES_DIR);
+  await initEmbedMetaCache(EMBED_META_CACHE);
+  // Routes que le breadcrumb peut linker sans 404 — uniquement les pages
+  // réellement générées (calculées depuis le sitemap, en amont de la pipeline).
+  const validRoutes: ReadonlySet<string> = new Set(
+    entries.map((e) => outputPathToRoute(e.outputPath)),
+  );
   console.log(`→ Converting ${entries.length} pages…`);
 
   let okCount = 0;
@@ -169,6 +206,7 @@ async function cmdConvert(): Promise<void> {
       outputPath: entry.outputPath,
       imagesDir: IMAGES_DIR,
       cache,
+      validRoutes,
     };
     try {
       const out = await runPipeline(source, ctx, PIPELINE);
@@ -183,6 +221,9 @@ async function cmdConvert(): Promise<void> {
       errors.push(msg);
     }
   }
+
+  // Persist embed meta cache (favicons + OG titles fetched during this run).
+  await flushEmbedMetaCache();
 
   const imageCountEnd = (await readdir(IMAGES_DIR)).length;
   const imagesAdded = imageCountEnd - imageCountStart;
