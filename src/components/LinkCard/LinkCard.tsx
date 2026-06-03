@@ -33,13 +33,7 @@ function deriveHostname(rawUrl: string): string {
  * `embeds.ts` qui fetch l'URL au build via `embedMeta.ts`. Quand `title`
  * est absent, on rend le hostname court à sa place — pas de doublon.
  */
-export function LinkCard({
-  href,
-  title,
-  favicon,
-  hostname,
-  description,
-}: LinkCardProps) {
+export function LinkCard({ href, title, favicon, hostname, description }: LinkCardProps) {
   const computedHost = hostname ?? deriveHostname(href);
   const displayTitle = title ?? computedHost;
   // Show hostname line below title only when a real title is rendered above
@@ -47,12 +41,7 @@ export function LinkCard({
   const showHostnameLine = Boolean(title);
 
   return (
-    <a
-      className="cooper-lc-card"
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <a className="cooper-lc-card" href={href} target="_blank" rel="noopener noreferrer">
       {favicon && (
         <img
           className="cooper-lc-favicon"
@@ -65,18 +54,10 @@ export function LinkCard({
       )}
       <span className="cooper-lc-body">
         <span className="cooper-lc-title">{displayTitle}</span>
-        {description && (
-          <span className="cooper-lc-description">{description}</span>
-        )}
-        {showHostnameLine && (
-          <span className="cooper-lc-host">{computedHost}</span>
-        )}
+        {description && <span className="cooper-lc-description">{description}</span>}
+        {showHostnameLine && <span className="cooper-lc-host">{computedHost}</span>}
       </span>
-      <ChevronRight
-        className="cooper-lc-icon"
-        aria-hidden="true"
-        size={16}
-      />
+      <ChevronRight className="cooper-lc-icon" aria-hidden="true" size={16} />
     </a>
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CHAIN_LABELS, type ChainSlug, EXPLORERS } from "../../lib/chains";

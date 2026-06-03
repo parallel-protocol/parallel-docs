@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { ContractTable, type Contract } from "@/components/ContractTable";
 import { CHAIN_LABELS, type ChainSlug } from "@/lib/chains";
@@ -66,10 +68,7 @@ export function ContractAddressesPage({ stablecoin, chains }: ContractAddressesP
           No contracts deployed yet on {getChainLabel(selected) || "this chain"}.
         </p>
       ) : (
-        <ContractTable
-          chain={selected as ChainSlug}
-          contracts={contracts as Contract[]}
-        />
+        <ContractTable chain={selected as ChainSlug} contracts={contracts as Contract[]} />
       )}
     </div>
   );

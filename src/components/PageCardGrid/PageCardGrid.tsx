@@ -33,11 +33,7 @@ export function PageCardGrid({ items }: PageCardGridProps) {
         <li key={item.href} className="cooper-pcg-item">
           <a className="cooper-pcg-card" href={item.href}>
             <span className="cooper-pcg-title">{item.title}</span>
-            <ChevronRight
-              className="cooper-pcg-chevron"
-              aria-hidden="true"
-              size={18}
-            />
+            <ChevronRight className="cooper-pcg-chevron" aria-hidden="true" size={18} />
           </a>
         </li>
       ))}

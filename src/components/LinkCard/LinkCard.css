@@ -1,35 +1,27 @@
-/* LinkCard — scoped styles, prefix `cooper-lc-*`. No Tailwind.
- * Reproduit le rendu "embed card" GitBook : favicon + titre OG + hostname
- * court + chevron, hover ring sur la border (pas de translate Y). */
+/* LinkCard — clickable external-link card (favicon + title + hostname).
+ * Styled only with native Vocs v2 CSS variables (no custom tokens). */
 
 .cooper-lc-card {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  padding: 0.875rem 1rem;
   margin: 1.25rem 0;
-  /* Stroke explicite (gris ~12% opacity) — `--vocs-color_border` du theme
-   * Vocs est trop subtil et invisible à l'œil sur la card embed. */
-  border: 1px solid rgb(0 0 0 / 12%);
-  border-radius: var(--doc-card-radius);
-  background: var(--vocs-color_background);
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--vocs-border-color-primary);
+  border-radius: 8px;
+  background: var(--vocs-background-color-primary);
   color: inherit;
   text-decoration: none;
   transition: border-color 150ms ease;
 }
 
-[data-theme="dark"] .cooper-lc-card,
-.dark .cooper-lc-card {
-  border-color: rgb(255 255 255 / 14%);
-}
-
 .cooper-lc-card:hover,
 .cooper-lc-card:focus-visible {
-  border-color: var(--vocs-color_textAccent, var(--vocs-color_border));
+  border-color: var(--vocs-color-accent);
 }
 
 .cooper-lc-card:focus-visible {
-  outline: 2px solid var(--vocs-color_textAccent, currentColor);
+  outline: 2px solid var(--vocs-color-accent);
   outline-offset: 2px;
 }
 
@@ -52,31 +44,31 @@
 .cooper-lc-title {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--doc-tint-strong);
   line-height: 1.35;
+  color: var(--vocs-text-color-primary);
   word-break: break-word;
 }
 
 .cooper-lc-description {
   font-size: 0.875rem;
-  color: var(--doc-tint-subtle);
   line-height: 1.4;
+  color: var(--vocs-text-color-muted);
 }
 
 .cooper-lc-host {
   font-size: 0.875rem;
-  color: var(--doc-tint-subtle);
   line-height: 1.35;
+  color: var(--vocs-text-color-muted);
 }
 
 .cooper-lc-icon {
   flex-shrink: 0;
-  color: var(--doc-tint-subtle);
+  color: var(--vocs-text-color-muted);
   transition: transform 150ms ease, color 150ms ease;
 }
 
 .cooper-lc-card:hover .cooper-lc-icon,
 .cooper-lc-card:focus-visible .cooper-lc-icon {
-  color: var(--vocs-color_textAccent, var(--doc-tint-strong));
+  color: var(--vocs-color-accent);
   transform: translateX(2px);
 }

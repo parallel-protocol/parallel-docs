@@ -1,0 +1,13 @@
+/* KaTeX stylesheet — styles the math formulas that are pre-rendered to static
+ * KaTeX HTML at author time by `scripts/prerender-katex.mjs` (Vocs v2's MDX
+ * pipeline does not register remark-math's micromark syntax extension, so the
+ * `$$ … $$` blocks are rendered ahead of time instead). v2 has no config-level
+ * `head()` hook, so the stylesheet is imported here (Vocs loads
+ * `src/pages/_root.css` after its own CSS). */
+@import url("https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css");
+
+/* Center the pre-rendered display-math blocks, matching KaTeX defaults. */
+.cooper-math {
+  margin: 1.25rem 0;
+  overflow-x: auto;
+}

@@ -7,10 +7,7 @@ describe("LinkCard", () => {
   it("renders an anchor with the given href, target=_blank and rel=noopener", () => {
     render(<LinkCard href="https://immunefi.com/bug-bounty/parallel/information/" />);
     const link = screen.getByRole("link");
-    expect(link).toHaveAttribute(
-      "href",
-      "https://immunefi.com/bug-bounty/parallel/information/",
-    );
+    expect(link).toHaveAttribute("href", "https://immunefi.com/bug-bounty/parallel/information/");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
@@ -27,10 +24,7 @@ describe("LinkCard", () => {
     // <img alt=""> is presentational — no implicit role="img" — query directly.
     const img = container.querySelector("img.cooper-lc-favicon");
     expect(img).not.toBeNull();
-    expect(img).toHaveAttribute(
-      "src",
-      "https://immunefi.com/apple-touch-icon.png",
-    );
+    expect(img).toHaveAttribute("src", "https://immunefi.com/apple-touch-icon.png");
     expect(img).toHaveAttribute("loading", "lazy");
     expect(img).toHaveAttribute("width", "20");
   });
@@ -48,9 +42,7 @@ describe("LinkCard", () => {
   });
 
   it("uses the explicit hostname prop over derivation from href", () => {
-    render(
-      <LinkCard href="https://www.foo.bar/" title="Hello" hostname="explicit-host" />,
-    );
+    render(<LinkCard href="https://www.foo.bar/" title="Hello" hostname="explicit-host" />);
     expect(screen.getByText("explicit-host")).toBeInTheDocument();
   });
 
@@ -67,9 +59,7 @@ describe("LinkCard", () => {
         hostname="immunefi"
       />,
     );
-    expect(
-      screen.getByText("Parallel Bug Bounties | Immunefi"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Parallel Bug Bounties | Immunefi")).toBeInTheDocument();
     expect(screen.getByText("immunefi")).toBeInTheDocument();
   });
 

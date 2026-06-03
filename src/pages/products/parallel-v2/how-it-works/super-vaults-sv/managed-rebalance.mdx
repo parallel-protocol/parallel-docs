@@ -1,0 +1,27 @@
+---
+title: Managed Rebalance
+description: >-
+  The automated vault system is designed to provide users with confidence in
+  each automated rebalance, ensuring that rebalances are done in a sensible
+  manner and…
+---
+
+# Managed Rebalance
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+The automated vault system is designed to provide users with confidence in each automated rebalance, ensuring that rebalances are done in a sensible manner and that costs in terms of slippage and fees are kept to a minimum. While this is ideal for allowing anyone to rebalance on behalf of the user, it does not allow for more profitable strategies to be implemented.
+
+In such cases, where a user wants to trust someone to make rebalancing decisions based on their predictions of future collateral value, they can use the managed rebalance feature. This gives a whitelisted manager address greater control over the rebalance calls, allowing for more custom and potentially profitable strategies to be employed.
+
+### Managed Rebalance Configuration
+
+Similar to the automated rebalance feature, users must configure a vault to be managed by setting the following managed rebalance parameters :
+
+* The address of the whitelisted manager selected to manage the vault
+* The maximum allowed slippage on rebalancing swaps (see [Automated Rebalance](/products/parallel-v2/how-it-works/super-vaults-sv/automated-rebalance))
+* The minimum vault ratio above which the starting vault be at the end of a rebalance operation : this allows user to set a limit on a how close to the vault MCR a manager can rebalance
+* The rebalancing fees (see [Automated Rebalance](/products/parallel-v2/how-it-works/super-vaults-sv/automated-rebalance))
+* The rebalancing vault MCR buffer (see [Automated Rebalance](/products/parallel-v2/how-it-works/super-vaults-sv/automated-rebalance))

@@ -1,0 +1,26 @@
+---
+title: Borrowing and minting PAR/paUSD
+description: >-
+  To borrow and mint PAR/paUSD equal to `BORROW_AMOUNT`, call the
+  `VaultsCore.borrow()` function.
+---
+
+# Borrowing and minting PAR/paUSD
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+To borrow and mint PAR/paUSD equal to `BORROW_AMOUNT`, call the `VaultsCore.borrow()` function.
+
+```
+VaultsCore.borrow(myVaultId, BORROW_AMOUNT);
+```
+
+Your maximum borrow amount is equal to:
+
+```
+Max Borrow amount = collateral deposit amount * collateral price / collateralization ratio (e.g. 1.6)
+```
+
+Make sure you do not borrow beyond your maximum borrow amount to avoid getting liquidated.

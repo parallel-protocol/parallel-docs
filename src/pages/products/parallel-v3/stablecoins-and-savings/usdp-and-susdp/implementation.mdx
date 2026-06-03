@@ -1,0 +1,570 @@
+---
+title: Implementation
+description: Detailing current USDp production implementation
+subtitle: Detailing current USDp production implementation
+---
+
+# Implementation
+
+## Parallelizer Module
+
+The Parallelizer Module, which is going to serve as the main minting module, is deployed on what we believe to be the main drivers for growth for the protocol. Tokens allowed in the backing of USDp have been carefully reviewed for their stability, robustness, sustainable yield generation and business development potential. Allowed assets and their parameters can be updated at any time by the DAO.
+
+The Parallelizer Module is deployed on several initial chains with these parameters:
+
+* **Ethereum:**
+  * **frxUSD:**
+    * Price Feed: [Chainlink frxUSD/USD](https://etherscan.io/address/0x9B4a96210bc8D9D55b1908B465D8B0de68B7fF83#code)
+    * Minimum Exposure: 0.00%
+    * Maximum Exposure: 100.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.00%
+    * Mint Cap: 100,000,000.00
+  * **sfrxUSD:**
+    * Price Feed: [sfrxUSD/frxUSD Exchange Rate](https://etherscan.io/address/0xcf62F905562626CfcDD2261162a51fd02Fc9c5b6#code) + [Chainlink frxUSD/USD](https://etherscan.io/address/0x9B4a96210bc8D9D55b1908B465D8B0de68B7fF83#code) ([MorphoChainlinkOracleV2](https://etherscan.io/address/0x0cB7dEe76aA916A3666F50b044f16051C325B3E2#code))
+    * Minimum Exposure: 20.00%
+    * Maximum Exposure: 95.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.05%
+    * Mint Cap: 100,000,000.00
+  * **USDe:**
+    * Price Feed: [Chainlink USDe/USD](https://etherscan.io/address/0xa569d910839Ae8865Da8F8e70FfFb0cBA869F961#code)
+    * Minimum Exposure: 0.00%
+    * Maximum Exposure: 100.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.00%
+    * Mint Cap: 100,000,000.00
+  * **sUSDe:**
+    * Price Feed: [Chainlink sUSDe/USD](https://etherscan.io/address/0xFF3BC18cCBd5999CE63E788A1c250a88626aD099#code)
+    * Minimum Exposure: 20.00%
+    * Maximum Exposure: 95.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.05%
+    * Mint Cap: 100,000,000.00
+* **Base:**
+  * **USDS:**
+    * Price Feed: [Chainlink USDS/USD](https://basescan.org/address/0x2330aaE3bca5F05169d5f4597964D44522F62930#code)
+    * Minimum Exposure: 0.00%
+    * Maximum Exposure: 100.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.00%
+    * Mint Cap: 100,000,000.00
+  * **sUSDS:**
+    * Price Feed: [sUSDS/USDS Exchange Rate](https://basescan.org/address/0x906B24a339b848369B24Dc9Ed368b947fB9693bf#code) + [Chainlink USDS/USD](https://basescan.org/address/0x2330aaE3bca5F05169d5f4597964D44522F62930#code) ([MorphoChainlinkOracleV2](https://basescan.org/address/0x965018CbDdC4683EfA22998C324C399D7C7B0E51#code))
+    * Minimum Exposure: 20.00%
+    * Maximum Exposure: 95.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.05%
+    * Mint Cap: 100,000,000.00
+* **HyperEVM:**
+  * **USDe:**
+    * Price Feed: [Redstone USDe/USD](https://hyperevmscan.io/address/0xca727511c9d542aab9ef406d24e5bbbe4567c22d#code)
+    * Minimum Exposure: 0.00%
+    * Maximum Exposure: 100.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.00%
+    * Mint Cap: 100,000,000.00
+  * **sUSDe:**
+    * Price Feed: [Redstone sUSDe/USD](https://hyperevmscan.io/address/0xFf8D73F413F0093A14190A987883B5101D7855Dd#code)
+    * Minimum Exposure: 20.00%
+    * Maximum Exposure: 95.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.05%
+    * Mint Cap: 100,000,000.00
+* **Avalanche:**
+  * **USDC:**
+    * Price Feed: [Chainlink USDC/USD](https://snowscan.xyz/address/0xF096872672F44D6EBA71458D74Fe67F9A77A23B9#code)
+    * Minimum Exposure: 0.00%
+    * Maximum Exposure: 100.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.00%
+    * Mint Cap: 100,000,000.00
+  * **ygamiUSDC Silo Vault: (wrapped as a Yearn Vault)**
+    * Price Feed: [Vault Share Exchange Rate](https://snowscan.xyz/address/0x9fD32FD5e32C6B95483d36C5E724C5C5250Ce010#code) + [Chainlink USDC/USD](https://snowscan.xyz/address/0xF096872672F44D6EBA71458D74Fe67F9A77A23B9#code) ([MorphoChainlinkOracleV2](https://snowscan.xyz/address/0x338Dab2A67193C1E8E53506Ae34552B588DB2A44#code))
+    * Minimum Exposure: 20.00%
+    * Maximum Exposure: 95.00%
+    * Whitelisted: No
+    * Stale Period: 86,400 seconds
+    * Mint Fee: 0.00%
+    * Burn Fee: 0.05%
+    * Mint Cap: 100,000,000.00
+
+## Savings Module
+
+The Savings USDp, which is called sUSDp is deployed on several chains. The Savings USDp will act as a low risk yield bearing with real yield coming from assets generating yield in the backing of USDp. Main use cases include, but are not limited to wallet integration for one click USD saving account & collateral asset in lending protocols.
+
+As mentioned previously, savings rates aren’t automatically updated and need to be updated by a keeper. Cooper Labs and Mimo Labs have been approved as keepers.
+
+:::info
+In order to prevent any potential keeper from turning malicious and uncontrollably increasing the sUSDp rate, the maximum possible rate of sUSDp has been set at 35.00%
+:::
+
+The Savings Module is deployed on several initial chains with these parameters including:
+
+* Ethereum
+* Base
+* HyperEVM
+* Avalanche
+
+## Bridging Module
+
+Deploying the Bridging Module on all the chains where the core protocol is deployed is allowing USDp to freely move across any chain, including those where the Parallelizer Module is not deployed. This is also enabling contributors to move forward extremely quickly in terms of integration and business development, requiring no additional development work to deploy the token on a lending protocol or DEX. The Bridging Module is deployed on several initial chains with these parameters including:
+
+* **Ethereum:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Base:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Sonic:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **HyperEVM:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Avalanche:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Binance Smart Chain:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Optimism:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Arbitrum:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Polygon PoS:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Sei:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Berachain:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Scroll:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Gnosis:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Unichain:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Ink:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Tac:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Linea:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **X Layer:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Plume:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Plasma:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Katana:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Fraxtal:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **World:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+* **Hemi:**
+  * DVNs: (2 of 1 of 2)
+    * Required: 2
+      * LayerZero Labs
+      * Nethermind
+    * Optionals: 1 of 2
+      * Horizen
+      * Canary
+  * Mint Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Burn Limits:
+    * Daily: 2,500,000.00
+    * Global: 10,000,000.00
+  * Fees:
+    * Rate: 0.00%
+  * Isolate Mode:
+    * No
+
+## Flashloan Module
+
+Flashloans play an important role in Parallel V3, enabling USDp assets in backing to be rebalanced in the Parallelizer Module, and allowing future USDp liquidity pools to be arbitraged in order to maintain the best price between all pools.
+
+To facilitate these operations, the flashloan module is deployed on all chains where the core protocol is also deployed. Fees will be sent to the FeeCollector contract in order to be redistributed. Below are current DAO-approved parameters:
+
+<table><thead><tr><th>Blockchain</th><th>Maximum Amount</th><th>Fee (%)</th><th data-hidden></th></tr></thead><tbody><tr><td>Ethereum</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Base</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Sonic</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>HyperEVM</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Avalanche</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Binance Smart Chain</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Optimism</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Arbitrum</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Polygon PoS</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Sei</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Berachain</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Scroll</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Gnosis</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Unichain</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Ink</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Tac</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Linea</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>X Layer</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Plume</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Plasma</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Katana</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Fraxtal</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>World</td><td>100,000.00</td><td>0.00</td><td></td></tr><tr><td>Hemi</td><td>100,000.00</td><td>0.00</td><td></td></tr></tbody></table>
