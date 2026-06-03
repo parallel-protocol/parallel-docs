@@ -39,7 +39,7 @@ describe("htmlEntities", () => {
 
   it("is idempotent (running twice yields the same output)", () => {
     const input = "Foo&#x20;\nBar&#x20;&#x20;\n";
-    const once = htmlEntities.apply(input, ctx);
+    const once = htmlEntities.apply(input, ctx) as string;
     const twice = htmlEntities.apply(once, ctx);
     expect(twice).toBe(once);
   });

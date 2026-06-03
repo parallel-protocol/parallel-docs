@@ -1,0 +1,50 @@
+---
+title: Action Contracts
+description: ''
+---
+
+# Action Contracts
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+### Super vault specific action contracts
+
+Just like with the `PRBProxy` you need a "target" contract to do anything meaningful with `MIMOProxy`. This is basically a collection of stateless scripts executing specific logic. In the case of super vaults there are 5 different action contracts (one for each functionality) :
+
+* [MIMOEmptyVault](/developers-hub/parallel-v2/super-vault-sv/action-contracts/mimoemptyvault)
+* [MIMOLeverage](/developers-hub/parallel-v2/super-vault-sv/action-contracts/mimoleverage)
+* [MIMORebalance](/developers-hub/parallel-v2/super-vault-sv/action-contracts/mimorebalance)
+* [MIMOAutoRebalance](/developers-hub/parallel-v2/super-vault-sv/action-contracts/mimoautorebalance)
+* [MIMOManagedRebalance](/developers-hub/parallel-v2/super-vault-sv/action-contracts/mimomanagedrebalance)
+
+All actions on the SuperVault contracts require flash loans and DEX aggregator swaps, and to perform these actions, the contracts must have permission to call back the delegate call through the `MIMOProxy` `execute` function. This is because the action contracts interact with other contracts, such as the Mimo core protocol or DEX aggregators, within the same transaction and are executed within the context of the `MIMOProxy`.
+
+However, when the AAVE Pool contract performs a callback through the `executeOperation` function, the logic switches from the `MIMOProxy` context to the action contract's context, preventing any access-controlled actions on `VaultsCore`. To reenter the `MIMOProxy` context, the action contract must perform a callback by calling the `MIMOProxy` `execute` with itself as the target. For this to happen, the action contract must be granted the correct permission by the `MIMOProxy` owner.
+
+<figure><img src="/images/8UewFe3EnxwjFxKAFtoV.svg" alt="" /><figcaption></figcaption></figure>
+
+All of the above action contracts share 2 common struct passed in as arguments for flash loan and swaps :
+
+**`FlashLoanData`**
+
+| Param Name    | Type    | Description                                              |
+| ------------- | ------- | -------------------------------------------------------- |
+| `asset`       | address | Asset to flash loan                                      |
+| `proxyAction` | address | Address of the action contract performing the flash loan |
+| `amount`      | uint256 | Flash loan amount                                        |
+
+**`SwapData`**
+
+| Param Name  | Type    | Description                                  |
+| ----------- | ------- | -------------------------------------------- |
+| `dexIndex`  | uint256 | Aggregator index in the `DexAddressProvider` |
+| `dexTxData` | bytes   | Off chain route fetched from aggregator API  |
+
+### Non super vault specific action contracts
+
+The `MIMOProxy` also comes with non super vault specific action contracts :
+
+* [MIMOProxyActions](/developers-hub/parallel-v2/super-vault-sv/action-contracts/mimoproxyactions)
+* [MIMOVaultActions](/developers-hub/parallel-v2/super-vault-sv/action-contracts/mimovaultactions)

@@ -1,4 +1,5 @@
-/* Tabs — scoped styles, prefix `cooper-tabs-*`. No Tailwind. */
+/* Tabs — scoped styles, prefix `cooper-tabs-*`.
+ * Styled only with native Vocs v2 CSS variables (no custom tokens). */
 
 .cooper-tabs-root {
   width: 100%;
@@ -7,7 +8,7 @@
 .cooper-tabs-list {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--vocs-color_border);
+  border-bottom: 1px solid var(--vocs-border-color-primary);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -22,7 +23,7 @@
   padding: 0.625rem 1rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--doc-tint-subtle);
+  color: var(--vocs-text-color-muted);
   background: transparent;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -33,18 +34,18 @@
 }
 
 .cooper-tabs-trigger:hover {
-  color: var(--doc-tint-strong);
+  color: var(--vocs-text-color-primary);
 }
 
 .cooper-tabs-trigger:focus-visible {
-  outline: 2px solid var(--vocs-color_textAccent, currentColor);
+  outline: 2px solid var(--vocs-color-accent);
   outline-offset: -2px;
   border-radius: 2px;
 }
 
 .cooper-tabs-trigger[data-state="active"] {
-  color: var(--vocs-color_textAccent, var(--doc-tint-strong));
-  border-bottom-color: var(--vocs-color_textAccent, var(--doc-tint-strong));
+  color: var(--vocs-color-accent);
+  border-bottom-color: var(--vocs-color-accent);
 }
 
 .cooper-tabs-content {
