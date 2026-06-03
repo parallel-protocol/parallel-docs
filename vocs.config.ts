@@ -33,11 +33,9 @@ export default defineConfig({
     light: "/logo-b.png", // black wordmark on light backgrounds
     dark: "/logo-w.png", // white wordmark on dark backgrounds
   },
-  // Auto-generated per-page OG image (title + description composed on the
-  // Vocs `/api/og` template, served by the partial-static RSC function).
-  // Prefixed with the absolute SITE_URL because og:image must be absolute for
-  // social crawlers. `%title`/`%description` are substituted per page.
-  ogImageUrl: `${SITE_URL}/api/og?title=%title&description=%description`,
+  // Static OG image — each protocol's official landing-page OpenGraph
+  // image (1200x630). Absolute SITE_URL so og:image is absolute for crawlers.
+  ogImageUrl: `${SITE_URL}/og-image.png`,
   // v2: `theme.accentColor` is replaced by a top-level `accentColor` string
   // using the CSS `light-dark()` function. Parallel brand: purple.
   accentColor: "light-dark(#5a42b8, #7d72e4)",
