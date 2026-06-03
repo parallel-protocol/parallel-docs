@@ -1,0 +1,26 @@
+---
+title: Rebalancing
+description: >-
+  In addition to leveraging, SuperVaults also allow for rebalancing vaults to
+  use another collateral without requiring any additional capital.
+---
+
+# Rebalancing
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+In addition to leveraging, SuperVaults also allow for rebalancing vaults to use another collateral without requiring any additional capital.
+
+For example, let's assume that in our example from the previous section, our leveraged asset did not appreciate in the way we predicted, and ETH actually entered a bear market. To minimize our risk from our leveraged position, we could `rebalance` our SuperVault to use a less risky collateral, such as USDC. The `rebalance` call does the following:
+
+1. Take a flashloan of the starting collateral - in this example, we are rebalancing ETH to USDC, so the starting collateral is ETH and the rebalanced collateral is USDC.
+2. Use an aggregator to swap the borrowed starting collateral for the rebalanced collateral.
+3. Deposit the rebalanced collateral into a new vault, and borrow PAR from the new vault
+4. Use the borrowed PAR to pay back any outstanding debts on the starting collateral vault
+5. Withdraw all starting collateral from the vault to repay back the loan
+
+The amount of PAR we can borrow in step 3 is limited by the MCR of the rebalanced collateral. Thus, rebalancing is much more effective for moving to collaterals with lower MCRs as that will allow us to rebalance more collateral.
+
+Note: Only vaults created by through the `MIMOProxy` can be rebalanced.

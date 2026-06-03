@@ -56,7 +56,7 @@ describe("escapeDollarSigns", () => {
 
   it("does NOT double-escape an already-escaped \\$ (idempotent)", () => {
     const input = "Already escaped: \\$1 here.";
-    const out = escapeDollarSigns.apply(input, ctx);
+    const out = escapeDollarSigns.apply(input, ctx) as string;
     expect(out).toBe(input);
     // Run twice
     const twice = escapeDollarSigns.apply(out, ctx);

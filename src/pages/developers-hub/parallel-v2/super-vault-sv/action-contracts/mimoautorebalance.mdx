@@ -1,0 +1,113 @@
+---
+title: MIMOAutoRebalance
+description: >-
+  The `MIMOAutoRebalance` action contract handle the super vault empty vault
+  logic described in [Automated
+  Rebalance](/products/parallel-v2/how-it-works/super-va…
+---
+
+import { Math } from '@/components/Math'
+
+# MIMOAutoRebalance
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+The `MIMOAutoRebalance` action contract handle the super vault empty vault logic described in [Automated Rebalance](/products/parallel-v2/how-it-works/super-vaults-sv/automated-rebalance).
+
+### Process Flow
+
+<figure><img src="/images/4Z35G3l9R6AWrE8R0Yr7.svg" alt="" /><figcaption></figcaption></figure>
+
+### Write Methods
+
+#### `setAutomation(uint256 vaultId, AutomatedVault calldata autoParams)`
+
+Sets a vault automation parameters.
+
+Requirements :
+
+* Caller must be the `MIMOProxy` owner the vault or the `MIMOProxy` owner
+
+| Param Name   | Type    | Description                                                |
+| ------------ | ------- | ---------------------------------------------------------- |
+| `vaultId`    | uint256 |                                                            |
+| `autoParams` | struct  | AutomatedVault struct containing all automation parameters |
+
+**`AutomatedVault`**
+
+| Param Name         | Type    | Description                                                                        |
+| ------------------ | ------- | ---------------------------------------------------------------------------------- |
+| `isAutomated`      | bool    | `true` if vault is automated `false` if not                                        |
+| `toCollateral`     | address | Collateral to rebalance to                                                         |
+| `allowedVariation` | uint256 | The maximum allowed slippage on rebalancing swaps                                  |
+| `targetRatio`      | uint256 | Target ratio that must be reach upon each rebalance operation                      |
+| `triggerRatio`     | uint256 | Minimum vault ratio that must be reached in order to perform a rebalance operation |
+| `mcrBuffer`        | uint256 | Rebalancing vault MCR buffer padding                                               |
+| `fixedFee`         | uint256 | Fixed fee paid to the keeper                                                       |
+| `varFee`           | uint256 | Variable fee paid to the keeper                                                    |
+
+#### `rebalance(uint256 vaultId, IMIMOSwap.SwapData calldata swapData)`
+
+Performs a rebalance on a vault on behalf of a vault owner.
+
+Requirements :
+
+* Contract must be unpaused
+* Vault must have been created through the user's `MIMOProxy`
+* Vault must be automated
+* Maximum daily operation must have not been reached
+* Rebalanced vault ratio must lower or equal then set `triggerRatio`
+* The change in vault value due to the rebalance operation must be lower or equal then the `allowedVariation` set by the owner
+* The final vault ratio must be greater or equal then the `minRatio` set by the owner
+
+| Param Name | Type    | Description                                             |
+| ---------- | ------- | ------------------------------------------------------- |
+| `vaultId`  | uint256 | Id of the vault to rebalance                            |
+| `swapData` | struct  | `SwapData` struct containing aggregator swap parameters |
+
+#### `executeOperation(address[] calldata assets, uint256[] calldata amounts, uint256[] calldata premiums, address initiator, bytes calldata params`
+
+AAVE `Pool` contract flash loan callback function.
+
+Requirements :
+
+* Contract must be unpaused
+* Can only be called by the AAVE `Pool` contract
+* Flash loan initiator must be the `MIMOProxy`
+
+<table><thead><tr><th>Param Name</th><th width="301.3333333333333">Type</th><th>Description</th></tr></thead><tbody><tr><td><code>assets</code></td><td>address[]</td><td>Address array with one element corresponding to the address of the target vault asset</td></tr><tr><td><code>amounts</code></td><td>uint256[]</td><td>Uint array with one element corresponding to the amount of the target vault asset</td></tr><tr><td><code>premiums</code></td><td>uint256[]</td><td>Uint array with one element corresponding to the flashLoan fees</td></tr><tr><td><code>initiator</code></td><td>address</td><td>Initiator of the flashloan; can only be MIMOProxy owner</td></tr><tr><td><code>params</code></td><td>bytes</td><td>Bytes sent by this contract containing MIMOProxy owner, target vault id, SwapData struct</td></tr></tbody></table>
+
+### View Methods
+
+#### `getAmounts(uint256 vaultId, address toCollateral)`
+
+Returns the rebalance amounts for specific vault id.
+
+**Call Params**
+
+| Name           | Type    | Description                  |
+| -------------- | ------- | ---------------------------- |
+| `vaultId`      | uint256 | Id of the vault to rebalance |
+| `toCollateral` | address | Collateral to rebalance to   |
+
+**Return Values**
+
+| Name              | Type    | Description               |
+| ----------------- | ------- | ------------------------- |
+| `rebalanceAmount` | uint256 | Amount to rebalance       |
+| `mintAmount`      | uint256 | Amount to mint on vault B |
+| `autoFee`         | uint256 | Automation fee            |
+
+`rebalanceAmount` calculation :
+
+<Math html={"<span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>r</mi><mi>e</mi><mi>b</mi><mi>a</mi><mi>l</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><mi>V</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi><mo>=</mo><mfrac><mrow><mi>t</mi><mi>a</mi><mi>r</mi><mi>g</mi><mi>e</mi><mi>t</mi><mi>R</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi><mo>∗</mo><mo stretchy=\"false\">(</mo><mi>v</mi><mi>a</mi><mi>u</mi><mi>l</mi><mi>t</mi><mi>D</mi><mi>e</mi><mi>b</mi><mi>t</mi><mo>+</mo><mi>f</mi><mi>i</mi><mi>x</mi><mi>e</mi><mi>d</mi><mi>F</mi><mi>e</mi><mi>e</mi><mo stretchy=\"false\">)</mo><mo>−</mo><mi>c</mi><mi>o</mi><mi>l</mi><mi>l</mi><mi>a</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>l</mi><mi>V</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi></mrow><mrow><mfrac><mrow><mi>t</mi><mi>a</mi><mi>r</mi><mi>g</mi><mi>e</mi><mi>t</mi><mi>R</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi><mo>−</mo><mo stretchy=\"false\">(</mo><mi>m</mi><mi>c</mi><mi>r</mi><mi>B</mi><mo>+</mo><mi>m</mi><mi>c</mi><mi>r</mi><mi>B</mi><mi>u</mi><mi>f</mi><mi>f</mi><mi>e</mi><mi>r</mi><mo stretchy=\"false\">)</mo><mo>∗</mo><mi>f</mi><mi>l</mi><mi>a</mi><mi>s</mi><mi>h</mi><mi>L</mi><mi>o</mi><mi>a</mi><mi>n</mi><mi>f</mi><mi>e</mi><mi>e</mi></mrow><mrow><mi>m</mi><mi>c</mi><mi>r</mi><mi>B</mi><mo>+</mo><mi>m</mi><mi>c</mi><mi>r</mi><mi>B</mi><mi>u</mi><mi>f</mi><mi>f</mi><mi>e</mi><mi>r</mi></mrow></mfrac><mo>−</mo><mi>t</mi><mi>a</mi><mi>r</mi><mi>g</mi><mi>e</mi><mi>t</mi><mi>R</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi><mo>∗</mo><mi>v</mi><mi>a</mi><mi>r</mi><mi>i</mi><mi>a</mi><mi>b</mi><mi>l</mi><mi>e</mi><mi>F</mi><mi>e</mi><mi>e</mi><mo>−</mo><mn>1</mn></mrow></mfrac></mrow><annotation encoding=\"application/x-tex\">rebalanceValue = \\frac{targetRatio * (vaultDebt + fixedFee) - collateralValue}{\\frac{targetRatio - (mcrB + mcrBuffer) * flashLoanfee}{mcrB + mcrBuffer} - targetRatio * variableFee - 1}</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.6944em;\"></span><span class=\"mord mathnormal\" style=\"margin-right:0.0278em;\">r</span><span class=\"mord mathnormal\">e</span><span class=\"mord mathnormal\">ba</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\">an</span><span class=\"mord mathnormal\">ce</span><span class=\"mord mathnormal\" style=\"margin-right:0.2222em;\">V</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\">u</span><span class=\"mord mathnormal\">e</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:2.8081em;vertical-align:-1.3811em;\"></span><span class=\"mord\"><span class=\"mopen nulldelimiter\"></span><span class=\"mfrac\"><span class=\"vlist-t vlist-t2\"><span class=\"vlist-r\"><span class=\"vlist\" style=\"height:1.427em;\"><span style=\"top:-2.11em;\"><span class=\"pstrut\" style=\"height:3.01em;\"></span><span class=\"mord\"><span class=\"mord\"><span class=\"mopen nulldelimiter\"></span><span class=\"mfrac\"><span class=\"vlist-t vlist-t2\"><span class=\"vlist-r\"><span class=\"vlist\" style=\"height:1.01em;\"><span style=\"top:-2.655em;\"><span class=\"pstrut\" style=\"height:3em;\"></span><span class=\"sizing reset-size6 size3 mtight\"><span class=\"mord mtight\"><span class=\"mord mathnormal mtight\">m</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0278em;\">cr</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0502em;\">B</span><span class=\"mbin mtight\">+</span><span class=\"mord mathnormal mtight\">m</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0278em;\">cr</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0502em;\">B</span><span class=\"mord mathnormal mtight\">u</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.1076em;\">f</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.1076em;\">f</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0278em;\">er</span></span></span></span><span style=\"top:-3.23em;\"><span class=\"pstrut\" style=\"height:3em;\"></span><span class=\"frac-line\" style=\"border-bottom-width:0.04em;\"></span></span><span style=\"top:-3.485em;\"><span class=\"pstrut\" style=\"height:3em;\"></span><span class=\"sizing reset-size6 size3 mtight\"><span class=\"mord mtight\"><span class=\"mord mathnormal mtight\">t</span><span class=\"mord mathnormal mtight\">a</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0278em;\">r</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0359em;\">g</span><span class=\"mord mathnormal mtight\">e</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0077em;\">tR</span><span class=\"mord mathnormal mtight\">a</span><span class=\"mord mathnormal mtight\">t</span><span class=\"mord mathnormal mtight\">i</span><span class=\"mord mathnormal mtight\">o</span><span class=\"mbin mtight\">−</span><span class=\"mopen mtight\">(</span><span class=\"mord mathnormal mtight\">m</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0278em;\">cr</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0502em;\">B</span><span class=\"mbin mtight\">+</span><span class=\"mord mathnormal mtight\">m</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0278em;\">cr</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0502em;\">B</span><span class=\"mord mathnormal mtight\">u</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.1076em;\">f</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.1076em;\">f</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0278em;\">er</span><span class=\"mclose mtight\">)</span><span class=\"mbin mtight\">∗</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.1076em;\">f</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal mtight\">a</span><span class=\"mord mathnormal mtight\">s</span><span class=\"mord mathnormal mtight\">h</span><span class=\"mord mathnormal mtight\">L</span><span class=\"mord mathnormal mtight\">o</span><span class=\"mord mathnormal mtight\">an</span><span class=\"mord mathnormal mtight\" style=\"margin-right:0.1076em;\">f</span><span class=\"mord mathnormal mtight\">ee</span></span></span></span></span><span class=\"vlist-s\">​</span></span><span class=\"vlist-r\"><span class=\"vlist\" style=\"height:0.4811em;\"><span></span></span></span></span></span><span class=\"mclose nulldelimiter\"></span></span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">−</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mord mathnormal\">t</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\" style=\"margin-right:0.0278em;\">r</span><span class=\"mord mathnormal\" style=\"margin-right:0.0359em;\">g</span><span class=\"mord mathnormal\">e</span><span class=\"mord mathnormal\" style=\"margin-right:0.0077em;\">tR</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\">t</span><span class=\"mord mathnormal\">i</span><span class=\"mord mathnormal\">o</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">∗</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mord mathnormal\" style=\"margin-right:0.0359em;\">v</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\" style=\"margin-right:0.0278em;\">r</span><span class=\"mord mathnormal\">iab</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\">e</span><span class=\"mord mathnormal\" style=\"margin-right:0.1389em;\">F</span><span class=\"mord mathnormal\">ee</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">−</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mord\">1</span></span></span><span style=\"top:-3.24em;\"><span class=\"pstrut\" style=\"height:3.01em;\"></span><span class=\"frac-line\" style=\"border-bottom-width:0.04em;\"></span></span><span style=\"top:-3.687em;\"><span class=\"pstrut\" style=\"height:3.01em;\"></span><span class=\"mord\"><span class=\"mord mathnormal\">t</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\" style=\"margin-right:0.0278em;\">r</span><span class=\"mord mathnormal\" style=\"margin-right:0.0359em;\">g</span><span class=\"mord mathnormal\">e</span><span class=\"mord mathnormal\" style=\"margin-right:0.0077em;\">tR</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\">t</span><span class=\"mord mathnormal\">i</span><span class=\"mord mathnormal\">o</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">∗</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mopen\">(</span><span class=\"mord mathnormal\" style=\"margin-right:0.0359em;\">v</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\">u</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\">t</span><span class=\"mord mathnormal\" style=\"margin-right:0.0278em;\">D</span><span class=\"mord mathnormal\">e</span><span class=\"mord mathnormal\">b</span><span class=\"mord mathnormal\">t</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mord mathnormal\" style=\"margin-right:0.1076em;\">f</span><span class=\"mord mathnormal\">i</span><span class=\"mord mathnormal\">x</span><span class=\"mord mathnormal\">e</span><span class=\"mord mathnormal\">d</span><span class=\"mord mathnormal\" style=\"margin-right:0.1389em;\">F</span><span class=\"mord mathnormal\">ee</span><span class=\"mclose\">)</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">−</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mord mathnormal\">co</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\">t</span><span class=\"mord mathnormal\" style=\"margin-right:0.0278em;\">er</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\" style=\"margin-right:0.2222em;\">V</span><span class=\"mord mathnormal\">a</span><span class=\"mord mathnormal\" style=\"margin-right:0.0197em;\">l</span><span class=\"mord mathnormal\">u</span><span class=\"mord mathnormal\">e</span></span></span></span><span class=\"vlist-s\">​</span></span><span class=\"vlist-r\"><span class=\"vlist\" style=\"height:1.3811em;\"><span></span></span></span></span></span><span class=\"mclose nulldelimiter\"></span></span></span></span></span></span>"} />
+
+Where `mcrB` is the rebalancing vault (e.g. vault with the less volatile collateral) MCR.
+
+The rebalance value is then converted to a rebalance amount using the core protocol `PriceFeed` contract.
+
+#### `mimoRebalance()`
+
+Returns the `MIMORebalance` action contract address.

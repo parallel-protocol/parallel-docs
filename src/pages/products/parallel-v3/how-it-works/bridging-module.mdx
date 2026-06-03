@@ -1,0 +1,78 @@
+---
+title: Bridging Module
+description: >-
+  The Bridging Module is entirely based on the Parallel V2 [Bridging
+  Module](/products/parallel-v2/how-it-works/bridging-module), which is live on
+  Ethereum, Poly…
+subtitle: Explaining the Bridging Module
+---
+
+# Bridging Module
+
+The Bridging Module is entirely based on the Parallel V2 [Bridging Module](/products/parallel-v2/how-it-works/bridging-module), which is live on Ethereum, Polygon PoS & Fantom since November 2024. The Bridging Module was originally designed to be used in future versions of the protocol without any changes.
+
+## LayerZero Infrastructure
+
+LayerZero is an immutable, censorship-resistant, and permissionless smart contract protocol that enables anyone to send, verify, and execute arbitrary messages on a supported blockchain. Using smart contracts deployed on each chain, in combination with Decentralized Verifier Networks ([DVNs](#decentralized-verifier-networks-dvns)) and Executors, LayerZero enables different blockchains to seamlessly interact with one another.
+
+<figure><img src="/images/dNQWacj49nfkMMrH6ZHp.png" alt="" /><figcaption><p>LayerZero Infrastructure</p></figcaption></figure>
+
+## Decentralized Verifier Networks (DVNs)
+
+DVNs verify cross-chain messages. This permissionless role empowers any entity capable of verifying cross-chain data packets to join LayerZero as a DVN. Any native bridge, third-party bridge, middle chain, oracle, or other verification method may be used as a DVN, thereby avoiding vendor lock-in at the security level. As LayerZero has a modular design, application owners can combine DVNs to maximize verification for characteristics like security, cost, speed, or any parameter an application might want.
+
+## Permissionless Execution (Executors)
+
+Any entity can run an Executor, as it is an entirely permissionless role. The Executor ensures the smooth execution of a message on the destination chain by offering gas abstraction to the end-user. Executors do this by quoting end-users on the source chain in the source chain gas token while executing the transaction automatically on the destination chain. Much like applications can select a DVN set, they can also configure their application to choose a certain Executor or group of Executors. Applications also have the ability to build and run their own executor (as they can for DVNs) or operate without an Executor and have end-users manually invoke ‘lzReceive’ via [LayerZero Scan](https://layerzeroscan.com/).
+
+## Bridging Module Specifications
+
+### OFT Standard
+
+The bridging module is following the Omnichain Fungible Token (OFT) Standard created by LayerZero. You can find more information about it [here](https://docs.layerzero.network/v2/developers/evm/oft/quickstart).
+
+### Modular Security Stack
+
+**Entirely controlled by the DAO:** The bridging module is entirely managed by the DAO. Nobody else can change the parameters chosen by the DAO apart from itself.
+
+**Decentralized Verifier Networks (DVNs):** X of Y of N allows the DAO to designate a quorum of DVNs to check the integrity of a cross-chain message before signing off on a message’s validity. X of Y of N allows the DAO to combine DVNs however they like. For instance, a “1 of 3 of 5” combination of DVNs would include one required DVN and two arbitrary DVNs out of a total of five to verify a message before moving on to execution.
+
+**Executors:** Thanks to the permissionless nature of Executors, even if all automatic executors are down it’s still possible for the user to execute the transaction himself by manually invoke ‘lzReceive’ with transaction data on the destination chain, either using [LayerZero Scan](https://layerzeroscan.com/protocol/parallel-protocol) or the destination blockchain block explorer.
+
+### Extensible
+
+Let’s say the bridging module for a Parallel stablecoin called TKN is deployed on 3 blockchains, thanks to the bridging infrastructure users will be able to bridge from chain A to chain C, then to chain C to chain B, without having to bridge back to chain A. In other words, the bridging module acts as a mesh network where each blockchain can interact with each other, rather than as a network centralized around a single chain. This increases simplicity, efficiency and reduces the costs associated with bridging.
+
+### Mint & Burn Limits
+
+**Daily:** This parameter defines the maximum amount of tokens that can be minted or burned per day. It is fully controlled & configurable by the DAO, and can be changed at any time via the ‘setBurnDailyLimit’ and ‘setMintDailyLimit’ functions in the OFT contract (lz-TKN). If the maximum burn amount is reached, the user will not be able to initiate a bridge transaction. If the maximum mint amount is reached, the user will automatically receive lz-TKN instead of TKN, which he can burn for TKN when the limits are no longer reached, or bridge his lz-TKN back to another blockchain.
+
+**Global:** This parameter defines a maximum total token amount that can be minted or burned on a blockchain. It is fully controlled & configurable by the DAO and can be changed by it at any time via the ‘setGlobalBurnLimit’ and ‘setGlobalMintLimit’ functions in the OFT contract (lz-TKN). If the maximum burn amount is reached, the user will not be able to initiate a bridge transaction. If the maximum mint amount is reached, the user will automatically receive lz-TKN instead of TKN, which he can burn for TKN when the limits are no longer reached, or bridge his lz-TKN back to another blockchain.
+
+### Isolation Mode
+
+Isolation mode is our response to the mutualization of risks carried out by other bridge modules. The isolation mode makes it impossible to burn more stablecoins on the blockchain Y than what has been bridged from the other chains.
+
+Isolation mode can be activated/deactivated by the DAO via the ‘toggleIsolateMode’ function in the OFT contract (lz-TKN)
+
+### Fees
+
+The protocol has the option to charge a fee when a TKN is bridged. The fee is taken on the destination blockchain when the lz-TKN is burned for TKN.
+
+### Pause & Unpause
+
+To make the protocol more secure in case of a problem, we’ve added the possibility to pause the TKN mint/burn. This function can be called by [emergency guardians](/security/parallel-emergency-guardians) as well as by the DAO via a vote. The mint/burn can be deactivated and reactivated via the ‘pause’ and ‘unpause’ functions.
+
+## Bridge Transaction Lifecycle Overview
+
+<figure><img src="/images/bP8YFQa73de549oyT8Kh.png" alt="" /><figcaption><p>Bridge Transaction Lifecycle Overview</p></figcaption></figure>
+
+**Burn:** If no TKN burn limit (due to OFT configuration) is reached, then the TKN is burned and the lz-TKN equivalent is minted. However, if the burn limit is reached, the user will not be able to start the bridge process.
+
+**Send:** The source chain OFT calls `lzSend` on the source LayerZero Endpoint, providing the message payload and its unique path.
+
+**Verify:** Configured DVNs independently verify the packet on the destination side using the destination MessageLib. After the packet is verified by the sufficient number of DVNs required by the Security Stack, it is committed to the destination Endpoint by an appropriate worker (a DVN, executor, or user).
+
+**Execute:** Endpoint ensures payload verification aligns with the OApp-configured Security Stack before committing to the channel. An executor invokes the `lzReceive` function to process the received packet with the Receiver OFT’s logic. This step ensures the message is delivered exactly once and without loss. If the system cannot guarantee this, the process is reverted to prevent any possibility of censorship.
+
+**Mint:** If no TKN mint limit (due to OFT configuration) is reached, then the lz-TKN is burned and the TKN equivalent is minted. However, if the mint limit is reached, the user will receive lz-TKN (which can be bridged again to another blockchain), or wait until the mint limits on the destination blockchain are no longer reached to burn its lz-TKN in exchange for TKN.

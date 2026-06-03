@@ -1,0 +1,356 @@
+---
+title: Parallelizer Module Integration
+description: >-
+  The Parallelizer module serves as the core minting and burning engine for
+  Parallel stablecoins.
+subtitle: >-
+  Interact with the Parallelizer Module to mint, burn or redeem Parallel
+  stablecoins
+---
+
+# Parallelizer Module Integration
+
+The Parallelizer module serves as the core minting and burning engine for Parallel stablecoins.
+
+The contract works as a [Diamond Proxy](https://eips.ethereum.org/EIPS/eip-2535) with multiple implementation facets. This [repo](https://github.com/parallel-protocol/parallel-parallelizer/tree/main/contracts/parallelizer) contains the contract implementation with all its facets.
+
+In this guide, we explain how to interact with the Parallelizer Module and fetch basical information from it. For more in depth information on how the Parallelizer and its functions work, you can directly look into the code.
+
+:::info
+The Parallelizer Module can be used for any Parallel stablecoins: find its deployment addresses [here](/developers-hub/contract-addresses/parallel-v3).
+:::
+
+## Overview
+
+The Parallelizer Module provides a unified interface for minting and burning Parallel stablecoins using various collateral assets. The system operates on oracle-based pricing with configurable fees, offering flexibility for different use cases.
+
+### Key Features
+
+* **Unified Swap Interface**: Both minting and burning operations use the same swap-based functions
+* **Oracle-Based Pricing**: Real-time pricing through integrated oracles
+* **Flexible Fee Structure**: Dynamic fees that can be adjusted per collateral type
+* **Multiple Collateral Support**: Work with various supported assets (e.g., USDe for USDp)
+* **Gas-Efficient Operations**: Optimized for cost-effective transactions
+
+### Operation Types
+
+The system distinguishes between mint, burn & redeem operations:
+
+* **Mint**: When `tokenIn` is a collateral asset → Allow the mint of stablecoins
+* **Burn**: When `tokenOut` is a collateral asset → Allow the burn of stablecoins for collateral
+* **Redeem**: `redeem` → Allow the redemption of stablecoins against a portion of the collateral in the backing
+
+## Mint/Burn
+
+### Getting Price Quotes
+
+Before executing any swap operation, you'll want to get accurate price quotes. The Parallelizer Module provides two quote functions that simulate the exact outcome of a swap at the current block.
+
+#### Input-Based Quotes (`quoteIn`)
+
+Use this when you know exactly how much input you want to provide:
+
+```solidity
+function quoteIn(uint256 amountIn, address tokenIn, address tokenOut)
+    external view returns (uint256 amountOut);
+```
+
+**Parameters:**
+
+* `amountIn`: The exact amount of input tokens you plan to swap
+* `tokenIn`: The token you're providing (collateral for mint, stablecoin for burn)
+* `tokenOut`: The token you want to receive (stablecoin for mint, collateral for burn)
+
+**Returns:**
+
+* `amountOut`: The exact amount of output tokens you'll receive
+
+#### Output-Based Quotes (`quoteOut`)
+
+Use this when you need a specific amount of output tokens:
+
+```solidity
+function quoteOut(uint256 amountOut, address tokenIn, address tokenOut)
+    external view returns (uint256 amountIn);
+```
+
+**Parameters:**
+
+* `amountOut`: The exact amount of output tokens you need
+* `tokenIn`: The token you're providing
+* `tokenOut`: The token you want to receive
+
+**Returns:**
+
+* `amountIn`: The exact amount of input tokens required
+
+:::warning
+* Quote functions will revert if insufficient liquidity is available (e.g., during burn operations when funds are deployed in strategies)
+* All conditions that would cause swap functions to revert will also cause quote functions to revert
+* Operations may be paused for specific collateral types - quotes will reflect this status
+:::
+
+### Executing Swaps
+
+Once you have your quotes and slippage parameters ready, you can execute the actual swap. The Parallelizer Module offers four main swap functions to handle different scenarios.
+
+#### Exact Input Swaps (`swapExactInput`)
+
+Perfect when you know exactly how much you want to spend:
+
+```solidity
+function swapExactInput(
+    uint256 amountIn,
+    uint256 amountOutMin,
+    address tokenIn,
+    address tokenOut,
+    address to,
+    uint256 deadline
+) external returns (uint256 amountOut);
+```
+
+**Parameters:**
+
+* `amountIn`: Exact amount of input tokens to swap
+* `amountOutMin`: Minimum acceptable output (slippage protection)
+* `tokenIn`: Input token address
+* `tokenOut`: Output token address
+* `to`: Recipient address for output tokens
+* `deadline`: Timestamp before which the redemption should have occured (0 = no deadline check)
+
+**Returns:**
+
+* `amountOut`: Actual amount of tokens received
+
+**Prerequisites:**
+
+* For mint operations: Approve the contract to spend your input tokens
+* For burn operations: No approval needed (you're burning your own tokens)
+
+#### Exact Output Swaps (`swapExactOutput`)
+
+Use this when you need a specific amount of output tokens:
+
+```solidity
+function swapExactOutput(
+    uint256 amountOut,
+    uint256 amountInMax,
+    address tokenIn,
+    address tokenOut,
+    address to,
+    uint256 deadline
+) external returns (uint256 amountIn);
+```
+
+**Parameters:**
+
+* `amountOut`: Exact amount of output tokens needed
+* `amountInMax`: Maximum input tokens you're willing to spend
+* `tokenIn`: Input token address
+* `tokenOut`: Output token address
+* `to`: Recipient address for output tokens
+* `deadline`: Timestamp before which the redemption should have occured (0 = no deadline check)
+
+**Returns:**
+
+* `amountIn`: Actual amount of input tokens consumed
+
+**Prerequisites:**
+
+* For mint operations: Approve the contract for at least `amountInMax`
+* For burn operations: No approval needed
+
+### Executing Gasless Swaps
+
+For enhanced user experience, the Parallelizer Module supports gasless minting operations using Uniswap Permit2 signatures. This eliminates the need for separate approval transactions, allowing users to mint stablecoins in a single transaction.
+
+#### Key Benefits
+
+* **Single Transaction**: Combine approval and swap in one operation
+* **Better UX**: Users don't need to wait for approval confirmations
+* **Gas Efficiency**: Reduces overall transaction costs
+* **Security**: Leverages battle-tested Permit2 infrastructure
+
+#### Permit-Based Functions
+
+The system provides two permit-enabled functions that mirror the standard swap functions:
+
+**Exact Input Swaps with Permit (`swapExactInputWithPermit`)**
+
+```solidity
+function swapExactInputWithPermit(
+    uint256 amountIn,
+    uint256 amountOutMin,
+    address tokenIn,
+    address to,
+    uint256 deadline,
+    bytes calldata permitData
+) external returns (uint256 amountOut);
+```
+
+**Parameters:**
+
+* `amountIn`: Exact amount of input tokens to swap
+* `amountOutMin`: Minimum acceptable output (slippage protection)
+* `tokenIn`: Input token address
+* `to`: Recipient address for output tokens
+* `deadline`: Timestamp before which the redemption should have occured (0 = no deadline check)
+
+**Returns:**
+
+* `amountOut`: Actual amount of tokens received
+
+**Prerequisites:**
+
+* For mint operations: Approve the contract using Permit2 to spend your `AmountIn` tokens
+
+**Exact Output Swaps with Permit (`swapExactOutputWithPermit`)**
+
+```solidity
+function swapExactOutputWithPermit(
+    uint256 amountOut,
+    uint256 amountInMax,
+    address tokenIn,
+    address to,
+    uint256 deadline,
+    bytes calldata permitData
+) external returns (uint256 amountIn);
+```
+
+**Parameters:**
+
+* `amountOut`: Exact amount of output tokens needed
+* `amountInMax`: Maximum input tokens you're willing to spend
+* `tokenIn`: Input token address
+* `to`: Recipient address for output tokens
+* `deadline`: Timestamp before which the redemption should have occured (0 = no deadline check)
+
+**Returns:**
+
+* `amountIn`: Actual amount of input tokens consumed
+
+**Prerequisites:**
+
+* For mint operations: Approve the contract using Permit2 for at least `amountInMax`
+
+:::warning
+* These functions are **mint-only** operations (no `tokenOut` parameter needed)
+* The `permitData` contains the Permit2 signature and authorization details
+* All other parameters follow the same patterns as their non-permit counterparts
+* Users must have previously allowed the Permit2 contract to spend their tokens
+:::
+
+## Redemptions <a href="#redemptions" id="redemptions"></a>
+
+The Parallelizer Module enables redeeming stablecoins against a portion of the collateral in the backing. This feature exists per se and does not need to be activated by governance to be used.
+
+### Quote a Redemption <a href="#quote-a-redemption" id="quote-a-redemption"></a>
+
+Like the swap functions, redemptions come with a quote function that simulates the exact output that a redemption of stablecoins would give at a given block.
+
+```solidity
+function quoteRedemptionCurve(
+    uint256 amount
+) external view returns (address[] memory tokens, uint256[] memory amounts);
+```
+
+**Parameters:**
+
+* `amount`: Amount of stablecoins to redeem
+
+**Return Values:**
+
+* `tokens`: List of tokens that would be given
+* `amounts`: Amount that would be obtained for each token in the `tokens` array
+
+:::info
+This function does not revert if redemptions have been temporarily paused.
+:::
+
+In normal conditions, the amount of tokens outputted by this function is the amount of collateral assets supported by the system, following their order in the `collateralList`.
+
+Yet, if one collateral has its liquidity managed through strategies, then it's possible that this asset has sub-collaterals with it. In this situation, these sub-collaterals may be sent during the redemption process and the `minAmountOuts` array length will be bigger than the `collateralList` length. If there are 3 collateral assets and the 2nd collateral asset in the list (at index 1) consists of 3 sub-collaterals, then the ordering of the token list will be as follows: `[collat 1, sub-collat 1 of collat 2, sub-collat 2 of collat 2, sub-collat 3 of collat 2, collat 3]`
+
+### Execute a Redemption <a href="#execute-a-redemption" id="execute-a-redemption"></a>
+
+The main function to process a redemption with the Parallelizer is the `redeem` function.
+
+```solidity
+function redeem(
+    uint256 amount,
+    address receiver,
+    uint256 deadline,
+    uint256[] memory minAmountOuts
+) external returns (address[] memory tokens, uint256[] memory amounts);
+```
+
+**Parameters:**
+
+* `amount`: Amount of stablecoins to redeem
+* `receiver`: Address which should be receiving the output tokens
+* `deadline`: Timestamp before which the redemption should have occured
+* `minAmountOuts`: Minimum amount of each token given back in the redemption to obtain. The function reverts if the redemption brings less than what was specified for a given token. The order of the amounts given in this list must reflect the order of `tokens` returned by the `quoteRedemptionCurve` function.
+
+**Return Values:**
+
+* `tokens`: List of tokens returned (exactly the same as `quoteRedemptionCurve`)
+* `amounts`: Amount given for each token in the `tokens` array
+
+To correctly order the elements in the `minAmountOuts` array, it is recommended to call the `quoteRedemptionCurve` function.
+
+If the Parallelizer does not have enough tokens at hand (because these are invested in another contract), but redemption computations estimate that tokens must still be sent, then the `redeem` call will revert when the contract is trying to process the token transfer.
+
+It is possible to instruct the system to forfeit some tokens in the redemption process by using the `redeemWithForfeit` function.
+
+```solidity
+function redeemWithForfeit(
+    uint256 amount,
+    address receiver,
+    uint256 deadline,
+    uint256[] memory minAmountOuts,
+    address[] memory forfeitTokens
+) external returns (address[] memory tokens, uint256[] memory amounts);
+```
+
+If a token is forfeited because its address is in the `forfeitTokens` array, then the Parallelizer will not try to send the tokens to `receiver` even if it has enough at hand to do so. The length and the ordering of the addresses in the `forfeitTokens` array can be set at will: before sending a token, the `redemptionWithForfeit` function just checks whether this token address can be found in the `forfeitTokens` array.
+
+:::info
+No approval is needed before calling redemption functions.
+:::
+
+:::warning
+Redemptions can be extraordinarily paused by governance. In which case, all the redemption functions would revert (but not the `quoteRedemptionCurve` function).
+:::
+
+## Get the Parallelizer Module facet addresses <a href="#get-the-contracts-facet-addresses" id="get-the-contracts-facet-addresses"></a>
+
+As a Diamond Proxy, the Parallelizer Module is a proxy contract which delegates calls that are made to it to corresponding facets. The contract has a dummy implementation facet which enables anyone to directly call the Parallelizer functions on block explorers, just like you'd do with a `TransparentUpgradeableProxy` contract.
+
+As such when clicking on block explorers to view the implementation contract of the Parallelizer, you'll be directed to this dummy implementation.
+
+To get the facet addresses of a Parallelizer implementation, you can simply call the `facetAddresses` function of the contract which gives the list of all supported facets.
+
+## Get the Parallelizer Module supported collateral assets <a href="#get-the-systems-supported-collateral-assets" id="get-the-systems-supported-collateral-assets"></a>
+
+The Parallelizer Module supports different collateral assets to mint a stablecoin. Many functions in the contract take as argument a supported collateral and revert if the address given does not correspond to a collateral.
+
+The `getCollateralList` function returns the list of all valid collateral assets.
+
+For all the collateral assets supported here, you may then call any of the view functions to get information about how they are setup in the system:
+
+* `getCollateralMintFees`, `getCollateralBurnFees`: mint and burn fee parameters for a collateral asset
+* `isWhitelistedCollateral`, `getCollateralWhitelistData`: whether burns and redemptions are whitelisted for a collateral asset and how the whitelist is setup. To understand why and how whitelists are operated in Parallelizer, check out [this page](/products/parallel-v3/how-it-works/parallelizer-module#collateral-whitelist)
+* `getIssuedByCollateral`: to get how many stablecoins were issued from a collateral and overall
+* `getOracle`, `getOracleValues`: how oracles are setup for a specific collateral (which feeds are read) and what values would be used for a mint, a burn or redemption operation
+* `isPaused`: whether minting with or burning for a collateral asset is paused
+* `getManagerData`: whether a collateral is invested externally in other strategies
+
+## Collateral Whitelists <a href="#about-whitelists" id="about-whitelists"></a>
+
+The Parallelizer Module includes the possibility for governance to whitelist collateral assets, meaning that they can only be sent to addresses during a burn or a redemption to an address which has been whitelisted in some way. If the Parallelizer includes one collateral that requires a whitelist, and someone tries to redeem without forfeiting any tokens to an address which has not been whitelisted, then the redemption will revert.
+
+In fact, if there are n collateral assets, with m of them requiring a whitelist, if all the whitelists are different, for a full redemption to occur successfully, the `to` address would need to be whitelisted for all the m collateral assets. Otherwise, to still be able to redeem something out of your stablecoins, you need to forfeit the tokens for which the `to` address is not whitelisted through the `redeemWithForfeit` function.
+
+On a similar note, burn operations involving collateral assets requiring a whitelist revert if the `to` address is not whitelisted.
+
+The quote functions (`quoteIn`, `quoteOut`, `quoteRedemptionCurve`) do not revert however if there are collateral assets with whitelists involved.

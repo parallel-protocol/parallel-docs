@@ -19,15 +19,13 @@
     }
   },
   "include": [
-    "docs/**/*.ts",
-    "docs/**/*.tsx",
-    "docs/**/*.mdx",
     "src/**/*.ts",
     "src/**/*.tsx",
+    "src/**/*.mdx",
     "scripts/**/*.ts",
     "tests/**/*.ts",
     "vocs.config.ts",
     "vitest.config.ts"
   ],
-  "exclude": ["node_modules", "dist", ".vocs", "docs/dist", "tmp"]
+  "exclude": ["node_modules", "dist", ".vocs", "tmp"]
 }

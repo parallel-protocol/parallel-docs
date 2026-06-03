@@ -1,0 +1,87 @@
+---
+title: Insurance Fund
+description: Detailing the coverage and strategy of the Parallel Insurance Fund
+subtitle: Detailing the coverage and strategy of the Parallel Insurance Fund
+---
+
+# Insurance Fund
+
+import { Tabs, Tab } from '@/components/Tabs';
+
+## Summary
+
+Introduced with [MIP-28┃Ratify the Parallel Insurance Fund](https://gov.parallel.best/t/mip-28-ratify-the-parallel-insurance-fund/382) and updated with [PGP-31 | Update Insurance Fund Strategy](https://gov.parallel.best/t/pgp-31-update-insurance-fund-strategy/482) the Insurance Fund is covering losses in case of shortfall events:
+
+* **Smart contract risk:** Risk of a bug, design flaw or potential attack surfaces on the smart contract layer, managed via the bug bounty [program](/security/bug-bounty-program).
+* **Oracle failure risk:** Risk of the oracle system not properly updating the prices in case of extreme market downturn and network congestion; risk of the Oracle system not properly submitting prices, causing improper liquidations.
+
+## Rules
+
+The DAO must decide, via governance votes, which deployment is covered, which chain is covered, or not, by the insurance fund, and at which % or \$ value of the insurance fund the deployment & chain are covered.
+
+Assets held in the insurance fund must be liquid under a 16 weeks period.
+
+For Parallel V2: At least 10k PAR for PAR deployments and 1k paUSD for paUSD deployments must stay in the vaultsCore to cover very short term potential bad debts.
+
+DAO Multisig signers will have the right to rebalance assets from the deployed insurance fund to vaultsCore contracts in order to always have enough assets to cover very short term bad debts.
+
+The DAO approved to cover Parallel V3 with USDp deployment on Ethereum, Base, Sonic, HyperEVM & Avalanche; and PRL token on Ethereum, Arbitrum, Optimism, Base, Sonic & Polygon PoS. All this to up to 100% of the insurance fund via the bug bounty [program](/security/bug-bounty-program).
+
+## Insurance Fund Assets
+
+<Tabs>
+  <Tab label="Ethereum">
+| Multisig                                        | Address                                                                                                                    |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Insurance Fund Multisig                         | [0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c](https://etherscan.io/address/0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c)      |
+| VaultsCore - PAR (only PAR in the contract)     | [0x173ae6283a717b6cdd5491eac5f82c082a8c674b](https://etherscan.io/address/0x173ae6283a717b6cdd5491eac5f82c082a8c674b#code) |
+| VaultsCore - paUSD (only paUSD in the contract) | [0xE26348D30694aa7E879b9335252362Df3df93204](https://etherscan.io/address/0xE26348D30694aa7E879b9335252362Df3df93204#code) |
+  </Tab>
+  <Tab label="Polygon PoS">
+| Multisig                                        | Address                                                                                                                       |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Insurance Fund Multisig                         | [0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c](https://polygonscan.com/address/0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c)      |
+| VaultsCore - PAR (only PAR in the contract)     | [0x0a9202c6417a7b6b166e7f7fe2719b09261b400f](https://polygonscan.com/address/0x0a9202c6417a7b6b166e7f7fe2719b09261b400f#code) |
+| VaultsCore - paUSD (only paUSD in the contract) | [0xcABAbC1Feb7C5298F69B635099D75975aD5E6e5f](https://polygonscan.com/address/0xcABAbC1Feb7C5298F69B635099D75975aD5E6e5f#code) |
+  </Tab>
+  <Tab label="HyperEVM">
+| Multisig                | Address                                                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Insurance Fund Multisig | [0x5826be671E80d5546f04886e3Fe19d4750201A99](https://hyperevmscan.io/address/0x5826be671E80d5546f04886e3Fe19d4750201A99#code) |
+  </Tab>
+  <Tab label="Sonic">
+| Multisig                | Address                                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Insurance Fund Multisig | [0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c](https://sonicscan.org/address/0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c#code) |
+  </Tab>
+  <Tab label="Base">
+| Multisig                | Address                                                                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Insurance Fund Multisig | [0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c](https://basescan.org/address/0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c#code) |
+  </Tab>
+  <Tab label="Avalanche">
+| Multisig                | Address                                                                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Insurance Fund Multisig | [0x6aF71a3723D3c0Ed69f84EE259c9De3019C2a77c](https://snowscan.xyz/address/0xC5201FFE258a95Af986E7cD1fcaD54f3f63f2C95#code) |
+  </Tab>
+</Tabs>
+
+## Strategy
+
+* General:
+  * Accumulated PAR/paUSD/USDp/USDC: Swapped to USDp and deposited into liquidity pools (DEX/Lending protocols), decided by DAO Multisig Signers with advice from Cooper Labs & Mimo Labs
+* Ethereum:
+  * PAR VaultsCore contract: 10,000.00 PAR
+  * paUSD VaultsCore contract: 1,000.00 paUSD
+  * vlAURA: 1,113,709.10
+  * Aura-ECLP-PAR-EURA: 25,000.00 PAR
+  * Aura-ECLP-paUSD-GYD: 25,000.00 paUSD
+* Polygon PoS:
+  * PAR VaultsCore contract: 10,000.00 PAR
+  * paUSD VaultsCore contract: 1,000.00 paUSD
+  * Aura-ECLP-PAR-EURe: 25,000.00 PAR
+  * Aura-ECLP-paUSD-stataUSDCn: 25,000.00 paUSD
+
+Accumulated rewards from [Aura](https://aura.finance/) & [Balancer](https://balancer.fi/) deposits would be swapped every 16 weeks for AURA tokens then locked as vlAURA for 16 weeks on [Aura](https://aura.finance/). vlAURA voting power will continue to be delegated to Mimo Labs, as voted previously.
+
+Accumulated rewards from other potential deposits in DEX/Lending protocols will be swapped for USDp.
