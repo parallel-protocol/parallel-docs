@@ -1,0 +1,38 @@
+---
+title: Super Vaults (SV)
+description: >-
+  Super Vaults are a versatile tool for managing positions in changing markets.
+  For example, if you're initially very bullish on an asset like wETH, you can
+  use…
+---
+
+# Super Vaults (SV)
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+Super Vaults are a versatile tool for managing positions in changing markets. For example, if you're initially very bullish on an asset like wETH, you can use a Super Vault to enter a leveraged long position. If the market shifts and you're no longer confident in your position, you can reduce risk by rebalancing to less volatile collateral. You can also withdraw your capital at any time for use elsewhere. When you're done with the vault, you can use emptyVault to repay any outstanding debts and retrieve your collateral.
+
+:::info
+Learn more about Super Vaults core feature :
+
+* [Leveraging](/products/parallel-v2/how-it-works/super-vaults-sv/leveraging)
+* [Rebalancing](/products/parallel-v2/how-it-works/super-vaults-sv/rebalancing)
+* [EmptyVault](/products/parallel-v2/how-it-works/super-vaults-sv/emptyvault)
+:::
+
+Super Vaults also offer additional features, such as the ability to grant others control over your vault for management purposes. The Managed Vaults feature allows you to choose from a list of approved addresses to rebalance your vault, which can include smart contracts like DAOs. The Automated Vaults feature enables automatic rebalancing of your vault based on a user-specified collateralization ratio, acting as a stop loss. This is convenient for those who don't have the time or knowledge to manage their vault, and provides an opportunity for vault operators to maximize collateral value and overall protocol health.
+
+:::info
+Learn more about Super Vaults delegation features :
+
+* [Automated Rebalance](/products/parallel-v2/how-it-works/super-vaults-sv/automated-rebalance)
+* [Managed Rebalance](/products/parallel-v2/how-it-works/super-vaults-sv/managed-rebalance)
+:::
+
+To ensure proper access control, all Super Vault operations must be performed through a user's [`MimoProxy`](/developers-hub/parallel-v2/super-vault-sv/proxy-design/mimoproxy), which is the only contract instance with the necessary permissions. All core functions, such as depositing, withdrawing, borrowing, and liquidating, are accessible through `MimoProxy`. Remember, as with vaultsCore, you must first approve the deposited amount to `MimoProxy` before calling any deposit functions.
+
+:::info
+Super Vaults are only available for PAR on Polygon PoS.
+:::

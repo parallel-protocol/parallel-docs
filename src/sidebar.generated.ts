@@ -7,7 +7,9 @@
  * COLLAPSED_BY_DEFAULT_PATTERNS) ou tweaker dans vocs.config.tsx après import.
  */
 
-import type { Sidebar } from "vocs";
+import type { Config } from "vocs/config";
+
+type Sidebar = Config["sidebar"];
 
 export const sidebar: Sidebar = [
   {

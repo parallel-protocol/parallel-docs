@@ -20,19 +20,14 @@
     "build:content": "tsx scripts/crawl-and-convert.ts build",
     "check:images": "tsx scripts/check-image-refs.ts",
     "generate:redirects": "tsx scripts/generate-redirects.ts",
-    "generate:sidebar": "tsx scripts/generate-sidebar.ts",
-    "linkinator": "linkinator docs/dist --skip ^https?://docs-parallel\\.vercel\\.app"
+    "generate:sidebar": "tsx scripts/generate-sidebar.ts"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.2",
-    "katex": "^0.16.45",
     "lucide-react": "^0.469.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0",
-    "vocs": "^1.4.1",
-    "yet-another-react-lightbox": "^3.21.7"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "vocs": "^2.0.11"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -41,18 +36,22 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^22.10.0",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.0.2",
     "@vitest/ui": "^3.0.0",
     "axe-core": "^4.10.2",
     "fast-xml-parser": "^5.7.3",
     "gray-matter": "^4.0.3",
     "jsdom": "^26.0.0",
+    "katex": "^0.16.11",
     "linkinator": "^7.6.1",
     "mime-types": "^3.0.2",
     "tsx": "^4.20.0",
     "typescript": "^5.7.2",
+    "vite": "^8.0.11",
     "vitest": "^3.0.0",
-    "vitest-axe": "^0.1.0"
+    "vitest-axe": "^0.1.0",
+    "waku": "1.0.0-beta.1"
   }
 }

@@ -1,0 +1,42 @@
+---
+title: MIMOProxyActions
+description: >-
+  The `MIMOProxyActions` contract can be seen as an extension of the
+  `MIMOProxy`. It adds 2 main functionalities :
+---
+
+# MIMOProxyActions
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+The `MIMOProxyActions` contract can be seen as an extension of the `MIMOProxy`. It adds 2 main functionalities :
+
+* The ability for a `MIMOProxy` owner to transfer native tokens (ETH for example) back to his address through the `withdrawETH()` function.
+* The ability to chain calls within a single transaction through the `multicall()` function.
+
+These functions have been outsourced to an action contract in order to reduce the deployments costs of the `MIMOProxy`.
+
+### `withdrawETH()`
+
+Sends ETH back to owner of the `MIMOProxy`.
+
+Requirements :
+
+* Caller must be the `MIMOProxy` owner
+
+### `multicall(address[] calldata targets, bytes[] calldata data)`
+
+Call multiple functions and returns the data from all of them if they all succeed.
+
+Requirements :
+
+* Must be called through the `MIMOProxy` `execute()` function
+* Targets must all be contracts not EOA
+* `targets` length must be the same as `data` length
+
+| Param Name | Type       | Description                                               |
+| ---------- | ---------- | --------------------------------------------------------- |
+| `targets`  | address\[] | Address array of all contracts to call                    |
+| `data`     | bytes\[]   | Bytes array of encoded function data for each target call |

@@ -1,3 +1,5 @@
+"use client";
+
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { Children, isValidElement, type ReactNode } from "react";
 import "./Tabs.css";
@@ -18,7 +20,10 @@ export interface TabsProps {
 }
 
 function slugify(s: string): string {
-  return s.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return s
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 export function Tabs({ defaultValue, children }: TabsProps) {
@@ -36,28 +41,19 @@ export function Tabs({ defaultValue, children }: TabsProps) {
     };
   });
 
-  const initial =
-    defaultValue !== undefined ? slugify(defaultValue) : (items[0]?.value ?? "");
+  const initial = defaultValue !== undefined ? slugify(defaultValue) : (items[0]?.value ?? "");
 
   return (
     <TabsPrimitive.Root className="cooper-tabs-root" defaultValue={initial}>
       <TabsPrimitive.List className="cooper-tabs-list" aria-label="Tabs">
         {items.map((it) => (
-          <TabsPrimitive.Trigger
-            key={it.value}
-            className="cooper-tabs-trigger"
-            value={it.value}
-          >
+          <TabsPrimitive.Trigger key={it.value} className="cooper-tabs-trigger" value={it.value}>
             {it.label}
           </TabsPrimitive.Trigger>
         ))}
       </TabsPrimitive.List>
       {items.map((it) => (
-        <TabsPrimitive.Content
-          key={it.value}
-          className="cooper-tabs-content"
-          value={it.value}
-        >
+        <TabsPrimitive.Content key={it.value} className="cooper-tabs-content" value={it.value}>
           {it.content}
         </TabsPrimitive.Content>
       ))}

@@ -1,0 +1,55 @@
+---
+title: MIMOProxy
+description: >-
+  Super Vault utilizes a proxy pattern to enable users to make proxy calls on
+  behalf of other users and interact with various contracts (e.g., Parallel core
+  prot…
+---
+
+# MIMOProxy
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+Super Vault utilizes a proxy pattern to enable users to make proxy calls on behalf of other users and interact with various contracts (e.g., Parallel core protocol, DEX aggregators, flash loan protocols) within a single transaction. This pattern also allows for the integration with external contracts (e.g., lending pools and DEX aggregators) to carry out complex on-chain vault operations while still preserving proper access control to access VaultsCore.
+
+While the design was largely inspired by the [PRB Proxy pattern](https://github.com/paulrberg/prb-proxy), there are some differences :
+
+* The MIMOProxy is completely stateless and only holds an immutable `proxyFactory` state variable. In contrast, the PRBProxy retains three non-immutable state variables (`owner`, `minGasReserve`, and `permissions`). As the `MIMOProxy` relies on delegate calls to execute actions through action contracts, retaining state variables within it increases the risk of storage collisions with target calls. As a result, the `owner` and `minGas` variables are maintained by the MIMOProxyFactory's `_proxyStates` mapping.
+* The management of MIMOProxy's permissions has been outsourced to the `MIMOProxyGuard`, which is deployed through the Openzeppelin Clones library in the MIMOProxyFactory for each `MIMOProxy`. This helps save gas on deployment and enables easy permission clearing in the event of a MIMOProxy ownership transfer.
+* The `PRBProxyFactory` uses the CREATE2 opcode to deploy proxies at deterministic addresses, whereas the `MIMOProxyFactory` does not. This decision was made to save gas and because there is no need to deploy proxies at deterministic addresses.
+* The `MIMOProxy` uses the `BoringBatchable` to carry out batch delegate calls to `address(this)`. This is useful for linking calls to owner-protected functions such as setPermission() and execute() to minimize user transactions.
+
+Users can create a proxy by calling deploy() on the MimoProxyFactory contract, which deploys both a new MIMOProxy and clones a MIMOProxyGuard.
+
+### Write Methods
+
+#### `execute(address target, bytes calldata data)`
+
+Delegate calls to the target contract by forwarding the call data. Returns the data it gets back, including when the contract call reverts with a reason or custom error.
+
+Requirements :
+
+* The caller must be either an owner or an envoy
+* `target` must be a deployed contract
+* The owner cannot be changed during the `DELEGATECALL`
+
+**Call Params**
+
+| Name     | Type    | Description                             |
+| -------- | ------- | --------------------------------------- |
+| `target` | address | The address of the target contract      |
+| `data`   | bytes   | Function selector plus ABI encoded data |
+
+**Return Values**
+
+| Name       | Type  | Description                                    |
+| ---------- | ----- | ---------------------------------------------- |
+| `response` | bytes | The response received from the target contract |
+
+### View Methods
+
+#### `proxyFactory()`
+
+Returns the `proxyFactory` address.

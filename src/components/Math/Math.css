@@ -1,0 +1,6 @@
+/* Math — wrapper for pre-rendered KaTeX display formulas. */
+
+.cooper-math {
+  margin: 1.25rem 0;
+  overflow-x: auto;
+}

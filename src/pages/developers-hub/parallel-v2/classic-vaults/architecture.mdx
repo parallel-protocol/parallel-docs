@@ -1,0 +1,29 @@
+---
+title: Architecture
+description: >-
+  ​The Parallel Protocol is a collection of decentralized and non-custodial
+  smart contracts built to support the rest of the Decentralised Finance (DeFi)
+  ecosyst…
+---
+
+# Architecture
+
+:::warning
+You're reading the legacy **v2** documentation. For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+<figure><img src="https://files.gitbook.com/v0/b/gitbook-legacy-files/o/assets%2F-MdnKrtV1Ev2ILZ6C4SC%2F-Mewj_rgbQXGsdrQ-2Bg%2F-MewoRAkAgeJuGYbz3MC%2FTitan_%20Architecture.png?alt=media&#x26;token=43ca7aef-588e-4424-a14d-ed23f7d1731a" alt="" /><figcaption></figcaption></figure>
+
+​The Parallel Protocol is a collection of decentralized and non-custodial smart contracts built to support the rest of the Decentralised Finance (DeFi) ecosystem:
+
+* **Vaults Core:** The main contract to interact with the Parallel protocol. All calculations happen here.
+* **Vaults Core State**: Owns the global state (cumulative rates & last refresh) for each collateral type available to borrow against. All state updates & calculations happen here
+* **PAR**: PAR is a standard ERC20 tokens, whose value is pegged to the EUR fiat currency.
+* **paUSD**: paUSD is a standard ERC20 tokens, whose value is pegged to the USD fiat currency
+* **Rates Manager**: Stateless. Calculates debt and fees for each Vault.
+* **Liquidation Manager**: Stateless. Calculates health factors and liquidation variables.
+* **PriceFeed:** Responsible for retrieving collateral prices in fiat, for calculating Vault health factors.
+* **FeeDistributor:** Responsible for collecting and distributing protocol fees.
+* **AddressProvider:** Indexes all module addresses read by other modules.
+* **ConfigProvider:** Responsible for updating protocol config parameters.
+* **VaultsDataProvider:** Owns vault state, base debt, and vault related read functions.

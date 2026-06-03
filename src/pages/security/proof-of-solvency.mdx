@@ -1,0 +1,32 @@
+---
+title: Proof of Solvency
+description: Parallel V3 Proof of Solvency
+subtitle: Parallel V3 Proof of Solvency
+---
+
+# Proof of Solvency
+
+import { Tabs, Tab } from '@/components/Tabs';
+
+import { LinkCard } from '@/components/LinkCard'
+
+## Introduction
+
+Unlike the majority of stablecoins protocols, Parallel V3 doesn't rely on multisigs or MCP vaults for its backing management but on onchain & permissionless smart contracts called [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module). The [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module) is handling mint, burn & redeem operations within DAO approved [parameters](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation), you can learn more about it [here](/products/parallel-v3/how-it-works/parallelizer-module). Users, keepers and anyone can freely interact with the backing of Parallel V3 Stablecoins without any cooldown.
+
+The DAO, nor protocol contributors have access to Parallel V3 stablecoins backing. Moreover the backing is held entirely onchain.
+
+## Reserves Addresses
+
+<Tabs>
+  <Tab label="USDp">
+| Blockchain | Contract Name    | Contract Address                                                                                                              |
+| ---------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Ethereum   | ParallelizerUSDp | [0x6efeDDF9269c3683Ba516cb0e2124FE335F262a2](https://etherscan.io/address/0x6efeDDF9269c3683Ba516cb0e2124FE335F262a2#code)    |
+| Base       | ParallelizerUSDp | [0xC3BEF21Ea7dEB5C34CF33E918c8e28972C8048eD](https://basescan.org/address/0xC3BEF21Ea7dEB5C34CF33E918c8e28972C8048eD#code)    |
+| HyperEVM   | ParallelizerUSDp | [0x1250304F66404cd153fA39388DDCDAec7E0f1707](https://hyperevmscan.io/address/0x1250304F66404cd153fA39388DDCDAec7E0f1707#code) |
+| Avalanche  | ParallelizerUSDp | [0x41d58951cbd12d4ef49b0437897677bbf5547c80](https://snowscan.xyz/address/0x41d58951cbd12d4ef49b0437897677bbf5547c80#code)    |
+
+<LinkCard href="https://app.parallel.best/transparency" title="Parallel | Proof of Solvency Dashboard" favicon="https://app.parallel.best/logo/parallel_icon_w.svg" hostname="app.parallel" />
+  </Tab>
+</Tabs>
