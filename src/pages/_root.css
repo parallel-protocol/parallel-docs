@@ -48,3 +48,23 @@ figcaption > p {
 figcaption {
   margin-top: 0.5rem; /* 8px */
 }
+
+/* Brand action buttons (`<a class="button primary">`): the v2-clean rebuild
+ * dropped buttons.css, so these rendered as plain links. Restore the original
+ * filled style — brand color, contrasting text, brand corner radius. */
+.button.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px; /* Parallel: rounded corners */
+  background: #5942b8;
+  color: #fff !important;
+  text-decoration: none !important;
+  transition: filter 150ms ease, transform 150ms ease;
+}
+.button.primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
