@@ -93,3 +93,19 @@ nav a[href*="/mint/"]:hover,
 nav a[href*="/earn/"]:hover {
   filter: brightness(1.08);
 }
+
+/* Prev/Next pagination: the original docs render these as bordered boxes;
+ * Vocs v2 shows plain links on desktop. Restore the box with a neutral border,
+ * and use the brand accent on hover (var(--vocs-color-accent) adapts to each
+ * brand and to light/dark mode). */
+nav[aria-label="Pagination"] a {
+  flex: 1;
+  border: 1px solid light-dark(#e4e6e4, #2e2e2e);
+  border-radius: 12px; /* Parallel: rounded corners */
+  padding: 1rem;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+nav[aria-label="Pagination"] a:hover {
+  border-color: var(--vocs-color-accent);
+  color: var(--vocs-color-accent);
+}
