@@ -11,3 +11,21 @@
   margin: 1.25rem 0;
   overflow-x: auto;
 }
+
+/*
+ * Image captions (`<figure><figcaption>`): the native v2 theme has no rule
+ * for figcaption, so the inner <p> inherited the body-paragraph style
+ * (left-aligned, 16px, body color). The original docs render captions as
+ * small, centered, muted grey text — restore that here to match.
+ */
+figcaption,
+figcaption > p {
+  text-align: center;
+  font-size: 0.75rem; /* 12px */
+  line-height: 1rem; /* 16px */
+  color: light-dark(#6d6f6c, #9a9a9a);
+  margin: 0;
+}
+figcaption {
+  margin-top: 0.5rem; /* 8px */
+}
