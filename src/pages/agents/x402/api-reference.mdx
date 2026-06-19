@@ -1,0 +1,122 @@
+---
+title: x402 SDK & facilitator API reference
+description: Configuration, framework adapters, and the facilitator client for the Parallel x402 SDK — paymentMiddleware, withPayment, FacilitatorClient, and createPaymentGate.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# API reference
+
+Reference for the `@parallel-protocol/x402` package: configuration, framework adapters, and the lower-level facilitator client.
+
+## Configuration
+
+### `PaymentMiddlewareConfig`
+
+```ts
+interface PaymentMiddlewareConfig {
+  facilitator: FacilitatorConfig;
+  routes: Record<string, RouteConfig>;
+}
+```
+
+### `FacilitatorConfig`
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `url` | `string` | Yes | Base URL of the Parallel facilitator. The SDK appends `/x402/verify` and `/x402/settle` to this value. |
+| `apiKey` | `string` | No | Reserved for future use. Sent as an `X-API-Key` header when provided; not currently enforced. |
+
+### `RouteConfig`
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `price` | `string \| bigint` | Yes | Amount required. A string like `"0.01"` is parsed at `decimals` precision. Pass a `bigint` to skip parsing. |
+| `decimals` | `number` | No | Token decimals for string-price parsing. Default `18` (USDp). Use `6` for USDC-denominated prices. |
+| `network` | `string` | Yes | Chain slug: `"ethereum"`, `"base"`, `"avalanche"`, or `"hyperevm"`. |
+| `payTo` | `Address` | Yes | The merchant's receiving address. |
+| `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to the supported stablecoins for the network. |
+| `description` | `string` | No | Human-readable description of the resource, included in the `402` body. |
+
+Route matching is **longest-prefix-wins**: `/api/v1/users` matches a `/api/v1` config before a `/api` one.
+
+## Framework adapters
+
+| Import path | Export | Framework |
+|---|---|---|
+| `@parallel-protocol/x402/express` | `paymentMiddleware(config)` | Express 4 / 5 |
+| `@parallel-protocol/x402/next` | `withPayment(config, handler)` | Next.js 14 / 15 |
+| `@parallel-protocol/x402/fastify` | `paymentMiddleware(config)` | Fastify 4 / 5 |
+| `@parallel-protocol/x402/hono` | `paymentMiddleware(config)` | Hono 4+ |
+
+See the [quickstart](/agents/x402/quickstart) for a working example of each.
+
+## `FacilitatorClient`
+
+Low-level client for the facilitator's x402 endpoints. Use it directly if you are building a custom integration rather than using a framework adapter.
+
+```ts
+import { FacilitatorClient } from "@parallel-protocol/x402";
+
+const client = new FacilitatorClient({ url: "https://facilitator.parallel.best" });
+
+// Phase 1: verify signature + reserve nonce (no on-chain tx)
+await client.verify(paymentHeader, paymentRequirements);
+
+// Phase 2: submit on-chain, return the settlement result
+const result = await client.settle(paymentHeader, paymentRequirements);
+if (result.success) {
+  console.log(result.txHash, result.route, result.gasSponsored);
+} else {
+  console.error(result.error.code);
+}
+```
+
+Both methods use a 10-second timeout. `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure; `settle` returns a result union on facilitator errors and throws only on connectivity issues.
+
+## `createPaymentGate`
+
+For frameworks not covered by an adapter, the lower-level `createPaymentGate` exposes the verify step without running your handler:
+
+```ts
+import { createPaymentGate } from "@parallel-protocol/x402";
+
+const gate = createPaymentGate(config);
+
+const result = await gate({
+  getHeader: (name) => request.headers[name],
+  getMethod: () => request.method,
+  getPath: () => request.path,
+  getUrl: () => request.url,
+});
+
+if (result.type === "pass") {
+  // route not configured for payment — proceed normally
+} else if (result.type === "error") {
+  // send 402: result.result.status / headers / body
+} else {
+  // result.type === "verified" — run your handler, then:
+  const handlerStatus = await runHandler();
+  if (handlerStatus >= 200 && handlerStatus < 300) {
+    const settlement = await result.settle();
+  }
+}
+```
+
+Use `createPaymentMiddleware` instead if you want the full verify → run → settle flow managed for you.
+
+## Utilities
+
+| Function | Signature | Description |
+|---|---|---|
+| `parsePrice` | `(price, decimals?) => bigint` | `"0.01"` → `10000000000000000n` (18 decimals default) |
+| `validateAddress` | `(address) => boolean` | Checks `0x` + 40 hex chars |
+| `toEip155Network` | `(network) => string` | `"base"` → `"eip155:8453"` |
+| `encodeBase64` | `(obj) => string` | `JSON.stringify` → base64 |
+
+## See also
+
+- [Schemas](/agents/x402/schemas) — wire formats for the payment headers
+- [Error codes](/agents/x402/error-codes) — SDK and facilitator errors
+
+<HelpFooter />

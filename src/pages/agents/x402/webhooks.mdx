@@ -1,0 +1,19 @@
+---
+title: Webhooks
+description: Merchant webhooks for the Parallel x402 facilitator are coming in V1.1. Until then, confirm payments by polling or by watching your wallet on-chain.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Webhooks
+
+Webhook delivery for merchants is planned for **V1.1 (Q3 2026)**.
+
+Until then, you can confirm payments in two ways:
+
+- **Read the `payment-response` header** on the successful response — it contains the on-chain `txHash` and settlement details ([schema](/agents/x402/schemas)).
+- **Watch your `payTo` wallet on-chain** for incoming transfers.
+
+When webhooks ship, this page will document the event types, payload format, and signature verification.
+
+<HelpFooter />

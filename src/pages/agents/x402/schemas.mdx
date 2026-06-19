@@ -1,0 +1,81 @@
+---
+title: x402 payment schemas
+description: Wire formats for the Parallel x402 payment headers — PaymentRequired, the signed payment payload, and the settlement confirmation.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Payment schemas
+
+The three x402 headers each carry a base64-encoded JSON payload. These are the shapes the middleware and the facilitator exchange.
+
+## `402` response — `payment-required`
+
+Returned when no valid payment is present. The `payment-required` header holds a base64-encoded `PaymentRequired` object:
+
+```ts
+interface PaymentRequired {
+  x402Version: 2;
+  error?: string;            // present on re-challenge, e.g. "INVALID_SIGNATURE"
+  resource: {
+    url: string;
+    description?: string;
+    mimeType: "application/json";
+  };
+  accepts: Array<{
+    scheme: "exact";
+    network: string;         // EIP-155, e.g. "eip155:8453"
+    asset: string;           // token address
+    amount: string;          // wei string (18 decimals for USDp)
+    payTo: string;
+    maxTimeoutSeconds: 300;
+    extra: Record<string, unknown>;
+  }>;
+}
+```
+
+## Request header — `payment-signature`
+
+The agent attaches a `payment-signature` (or `X-PAYMENT`) header with a base64-encoded signed payload:
+
+```ts
+const signedPayload = {
+  scheme: "exact",
+  network: "base",
+  method: "transferWithAuthorization",
+  payload: {
+    signature: "0x...",
+    authorization: {
+      from: "0xAgentAddress",
+      to: "0xMerchantAddress",
+      value: "10000000000000000", // 0.01 USDp in wei
+      validAfter: "0",
+      validBefore: "1234567890",  // Unix timestamp
+      nonce: "0x...",
+    },
+  },
+};
+
+const header = Buffer.from(JSON.stringify(signedPayload)).toString("base64");
+```
+
+Agent-side signing helpers (EIP-3009 authorizations, EIP-712 signing) live in the `@parallel-protocol/payment-core` package.
+
+## `200` response — `payment-response`
+
+On success, the middleware sets a `payment-response` header with a base64-encoded settlement confirmation:
+
+```ts
+interface PaymentConfirmation {
+  success: true;
+  txHash: string;
+  route: string;        // internal settlement route id
+  chain: string;        // "base"
+  gasSponsored: boolean;
+  networkId: string;    // "eip155:8453"
+}
+```
+
+The middleware sets `access-control-expose-headers` automatically so browser clients can read `payment-response`.
+
+<HelpFooter />

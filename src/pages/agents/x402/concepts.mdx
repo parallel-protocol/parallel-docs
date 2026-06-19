@@ -1,0 +1,50 @@
+---
+title: How the Parallel x402 facilitator works
+description: Routing, fees, gas sponsoring, and supported networks for the Parallel x402 facilitator. Accept USDp, USDC, and more with zero platform fees.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# How the facilitator works
+
+The **facilitator** is the service that verifies and settles x402 payments on-chain. Your API never touches a smart contract — the middleware talks to the facilitator, and the facilitator does the on-chain work.
+
+You declare paid routes in your middleware; the facilitator handles the rest.
+
+## The payment flow
+
+Every paid request goes through two phases:
+
+1. **Verify** — the facilitator checks the agent's signed payment off-chain. Instant, no transaction. If it's valid, your handler runs.
+2. **Settle** — once your handler returns a success response, the facilitator submits the transfer on-chain and returns a settlement proof.
+
+If verification fails, your handler never runs. If your handler fails, settlement never happens — the agent is only charged for a successful response. See [verify vs settle](/agents/x402/verify-vs-settle) for the full sequence.
+
+## Supported stablecoins
+
+By default the facilitator accepts **USDp** and **USDC**, plus other major stablecoins depending on the network. The agent pays in whatever supported stablecoin it holds; you receive the token you configured. You can narrow or widen the accepted set per route with the [`acceptedTokens`](/agents/x402/api-reference#routeconfig) option.
+
+## Smart routing
+
+You set a price. The agent holds some stablecoin. The facilitator picks the cheapest settlement path between the two automatically — neither you nor the agent has to choose. If an agent pays in a different stablecoin than the one you want to receive, conversion is handled in the same settlement, at no extra platform fee.
+
+## Fees and gas
+
+- **Zero platform fee.** Parallel does not take a cut of your revenue.
+- **Gas sponsored on L2.** Transactions on Base, Arbitrum, HyperEVM, and Avalanche are gas-sponsored. On Ethereum mainnet, standard gas applies.
+
+## Supported networks
+
+The facilitator settles on **Base**, **Ethereum**, **Avalanche**, and **HyperEVM**. Most builders use Base for the lowest cost and sponsored gas. You choose the network per route with the `network` field.
+
+## Non-custodial settlement
+
+Funds settle directly to the `payTo` address you configure. There is no Parallel account, no holding period, and no withdrawal step — the protocol is non-custodial and Cooper Labs never holds your funds.
+
+## Next steps
+
+- [Quickstart](/agents/x402/quickstart)
+- [API reference](/agents/x402/api-reference)
+- [Verify vs settle](/agents/x402/verify-vs-settle)
+
+<HelpFooter />

@@ -1,0 +1,18 @@
+.help-footer {
+  margin-top: 3rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid light-dark(#e4e6e4, #2e2e2e);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: light-dark(#4a4c49, #b5b5b5);
+}
+
+.help-footer a {
+  color: var(--vocs-color-accent);
+  text-decoration: none;
+}
+
+.help-footer a:hover {
+  text-decoration: underline;
+}

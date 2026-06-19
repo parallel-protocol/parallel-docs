@@ -1,0 +1,54 @@
+---
+title: The verify / settle flow
+description: How the Parallel x402 middleware verifies a payment off-chain, runs your handler, then settles on-chain — so agents are never charged for failed requests.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# The verify / settle flow
+
+x402 payments settle in two phases: an off-chain **verify** before your handler runs, and an on-chain **settle** after it succeeds. This is what makes the payment safe — the agent is only charged when it actually receives a successful response.
+
+## Sequence
+
+```
+Agent                        Merchant (the SDK)            Facilitator
+  |                                |                             |
+  |── GET /api/data ──────────────>|                             |
+  |                                | (route matches, no payment) |
+  |<─ 402 + payment-required ──────|                             |
+  |   (base64 PaymentRequired)     |                             |
+  |                                |                             |
+  | [agent signs authorization]    |                             |
+  |                                |                             |
+  |── GET /api/data ──────────────>|                             |
+  |   payment-signature: <base64>  |── POST /x402/verify ───────>|
+  |                                |<─ { isValid: true } ────────|
+  |                                |                             |
+  |                                | [your handler runs]         |
+  |                                |                             |
+  |                                |── POST /x402/settle ───────>|
+  |                                |<─ { txHash, route, ... } ───|
+  |                                |                             |
+  |<─ 200 + payment-response ──────|                             |
+  |   (base64 settlement proof)    |                             |
+```
+
+## Guarantees
+
+- **The handler only runs after the signature is verified.** A request with a missing or invalid payment never reaches your code — it gets a `402`.
+- **Settlement happens after a 2xx.** The on-chain transfer is submitted only once your handler returns a success response. If your handler errors, nothing is charged.
+- **A failed settlement discards the response.** If the on-chain transfer reverts or the facilitator times out, the middleware returns `402` instead of your handler's output, so the agent can retry.
+- **CORS preflight passes through.** `OPTIONS` requests are never challenged.
+
+## Headers involved
+
+| Phase | Header | Direction |
+|---|---|---|
+| Challenge | `payment-required` | server → client (on `402`) |
+| Payment | `payment-signature` (or `X-PAYMENT`) | client → server |
+| Receipt | `payment-response` | server → client (on `200`) |
+
+All three carry base64-encoded payloads. The full shapes are documented in [Schemas](/agents/x402/schemas).
+
+<HelpFooter />

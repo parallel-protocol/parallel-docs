@@ -1,0 +1,143 @@
+---
+title: Accept stablecoins in Express in 5 minutes
+description: Add stablecoin payment support to any Express, Next.js, Fastify, or Hono API with one middleware. Free, gasless on L2, no signup.
+---
+
+import { Tabs, Tab } from '@/components/Tabs'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Accept stablecoins in 5 minutes
+
+This guide adds stablecoin payment support to an API. The same pattern works for Express, Next.js, Fastify, and Hono.
+
+## 1. Install the middleware
+
+```bash
+npm install @parallel-protocol/x402
+```
+
+Install your framework separately — they are optional peer dependencies:
+
+```bash
+npm install express   # or: next · fastify · hono
+```
+
+## 2. Add the middleware
+
+Point the middleware at the facilitator, then declare which routes are paid, at what price, on which network, and where funds should settle.
+
+<Tabs>
+  <Tab label="Express">
+
+```ts
+import express from "express";
+import { paymentMiddleware } from "@parallel-protocol/x402/express";
+
+const app = express();
+
+app.use(
+  paymentMiddleware({
+    facilitator: { url: "https://facilitator.parallel.best" },
+    routes: {
+      "/api/data": { price: "0.01", network: "base", payTo: "0xYourAddress" },
+    },
+  }),
+);
+
+app.get("/api/data", (req, res) => {
+  res.json({ data: "protected content" });
+});
+
+app.listen(3000);
+```
+
+  </Tab>
+  <Tab label="Next.js">
+
+```ts
+// app/api/data/route.ts
+import { withPayment } from "@parallel-protocol/x402/next";
+
+const config = {
+  facilitator: { url: "https://facilitator.parallel.best" },
+  routes: {
+    "/api/data": { price: "0.10", network: "ethereum", payTo: "0xYourAddress" },
+  },
+};
+
+export const GET = withPayment(config, async (req) => {
+  return Response.json({ data: "protected content" });
+});
+```
+
+  </Tab>
+  <Tab label="Fastify">
+
+```ts
+import Fastify from "fastify";
+import { paymentMiddleware } from "@parallel-protocol/x402/fastify";
+
+const app = Fastify();
+
+await app.register(
+  paymentMiddleware({
+    facilitator: { url: "https://facilitator.parallel.best" },
+    routes: {
+      "/api/data": { price: "0.05", network: "avalanche", payTo: "0xYourAddress" },
+    },
+  }),
+);
+
+app.get("/api/data", async () => ({ data: "protected content" }));
+```
+
+  </Tab>
+  <Tab label="Hono">
+
+```ts
+import { Hono } from "hono";
+import { paymentMiddleware } from "@parallel-protocol/x402/hono";
+
+const app = new Hono();
+
+app.use(
+  paymentMiddleware({
+    facilitator: { url: "https://facilitator.parallel.best" },
+    routes: {
+      "/api/data": { price: "0.01", network: "base", payTo: "0xYourAddress" },
+    },
+  }),
+);
+
+app.get("/api/data", (c) => c.json({ data: "protected content" }));
+```
+
+  </Tab>
+</Tabs>
+
+That's it. Your API now charges $0.01 per request to `/api/data`. Agents pay in any [supported stablecoin](/agents/x402/concepts#supported-stablecoins) — funds settle directly to the wallet address you configured.
+
+**No signup. No platform fee. Funds settle straight to your wallet.**
+
+:::tip
+`price` is a string parsed at the token's decimals (18 for USDp by default). For a USDC-denominated price, set `decimals: 6` on the route. See the [route configuration](/agents/x402/api-reference#routeconfig).
+:::
+
+## 3. What happens behind the scenes
+
+When an agent calls your endpoint with a signed payment header:
+
+1. The middleware sends the payload to the facilitator's `/x402/verify` endpoint — an instant, off-chain signature check.
+2. If valid, **your handler runs** and produces the response.
+3. If your handler returns a 2xx, the middleware calls `/x402/settle` — the on-chain transfer happens.
+4. If your handler fails, **no settlement happens** — the agent is not charged.
+
+Read more: [The verify / settle flow](/agents/x402/verify-vs-settle).
+
+## Next steps
+
+- [Concepts: how routing, fees, and gas work](/agents/x402/concepts)
+- [Migrate from Coinbase x402 in one line](/agents/recipes/migrate-from-coinbase-x402)
+- [API reference](/agents/x402/api-reference)
+
+<HelpFooter />

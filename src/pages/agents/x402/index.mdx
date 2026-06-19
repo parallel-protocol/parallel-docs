@@ -1,0 +1,37 @@
+---
+title: What is x402?
+description: x402 is the HTTP-native payment standard for AI agents. Accept stablecoin payments per request with zero platform fees, gas sponsored on L2, and no signup.
+---
+
+import { PageCardGrid } from '@/components/PageCardGrid'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# What is x402?
+
+**x402** is an open standard for paying for an HTTP request with stablecoins. It is built on the long-reserved HTTP status code [`402 Payment Required`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402).
+
+The idea is simple: an API can require a payment for a route. When a client calls that route without paying, the server replies `402` and describes exactly what is owed and to whom. The client signs a stablecoin payment off-chain, retries the request with a payment header, and the server lets it through once the payment is verified.
+
+It was designed for the agent economy. AI agents can't hold credit cards or complete checkout forms — but they can sign a stablecoin transfer and attach it to a request. x402 gives them a native, one-request-one-payment way to pay for APIs.
+
+## What Parallel provides
+
+Parallel runs an **x402 facilitator** and ships drop-in middleware so any API can accept stablecoin payments in a few lines:
+
+- **Drop-in middleware** for Express, Next.js, Fastify, and Hono.
+- **Accepts USDp, USDC, and other major stablecoins** — the SDK routes the payment automatically.
+- **Zero platform fee** — Parallel takes no cut of your revenue.
+- **Gas sponsored on L2** — Base, Arbitrum, HyperEVM, and Avalanche.
+- **Settles directly to your wallet** — non-custodial, no Parallel account.
+- **Open source, MIT licensed** — self-host if you want.
+
+## Start here
+
+<PageCardGrid items={[
+  { title: "Quickstart — accept stablecoins in 5 minutes", href: "/agents/x402/quickstart" },
+  { title: "Concepts — how the facilitator works", href: "/agents/x402/concepts" },
+  { title: "API reference", href: "/agents/x402/api-reference" },
+  { title: "Migrate from Coinbase x402", href: "/agents/recipes/migrate-from-coinbase-x402" },
+]} />
+
+<HelpFooter />

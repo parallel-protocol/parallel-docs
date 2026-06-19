@@ -1,0 +1,42 @@
+---
+title: x402 error codes
+description: Reference for the errors thrown by the Parallel x402 SDK and the error codes propagated from the facilitator on a rejected payment.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Error codes
+
+## Thrown by the SDK
+
+| Error class | When |
+|---|---|
+| `X402ConfigError` | Invalid config at middleware setup — bad `payTo`, an unknown network with no `acceptedTokens`, or a malformed facilitator URL. |
+| `X402RuntimeError` | A runtime failure. The specific cause is in `.code` (below). |
+
+### `X402RuntimeError.code`
+
+| Code | Meaning |
+|---|---|
+| `FACILITATOR_UNAVAILABLE` | The facilitator timed out (10s) or returned a non-JSON error. |
+| `FACILITATOR_INVALID_RESPONSE` | The facilitator returned an unexpected response shape. |
+| `INVALID_PAYMENT` | The `payment-signature` / `X-PAYMENT` header could not be base64-decoded. |
+
+## Propagated from the facilitator
+
+When the facilitator rejects a payment, its error code is forwarded as the `error` field on the re-issued `402` body. Common values:
+
+| Code | Meaning |
+|---|---|
+| `INVALID_SIGNATURE` | Signature recovery failed. |
+| `INVALID_NONCE` | Nonce already used (replay detected). |
+| `PAYMENT_EXPIRED` | The authorization's `validBefore` has passed. |
+| `INSUFFICIENT_AMOUNT` | The signed amount is less than the required amount. |
+| `NETWORK_MISMATCH` | The payload's chain does not match the route's configured chain. |
+| `RATE_LIMIT_EXCEEDED` | The signer has exceeded the hourly transaction limit. |
+
+## Handling errors
+
+A rejected payment is not an exception in your handler — the middleware re-issues a `402` with the `error` field set, and the agent can sign a corrected payment and retry. You only need to catch `X402RuntimeError` if you are calling the [`FacilitatorClient`](/agents/x402/api-reference#facilitatorclient) or [`createPaymentGate`](/agents/x402/api-reference) directly.
+
+<HelpFooter />

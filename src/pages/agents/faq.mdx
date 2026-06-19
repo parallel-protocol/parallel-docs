@@ -1,0 +1,54 @@
+---
+title: Frequently asked questions
+description: Common questions about the Parallel x402 facilitator and SDK — fees, supported stablecoins, accounts, self-hosting, and how it compares to Stripe and Coinbase x402.
+---
+
+import { FAQ } from '@/components/FAQ'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Frequently asked questions
+
+<FAQ items={[
+  {
+    question: "Is the facilitator free?",
+    answer: "Yes. The hosted facilitator is free to use — Parallel takes no cut of your revenue. You pay only your own gas, and that's sponsored on L2 (Base, Arbitrum, HyperEVM, Avalanche)."
+  },
+  {
+    question: "Do I need to create an account?",
+    answer: "No. There's no signup, no KYB, and no Parallel onboarding. Funds settle directly to the wallet address you control. You can start accepting payments in about five minutes."
+  },
+  {
+    question: "What stablecoins are supported?",
+    answer: "USDp and USDC by default, plus other major stablecoins depending on the network. The SDK selects the cheapest settlement route automatically — you don't choose, and the agent doesn't choose."
+  },
+  {
+    question: "How is this different from Stripe?",
+    answer: "Stripe charges 2.9% + $0.30 per transaction and only accepts credit cards, which AI agents don't have. The Parallel x402 facilitator is free, accepts stablecoins, and is built for agent-to-API payments."
+  },
+  {
+    question: "How is this different from Coinbase x402?",
+    answer: "Coinbase x402 handles USDC only. Parallel x402 accepts USDp, USDC, and other major stablecoins, with zero conversion fees and gas sponsored on L2. It's the same x402 standard, so you can migrate in one line."
+  },
+  {
+    question: "Is the facilitator audited?",
+    answer: "Audit status is published on the security page. The hosted facilitator is in beta; the code is open source and MIT licensed so you can review and self-host it."
+  },
+  {
+    question: "What happens if the facilitator goes down?",
+    answer: "The facilitator is open source, so you can self-host it and your traffic is never gated by Cooper Labs. A public status page for the hosted instance is being set up."
+  },
+  {
+    question: "How do I get notified when an agent pays?",
+    answer: "In V1, read the payment-response header on the successful response (it contains the on-chain transaction hash) or watch your wallet on-chain. Webhook delivery is planned for V1.1 (Q3 2026)."
+  },
+  {
+    question: "Can I self-host the facilitator?",
+    answer: "Yes. The facilitator is open source and MIT licensed. Point your middleware's facilitator URL at your own instance."
+  },
+  {
+    question: "What about KYC / AML?",
+    answer: "Parallel does not perform KYC on agents or merchants, and the protocol is non-custodial — funds never touch Cooper Labs. You remain responsible for your own compliance obligations."
+  },
+]} />
+
+<HelpFooter />

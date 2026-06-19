@@ -1,0 +1,59 @@
+---
+title: Migrate from Coinbase x402 to Parallel
+description: Switch your facilitator URL and start accepting USDp, USDC, and other major stablecoins. One line of code, no breaking changes.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Migrate from Coinbase x402 to Parallel
+
+If you already use the Coinbase x402 facilitator, switching to Parallel is a one-line change. x402 is a standard — your routes, your pricing, and your existing agent clients keep working.
+
+## The change
+
+```diff
+- import { paymentMiddleware } from 'x402-express';
++ import { paymentMiddleware } from '@parallel-protocol/x402/express';
+
+  app.use(paymentMiddleware({
+-   facilitator: { url: 'https://x402.org/facilitator' },
++   facilitator: { url: 'https://facilitator.parallel.best' },
+    routes: { /* ... */ },
+  }));
+```
+
+That's it. Agents paying in USDC keep paying in USDC. Agents holding USDp can now pay you natively, with the facilitator handling conversion at no extra fee.
+
+## What you gain
+
+- **Zero conversion fees** when the agent holds one stablecoin and you accept another.
+- **Gas sponsored on L2** — Base, Arbitrum, HyperEVM, and Avalanche.
+- **More stablecoins accepted** — USDp, USDC, and other major stables.
+- **Same x402 standard** — no API change, no breaking change, no agent migration required.
+
+## What stays the same
+
+- Your handler signatures.
+- Your pricing configuration.
+- Your existing agent clients.
+- Your wallet address — funds still settle directly to it.
+
+## Comparison
+
+|  | Coinbase x402 | **Parallel x402** |
+|---|---|---|
+| Stablecoins accepted | USDC only | **USDC, USDp, and other major stables** |
+| Conversion fee | — | **0%** |
+| Gas on L2 | Standard | **Sponsored** |
+| Settles to | Your wallet | **Your wallet** |
+| Standard | x402 | **x402 (compatible)** |
+
+## FAQ
+
+**Do I lose access to USDC payments?** No. USDC is fully supported.
+
+**Do I need to update my agent clients?** No. x402 is a standard — agents using the Coinbase facilitator on the other side keep working transparently.
+
+**Can I run both facilitators in parallel?** Yes. Some merchants A/B test by routing a percentage of traffic to each.
+
+<HelpFooter />
