@@ -68,3 +68,27 @@ figcaption {
   filter: brightness(1.08);
   transform: translateY(-1px);
 }
+
+/* Top-nav action CTAs ("Get/Stake <token>"): give the app mint/earn links the
+ * same filled brand button as the in-page CTAs. Vocs renders top-nav items as
+ * full-height flex links; shrink the <li> to a centered pill so it reads as a
+ * button, not a full-height block. */
+nav li:has(> a[href*="/mint/"]),
+nav li:has(> a[href*="/earn/"]) {
+  height: auto;
+  align-self: center;
+}
+nav a[href*="/mint/"],
+nav a[href*="/earn/"] {
+  height: auto;
+  padding: 0.5rem 1rem;
+  border-radius: 12px; /* Parallel: rounded corners */
+  background: #5942b8;
+  color: #fff !important;
+  font-weight: 500;
+  transition: filter 150ms ease;
+}
+nav a[href*="/mint/"]:hover,
+nav a[href*="/earn/"]:hover {
+  filter: brightness(1.08);
+}
