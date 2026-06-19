@@ -6,6 +6,25 @@
  * `src/pages/_root.css` after its own CSS). */
 @import url("https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css");
 
+/* Original docs typography: IBM Plex Serif (Vocs v2 defaults to Geist sans).
+ * Load the webfont, then point Vocs' font variable at it. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&display=swap");
+
+:root {
+  --vocs-font-family: "IBM Plex Serif", ui-serif, Georgia, serif;
+}
+
+/* Headings: the original renders them bold (700); Vocs' theme applies
+ * font-medium (500). Restore the original weight. */
+h1[data-v],
+h2[data-v],
+h3[data-v],
+h4[data-v],
+h5[data-v],
+h6[data-v] {
+  font-weight: 700;
+}
+
 /* Center the pre-rendered display-math blocks, matching KaTeX defaults. */
 .cooper-math {
   margin: 1.25rem 0;
