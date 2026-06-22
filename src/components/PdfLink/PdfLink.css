@@ -1,0 +1,16 @@
+.pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--vocs-color-accent);
+  text-decoration: none !important;
+}
+
+.pdf-link:hover {
+  text-decoration: underline !important;
+}
+
+.pdf-link-icon {
+  flex-shrink: 0;
+  color: #e2574c; /* PDF red */
+}
