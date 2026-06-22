@@ -131,3 +131,25 @@ nav[aria-label="Pagination"] a:hover {
   border-color: var(--vocs-color-accent);
   color: var(--vocs-color-accent);
 }
+
+/* Raw HTML <table> from the GitBook migration: Vocs v2 only styles markdown
+ * tables (those carry a `data-v` attribute), so raw HTML tables render
+ * unstyled (no borders, no padding) and look broken. Give them the same look
+ * as native tables. Exclude the ContractTable component (.cooper-ct-table),
+ * which has its own styling. */
+table:not([data-v]):not(.cooper-ct-table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+}
+table:not([data-v]):not(.cooper-ct-table) :is(th, td) {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid light-dark(#e4e6e4, #2e2e2e);
+  text-align: left;
+  vertical-align: top;
+}
+table:not([data-v]):not(.cooper-ct-table) th {
+  font-weight: 500;
+  white-space: nowrap;
+  background: light-dark(#f7f7f7, #1a1a1a);
+}
