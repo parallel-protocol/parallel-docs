@@ -94,6 +94,29 @@ nav a[href*="/earn/"]:hover {
   filter: brightness(1.08);
 }
 
+/* "Build" top-nav link → prominent outlined accent pill, distinct from the
+ * filled app CTAs. Scoped to the top-nav <ul> (the one that holds the app
+ * mint/earn links) so the same /agents/overview link in the sidebar is left
+ * untouched. */
+nav ul:has(a[href*="/mint/"]) li:has(> a[href="/agents/overview"]) {
+  height: auto;
+  align-self: center;
+}
+nav ul:has(a[href*="/mint/"]) a[href="/agents/overview"] {
+  height: auto;
+  margin-inline: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--vocs-color-accent);
+  color: var(--vocs-color-accent) !important;
+  font-weight: 500;
+  transition: background 150ms ease, color 150ms ease;
+}
+nav ul:has(a[href*="/mint/"]) a[href="/agents/overview"]:hover {
+  background: var(--vocs-color-accent);
+  color: #fff !important;
+}
+
 /* Prev/Next pagination: the original docs render these as bordered boxes;
  * Vocs v2 shows plain links on desktop. Restore the box with a neutral border,
  * and use the brand accent on hover (var(--vocs-color-accent) adapts to each
