@@ -8,7 +8,7 @@ subtitle: >-
   how to use and make the most of it.
 ---
 
-import { LinkCard } from '@/components/LinkCard'
+import { GuideCardGrid } from '@/components/GuideCardGrid'
 
 # User Guides
 
@@ -18,12 +18,10 @@ Parallel is a protocol running on 16 blockchains. This means that you need a wal
 
 Everything you need to know to use the protocol can be found below.
 
-<LinkCard href="https://blog.parallel.best/how-to-mint-usdp" title="How to Mint USDp?" favicon="https://storage.googleapis.com/papyrus_images/aabc96b39790e7c9fc557a2f7186e999.jpg" hostname="blog.parallel.best" />
-
-<LinkCard href="https://blog.parallel.best/how-to-stake-usdp-into-susdp" title="How to Stake USDp into sUSDp?" favicon="https://storage.googleapis.com/papyrus_images/aabc96b39790e7c9fc557a2f7186e999.jpg" hostname="blog.parallel.best" />
-
-<LinkCard href="https://blog.parallel.best/how-to-bridge-parallel-tokens" title="How to Bridge Parallel Tokens?" favicon="https://storage.googleapis.com/papyrus_images/aabc96b39790e7c9fc557a2f7186e999.jpg" hostname="blog.parallel.best" />
-
-<LinkCard href="https://blog.parallel.best/how-to-stake-prl" title="How to Stake PRL?" favicon="https://storage.googleapis.com/papyrus_images/aabc96b39790e7c9fc557a2f7186e999.jpg" hostname="blog.parallel.best" />
-
-<LinkCard href="https://blog.parallel.best/how-to-migrate-to-prl" title="How to Migrate to PRL?" favicon="https://storage.googleapis.com/papyrus_images/aabc96b39790e7c9fc557a2f7186e999.jpg" hostname="blog.parallel.best" />
+<GuideCardGrid items={[
+  { title: "How to Mint USDp?", href: "https://blog.parallel.best/how-to-mint-usdp", image: "https://storage.googleapis.com/papyrus_images/f1779962a0d9f844a1cb8f2e891a8e69.jpg" },
+  { title: "How to Stake USDp into sUSDp?", href: "https://blog.parallel.best/how-to-stake-usdp-into-susdp", image: "https://storage.googleapis.com/papyrus_images/1eec2e3601252544b06a02659476ed80.jpg" },
+  { title: "How to Bridge Parallel Tokens?", href: "https://blog.parallel.best/how-to-bridge-parallel-tokens", image: "https://storage.googleapis.com/papyrus_images/edb6a66acfb4ce523ecb655e47e7fa58.jpg" },
+  { title: "How to Stake PRL?", href: "https://blog.parallel.best/how-to-stake-prl", image: "https://storage.googleapis.com/papyrus_images/66e7ff018f07907d0d3e9c515787ec0c.jpg" },
+  { title: "How to Migrate to PRL?", href: "https://blog.parallel.best/how-to-migrate-to-prl", image: "https://storage.googleapis.com/papyrus_images/d6ddeabf441e43b0b9675ba9da49b37d.jpg" },
+]} />
