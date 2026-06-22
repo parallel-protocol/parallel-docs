@@ -56,10 +56,15 @@ export default defineConfig({
     { text: "Get USDp", link: "https://app.parallel.best/mint/" },
     { text: "Stake USDp", link: "https://app.parallel.best/earn/" },
     { text: "Build", link: "/agents/overview" },
-    { text: "Landing Page", link: "https://parallel.best/", external: true },
-    { text: "App", link: "https://app.parallel.best/", external: true },
-    { text: "Brand Assets", link: "https://brand.parallel.best/", external: true },
-    { text: "Blog", link: "https://blog.parallel.best/", external: true },
+    {
+      text: "Resources",
+      items: [
+        { text: "Landing Page", link: "https://parallel.best/", external: true },
+        { text: "App", link: "https://app.parallel.best/", external: true },
+        { text: "Brand Assets", link: "https://brand.parallel.best/", external: true },
+        { text: "Blog", link: "https://blog.parallel.best/", external: true },
+      ],
+    },
   ],
   sidebar,
 });
