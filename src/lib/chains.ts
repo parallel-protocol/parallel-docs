@@ -57,9 +57,8 @@ export const EXPLORERS: Record<ChainSlug, (addr: string) => string> = {
   ethereum: (a) => `https://etherscan.io/address/${a}`,
   base: (a) => `https://basescan.org/address/${a}`,
   sonic: (a) => `https://sonicscan.org/address/${a}`,
-  // TODO: confirm hyperevm explorer with Cooper Labs (using HyperLiquid app explorer as best guess)
-  hyperevm: (a) => `https://app.hyperliquid.xyz/explorer/address/${a}`,
-  avalanche: (a) => `https://snowtrace.io/address/${a}`,
+  hyperevm: (a) => `https://hyperevmscan.io/address/${a}`,
+  avalanche: (a) => `https://snowscan.xyz/address/${a}`,
   polygon: (a) => `https://polygonscan.com/address/${a}`,
   arbitrum: (a) => `https://arbiscan.io/address/${a}`,
   optimism: (a) => `https://optimistic.etherscan.io/address/${a}`,
