@@ -670,11 +670,11 @@ export const sidebar: Sidebar = [
             "text": "Parallel V3",
             "items": [
               {
-                "text": "USDP Contract Addresses",
+                "text": "USDp",
                 "link": "/developers-hub/contract-addresses/parallel-v3/usdp"
               },
               {
-                "text": "PRL Contract Addresses",
+                "text": "PRL",
                 "link": "/developers-hub/contract-addresses/parallel-v3/prl"
               }
             ],
@@ -685,15 +685,15 @@ export const sidebar: Sidebar = [
             "text": "Parallel V2",
             "items": [
               {
-                "text": "PAR Contract Addresses",
+                "text": "PAR",
                 "link": "/developers-hub/contract-addresses/parallel-v2/par"
               },
               {
-                "text": "PAUSD-DEPRECATED Contract Addresses",
+                "text": "paUSD (deprecated)",
                 "link": "/developers-hub/contract-addresses/parallel-v2/pausd-deprecated"
               },
               {
-                "text": "MIMO-DEPRECATED Contract Addresses",
+                "text": "MIMO (deprecated)",
                 "link": "/developers-hub/contract-addresses/parallel-v2/mimo-deprecated"
               }
             ],
@@ -743,7 +743,30 @@ export const sidebar: Sidebar = [
     "items": [
       {
         "text": "User Guides",
-        "link": "/resources/user-guides"
+        "link": "/resources/user-guides",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "How to Mint USDp?",
+            "link": "https://blog.parallel.best/how-to-mint-usdp"
+          },
+          {
+            "text": "How to Stake USDp into sUSDp?",
+            "link": "https://blog.parallel.best/how-to-stake-usdp-into-susdp"
+          },
+          {
+            "text": "How to Bridge Parallel Tokens?",
+            "link": "https://blog.parallel.best/how-to-bridge-parallel-tokens"
+          },
+          {
+            "text": "How to Stake PRL?",
+            "link": "https://blog.parallel.best/how-to-stake-prl"
+          },
+          {
+            "text": "How to Migrate to PRL?",
+            "link": "https://blog.parallel.best/how-to-migrate-to-prl"
+          }
+        ]
       }
     ],
     "collapsed": false
