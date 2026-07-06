@@ -23,7 +23,7 @@ export type ChainSlug =
   | "fraxtal"
   | "world"
   | "hemi"
-  | "fantom"; // PRL only, not USDP
+  | "fantom"; // PRL only, not USDp
 
 export const CHAIN_LABELS: Record<ChainSlug, string> = {
   ethereum: "Ethereum",

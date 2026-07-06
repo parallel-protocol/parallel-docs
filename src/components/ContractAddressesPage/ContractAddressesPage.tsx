@@ -13,7 +13,7 @@ export type ContractEntry = {
 };
 
 export interface ContractAddressesPageProps {
-  /** Token name shown in the section aria-label (e.g. "USDP", "PRL"). */
+  /** Token name shown in the section aria-label (e.g. "USDp", "PRL"). */
   stablecoin: string;
   /** Map of chain slug → contracts deployed on that chain. */
   chains: Record<string, ContractEntry[]>;

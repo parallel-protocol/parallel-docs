@@ -1,6 +1,6 @@
 # Parallel Documentation
 
-Public documentation of the [Parallel](https://parallel.best) stablecoin protocol — USDP, sUSDP, PRL, multi-chain.
+Public documentation of the [Parallel](https://parallel.best) stablecoin protocol — USDp, sUSDp, PRL, multi-chain.
 
 Live site: **[docs.parallel.best](https://docs.parallel.best)**
 

@@ -19,7 +19,7 @@ const SITE_URL = (() => {
 export default defineConfig({
   title: "Parallel Documentation",
   description:
-    "Public documentation of the Parallel stablecoin protocol — USDP, sUSDP, PRL, multi-chain.",
+    "Public documentation of the Parallel stablecoin protocol — USDp, sUSDp, PRL, multi-chain.",
   // NOTE: `baseUrl` intentionally NOT set — see SITE_URL comment above
   // (it emits a `<base href>` that breaks relative assets on preview URLs).
   // `partial-static`: pages pre-rendered to static HTML + client hydration +
