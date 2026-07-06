@@ -1,0 +1,95 @@
+diff --git a/dist/internal/vite-plugins.js b/dist/internal/vite-plugins.js
+index c6be5cc8713bfa484271f927be03e6014042f207..007c8cb2593e5200647aa4f0583cef320c30d080 100644
+--- a/dist/internal/vite-plugins.js
++++ b/dist/internal/vite-plugins.js
+@@ -84,6 +84,7 @@ export function deps() {
+                 },
+                 resolve: {
+                     ...config?.resolve,
++                    tsconfigPaths: true,
+                     alias: [
+                         ...(Array.isArray(config?.resolve?.alias)
+                             ? config.resolve.alias
+diff --git a/dist/react/internal/Sidebar.js b/dist/react/internal/Sidebar.js
+index 5e77b02117f101591467c6dd8a4b8f8b58ae1767..e183470ec519a88c6ac1e3441f43abf6f7a72440 100644
+--- a/dist/react/internal/Sidebar.js
++++ b/dist/react/internal/Sidebar.js
+@@ -100,16 +100,16 @@ function Section(props) {
+     const [collapsed, setCollapsed] = React.useState(() => {
+         if (!items)
+             return false;
+-        if (hasActiveChildItem)
++        if (hasActiveChildItem || groupLinkIsActive)
+             return false;
+         if (props.disabled)
+             return false;
+         return Boolean(props.collapsed);
+     });
+     React.useEffect(() => {
+-        if (hasActiveChildItem)
++        if (hasActiveChildItem || groupLinkIsActive)
+             setCollapsed(false);
+-    }, [hasActiveChildItem]);
++    }, [hasActiveChildItem, groupLinkIsActive]);
+     const collapsable = typeof props.collapsed === 'boolean' && !props.disabled;
+     const onCollapseInteraction = React.useCallback((event) => {
+         if ('key' in event && event.key !== 'Enter')
+@@ -119,7 +119,7 @@ function Section(props) {
+     if (items)
+         return (_jsxs("section", { "data-collapsed": collapsed, "data-v-sidebar-section": true, children: [(() => {
+                     if (text && link)
+-                        return (_jsxs("div", { className: depth > 0 ? Section.childHeaderClassName : Section.rootHeaderClassName, "data-condensed": condensed && depth > 1, "data-collapsed": collapsed, "data-collapsable": collapsable, "data-v-sidebar-section-header": true, ...(groupLinkIsActive && { 'data-active': true }), children: [_jsx(Link, { className: Section.headerLinkClassName, onClick: onNavigate, to: link, children: _jsxs("span", { className: "vocs:inline-flex vocs:items-center vocs:gap-1", children: [text, groupLinkIsExternal && _jsx(LucideArrowUpRight, { className: "vocs:size-3" })] }) }), badge && _jsx(ItemBadge, { badge: badge }), collapsable && (_jsx("button", { "aria-expanded": !collapsed, "aria-label": `Toggle ${text} section`, className: "vocs:ml-2 vocs:-mr-1 vocs:shrink-0 vocs:rounded-md vocs:p-1 vocs:text-secondary/80 vocs:hover:text-heading", onClick: () => setCollapsed((x) => !x), type: "button", children: _jsx(LucideChevronRight, { className: "vocs:data-collapsed:rotate-90 vocs:transition-transform vocs:duration-200 vocs:ease-in-out", ...(!collapsed ? { 'data-collapsed': false } : {}) }) }))] }));
++                        return (_jsxs("div", { className: depth > 0 ? Section.childHeaderClassName : Section.rootHeaderClassName, "data-condensed": condensed && depth > 1, "data-collapsed": collapsed, "data-collapsable": collapsable, "data-v-sidebar-section-header": true, ...(groupLinkIsActive && { 'data-active': true }), children: [_jsx(Link, { className: Section.headerLinkClassName, onClick: (event) => { onNavigate?.(event); if (collapsable) setCollapsed((x) => !x); }, to: link, children: _jsxs("span", { className: "vocs:inline-flex vocs:items-center vocs:gap-1", children: [text, groupLinkIsExternal && _jsx(LucideArrowUpRight, { className: "vocs:size-3" })] }) }), badge && _jsx(ItemBadge, { badge: badge }), collapsable && (_jsx("button", { "aria-expanded": !collapsed, "aria-label": `Toggle ${text} section`, className: "vocs:ml-2 vocs:-mr-1 vocs:shrink-0 vocs:rounded-md vocs:p-1 vocs:text-secondary/80 vocs:hover:text-heading", onClick: () => setCollapsed((x) => !x), type: "button", children: _jsx(LucideChevronRight, { className: "vocs:data-collapsed:rotate-90 vocs:transition-transform vocs:duration-200 vocs:ease-in-out", ...(!collapsed ? { 'data-collapsed': false } : {}) }) }))] }));
+                     // Non-link item is a header.
+                     if (text)
+                         return (_jsxs("div", { className: depth > 0 ? Section.childHeaderClassName : Section.rootHeaderClassName, "data-condensed": condensed && depth > 1, "data-collapsed": collapsed, "data-collapsable": collapsable, "data-v-sidebar-section-header": true, ...(collapsable
+diff --git a/src/internal/vite-plugins.ts b/src/internal/vite-plugins.ts
+index 3668d87c44921b5dd5c151194fbf64514c4f9d83..d97dd60b470700b7e4de5051a43bdb76d2f567a0 100644
+--- a/src/internal/vite-plugins.ts
++++ b/src/internal/vite-plugins.ts
+@@ -86,6 +86,7 @@ export function deps(): PluginOption {
+         },
+         resolve: {
+           ...config?.resolve,
++          tsconfigPaths: true,
+           alias: [
+             ...(Array.isArray(config?.resolve?.alias)
+               ? config.resolve.alias
+diff --git a/src/react/internal/Sidebar.tsx b/src/react/internal/Sidebar.tsx
+index 6c14434b7bf7a0a398c96da8eb746e58a86568b2..248c124225dce20867cb77892ff97448232555bf 100644
+--- a/src/react/internal/Sidebar.tsx
++++ b/src/react/internal/Sidebar.tsx
+@@ -230,14 +230,14 @@ function Section(props: Section.Props) {
+ 
+   const [collapsed, setCollapsed] = React.useState(() => {
+     if (!items) return false
+-    if (hasActiveChildItem) return false
++    if (hasActiveChildItem || groupLinkIsActive) return false
+     if (props.disabled) return false
+     return Boolean(props.collapsed)
+   })
+ 
+   React.useEffect(() => {
+-    if (hasActiveChildItem) setCollapsed(false)
+-  }, [hasActiveChildItem])
++    if (hasActiveChildItem || groupLinkIsActive) setCollapsed(false)
++  }, [hasActiveChildItem, groupLinkIsActive])
+ 
+   const collapsable = typeof props.collapsed === 'boolean' && !props.disabled
+   const onCollapseInteraction = React.useCallback(
+@@ -262,7 +262,14 @@ function Section(props: Section.Props) {
+                 data-v-sidebar-section-header
+                 {...(groupLinkIsActive && { 'data-active': true })}
+               >
+-                <Link className={Section.headerLinkClassName} onClick={onNavigate} to={link}>
++                <Link
++                  className={Section.headerLinkClassName}
++                  onClick={(event) => {
++                    onNavigate?.(event as never)
++                    if (collapsable) setCollapsed((x) => !x)
++                  }}
++                  to={link}
++                >
+                   <span className="vocs:inline-flex vocs:items-center vocs:gap-1">
+                     {text}
+                     {groupLinkIsExternal && <LucideArrowUpRight className="vocs:size-3" />}
