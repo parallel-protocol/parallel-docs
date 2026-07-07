@@ -19,20 +19,37 @@
 
 .cooper-ct-table {
   width: 100%;
-  border-collapse: collapse;
+  /* `separate` (not `collapse`) so the header band can have rounded corners. */
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: auto;
 }
 
-.cooper-ct-thead {
-  border-bottom: 1px solid var(--vocs-border-color-primary);
-}
-
+/* Header band: muted surface + rounded corners, same look as native Vocs
+ * markdown tables (and the original GitBook tables). */
 .cooper-ct-th {
   text-align: left;
   padding: 0.625rem 1rem;
   font-weight: 600;
   font-size: 0.875rem;
   color: var(--vocs-text-color-primary);
+  background-color: var(--vocs-background-color-surfaceMuted);
+  /* Band outline: with `border-collapse: separate` the border must live on
+   * the cells (top/bottom everywhere, left/right on the corner cells). */
+  border-top: 1px solid var(--vocs-border-color-primary);
+  border-bottom: 1px solid var(--vocs-border-color-primary);
+}
+
+.cooper-ct-th:first-child {
+  border-left: 1px solid var(--vocs-border-color-primary);
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.cooper-ct-th:last-child {
+  border-right: 1px solid var(--vocs-border-color-primary);
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .cooper-ct-th-actions {
@@ -62,12 +79,7 @@
 }
 
 .cooper-ct-row {
-  border-bottom: 1px solid var(--vocs-border-color-primary);
   transition: background-color 120ms ease;
-}
-
-.cooper-ct-row:last-child {
-  border-bottom: 0;
 }
 
 .cooper-ct-row:hover {
@@ -77,6 +89,13 @@
 .cooper-ct-row td {
   padding: 0.75rem 1rem;
   vertical-align: middle;
+  /* Row separators live on the cells: `border-collapse: separate` (needed for
+   * the rounded header band) does not render borders set on `<tr>`. */
+  border-bottom: 1px solid var(--vocs-border-color-primary);
+}
+
+.cooper-ct-row:last-child td {
+  border-bottom: 0;
 }
 
 .cooper-ct-name {
@@ -196,6 +215,8 @@
   .cooper-ct-row td {
     display: block;
     padding: 0.125rem 0;
+    /* Cards carry their own border; drop the desktop row separators. */
+    border-bottom: 0;
   }
 
   .cooper-ct-card-name {

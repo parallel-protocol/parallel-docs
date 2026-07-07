@@ -30,6 +30,28 @@ function getInitialChain(chains: Record<string, ContractEntry[]>): string {
   return Object.keys(chains)[0] ?? "";
 }
 
+interface ModuleGroup {
+  module: string | null;
+  contracts: ContractEntry[];
+}
+
+/** Groups contracts by module (the `description` field), preserving first-appearance order. */
+function groupByModule(contracts: ContractEntry[]): ModuleGroup[] {
+  const groups: ModuleGroup[] = [];
+  const byModule = new Map<string | null, ModuleGroup>();
+  for (const contract of contracts) {
+    const module = contract.description ?? null;
+    let group = byModule.get(module);
+    if (!group) {
+      group = { module, contracts: [] };
+      byModule.set(module, group);
+      groups.push(group);
+    }
+    group.contracts.push(contract);
+  }
+  return groups;
+}
+
 export function ContractAddressesPage({ stablecoin, chains }: ContractAddressesPageProps) {
   const [selected, setSelected] = useState<string>(() => getInitialChain(chains));
 
@@ -68,7 +90,25 @@ export function ContractAddressesPage({ stablecoin, chains }: ContractAddressesP
           No contracts deployed yet on {getChainLabel(selected) || "this chain"}.
         </p>
       ) : (
-        <ContractTable chain={selected as ChainSlug} contracts={contracts as Contract[]} />
+        groupByModule(contracts).map((group) => (
+          <section
+            key={group.module ?? "ungrouped"}
+            className="cooper-contract-addresses-module"
+            aria-label={group.module ?? undefined}
+          >
+            {group.module ? (
+              <h2 className="cooper-contract-addresses-module-title">{group.module}</h2>
+            ) : null}
+            <ContractTable
+              chain={selected as ChainSlug}
+              contracts={
+                // The module name is now the section heading — drop it from
+                // the rows so it isn't repeated under every contract name.
+                group.contracts.map(({ name, address }) => ({ name, address })) as Contract[]
+              }
+            />
+          </section>
+        ))
       )}
     </div>
   );

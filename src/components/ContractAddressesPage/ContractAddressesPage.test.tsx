@@ -12,7 +12,17 @@ const MOCK_CHAINS = {
     {
       name: "Stabilizer",
       address: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      description: "Core Parallelizer module",
+      description: "Core Protocol",
+    },
+    {
+      name: "Swapper",
+      address: "0xcccccccccccccccccccccccccccccccccccccccc",
+      description: "Parallelizer Module",
+    },
+    {
+      name: "Redeemer",
+      address: "0xdddddddddddddddddddddddddddddddddddddddd",
+      description: "Parallelizer Module",
     },
     {
       name: "Treasury",
@@ -113,6 +123,33 @@ describe("ContractAddressesPage", () => {
     expect(
       screen.getByText(/No contracts deployed yet on Base/i),
     ).toBeInTheDocument();
+  });
+
+  it("groups contracts under one heading per module, in data order", () => {
+    render(<ContractAddressesPage stablecoin="USDP" chains={MOCK_CHAINS} />);
+
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "Core Protocol",
+      "Parallelizer Module",
+    ]);
+  });
+
+  it("renders contracts of the same module in a single table", () => {
+    render(<ContractAddressesPage stablecoin="USDP" chains={MOCK_CHAINS} />);
+
+    const tables = screen.getAllByRole("table");
+    // Core Protocol, Parallelizer Module, and ungrouped (Treasury)
+    expect(tables).toHaveLength(3);
+    expect(tables[1]).toHaveTextContent("Swapper");
+    expect(tables[1]).toHaveTextContent("Redeemer");
+  });
+
+  it("does not repeat the module name under each contract row", () => {
+    render(<ContractAddressesPage stablecoin="USDP" chains={MOCK_CHAINS} />);
+
+    // "Parallelizer Module" appears only as the section heading, not once per row.
+    expect(screen.getAllByText("Parallelizer Module")).toHaveLength(1);
   });
 
   it("has no detectable accessibility violations", async () => {

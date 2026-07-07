@@ -52,6 +52,17 @@
   border-color: var(--vocs-border-color-primary);
 }
 
+.cooper-contract-addresses-module + .cooper-contract-addresses-module {
+  margin-top: 2rem;
+}
+
+.cooper-contract-addresses-module-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--vocs-text-color-primary);
+}
+
 .cooper-contract-addresses-empty {
   margin: 0;
   padding: 1.5rem 1rem;
