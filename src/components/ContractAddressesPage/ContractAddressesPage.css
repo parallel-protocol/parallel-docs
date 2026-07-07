@@ -6,22 +6,17 @@
 }
 
 .cooper-contract-addresses-chain-picker {
+  /* Wrap instead of horizontal scroll: with 25+ chains, a scroll row with a
+   * hidden scrollbar gives no clue that more chains exist off-screen. */
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.25rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid var(--vocs-border-color-primary);
   margin-bottom: 1.5rem;
 }
 
-.cooper-contract-addresses-chain-picker::-webkit-scrollbar {
-  display: none;
-}
-
 .cooper-contract-addresses-chain-button {
-  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   padding: 0.375rem 0.875rem;
@@ -29,7 +24,7 @@
   font-weight: 500;
   color: var(--vocs-text-color-muted);
   background: transparent;
-  border: 1px solid transparent;
+  border: 1px solid var(--vocs-border-color-primary);
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
@@ -49,7 +44,7 @@
 .cooper-contract-addresses-chain-button[data-active="true"] {
   color: var(--vocs-color-accent);
   background-color: var(--vocs-background-color-surfaceMuted);
-  border-color: var(--vocs-border-color-primary);
+  border-color: var(--vocs-color-accent);
 }
 
 .cooper-contract-addresses-module + .cooper-contract-addresses-module {
