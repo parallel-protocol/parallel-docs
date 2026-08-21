@@ -29,7 +29,7 @@ interface PaymentRequired {
     amount: string;          // wei string (18 decimals for USDp)
     payTo: string;
     maxTimeoutSeconds: 300;
-    extra: Record<string, unknown>;
+    extra: { decimals: number };  // the payer must scale the amount with THESE decimals
   }>;
 }
 ```

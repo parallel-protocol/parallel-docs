@@ -1,6 +1,6 @@
 ---
 title: How the Parallel x402 facilitator works
-description: Routing, fees, gas sponsoring, and supported networks for the Parallel x402 facilitator. Accept USDp, USDC, and more with zero platform fees.
+description: Routing, fees, gas sponsoring, and supported networks for the Parallel x402 facilitator. Accept USDp, USDC, and sUSDp with zero platform fees.
 ---
 
 import { HelpFooter } from '@/components/HelpFooter'
@@ -22,16 +22,16 @@ If verification fails, your handler never runs. If your handler fails, settlemen
 
 ## Supported stablecoins
 
-By default the facilitator accepts **USDp** and **USDC**, plus other major stablecoins depending on the network. The agent pays in whatever supported stablecoin it holds; you receive the token you configured. You can narrow or widen the accepted set per route with the [`acceptedTokens`](/agents/x402/api-reference#routeconfig) option.
+By default a route accepts **USDp**, **USDC**, and **sUSDp**. The agent pays with whichever of these it holds; you receive the token you configured — including sUSDp, Parallel's yield-bearing savings token, so your revenue can start earning the moment it settles. You can narrow or widen the accepted set per route with the [`acceptedTokens`](/agents/x402/api-reference#routeconfig) option.
 
 ## Smart routing
 
-You set a price. The agent holds some stablecoin. The facilitator picks the cheapest settlement path between the two automatically — neither you nor the agent has to choose. If an agent pays in a different stablecoin than the one you want to receive, conversion is handled in the same settlement, at no extra platform fee.
+You set a price and the tokens you accept. The agent can choose which token to pay with — or let the SDK pick the route automatically. If the agent pays in a different token than the one you receive, the conversion happens inside the same settlement, at no extra platform fee.
 
 ## Fees and gas
 
 - **Zero platform fee.** Parallel does not take a cut of your revenue.
-- **Gas sponsored on L2.** Transactions on Base, Arbitrum, HyperEVM, and Avalanche are gas-sponsored. On Ethereum mainnet, standard gas applies.
+- **Gas sponsored.** Transactions on Base, HyperEVM, and Avalanche are gas-sponsored — 1,000 per agent per month. Gas is not sponsored on Ethereum mainnet.
 
 ## Supported networks
 

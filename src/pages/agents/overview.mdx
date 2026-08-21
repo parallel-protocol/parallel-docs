@@ -1,6 +1,6 @@
 ---
 title: Build with Parallel
-description: Accept stablecoin payments from AI agents in any API. Drop-in middleware for Express, Next.js, Fastify, and Hono. Free, open source, zero platform fees.
+description: Accept stablecoin payments from AI agents in any API. Drop-in middleware for Express, Next.js, Fastify, and Hono. Free, MIT-licensed, zero platform fees.
 ---
 
 import { PageCardGrid } from '@/components/PageCardGrid'
@@ -18,12 +18,12 @@ Tools for accepting stablecoin payments and building agents that pay autonomousl
 
 AI agents can't use credit cards. They can't fill out checkout forms. They need a protocol-level way to pay APIs autonomously — one request, one payment, no human in the loop.
 
-[x402](/agents/x402) is that protocol. An HTTP-native `402 Payment Required` flow: the API server requires payment, the agent signs a stablecoin transfer, the facilitator verifies and settles it, and the agent gets the response. Sub-second latency, sub-cent fees.
+[x402](/agents/x402) is that protocol. An HTTP-native `402 Payment Required` flow: the API server requires payment, the agent signs a stablecoin transfer, the facilitator verifies and settles it, and the agent gets the response. Settles on-chain in seconds, works at sub-cent prices.
 
 Parallel runs an [x402 facilitator](/agents/x402/concepts) that:
 
-- Accepts USDp, USDC, and other major stablecoins
-- Sponsors the gas on Base, Arbitrum, HyperEVM, and Avalanche
+- Accepts USDp, USDC, and sUSDp
+- Sponsors the gas on Base, HyperEVM, and Avalanche
 - Charges no platform fee
 - Settles directly to the merchant's wallet — no Parallel account required
 
@@ -34,7 +34,7 @@ Parallel runs an [x402 facilitator](/agents/x402/concepts) that:
 | You want to... | Use |
 |---|---|
 | Accept stablecoin payments in your API | [x402](/agents/x402) |
-| Build an AI agent that pays APIs autonomously | [x402 SDK](/agents/x402/quickstart) |
+| Build an AI agent that pays APIs autonomously | [Agent quickstart](/agents/x402/agent-quickstart) |
 | Migrate from another x402 facilitator | [Migration guide](/agents/recipes/migrate-from-coinbase-x402) |
 
 <HelpFooter />

@@ -1,40 +1,57 @@
 ---
 title: Migrate from Coinbase x402 to Parallel
-description: Switch your facilitator URL and start accepting USDp, USDC, and other major stablecoins. One line of code, no breaking changes.
+description: Point your middleware at the Parallel facilitator and start accepting USDp, USDC, and sUSDp. A few lines of code, no agent-side changes.
 ---
 
 import { HelpFooter } from '@/components/HelpFooter'
 
 # Migrate from Coinbase x402 to Parallel
 
-If you already use the Coinbase x402 facilitator, switching to Parallel is a one-line change. x402 is a standard — your routes, your pricing, and your existing agent clients keep working.
+If you already use the Coinbase x402 facilitator, switching to Parallel takes a few minutes. x402 is a standard — your routes, your pricing, and your existing agent clients keep working.
 
 ## The change
 
-```diff
-- import { paymentMiddleware } from 'x402-express';
-+ import { paymentMiddleware } from '@parallel-protocol/x402/express';
+**Before (Coinbase x402):**
 
-  app.use(paymentMiddleware({
--   facilitator: { url: 'https://x402.org/facilitator' },
-+   facilitator: { url: 'https://facilitator.parallel.best' },
-    routes: { /* ... */ },
-  }));
+```ts
+import { paymentMiddleware } from "x402-express";
+
+app.use(paymentMiddleware(
+  "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+  { "/api/search": { price: "$0.01", network: "base" } },
+  { url: "https://x402.org/facilitator" }
+));
 ```
 
-That's it. Agents paying in USDC keep paying in USDC. Agents holding USDp can now pay you natively, with the facilitator handling conversion at no extra fee.
+**After (Parallel x402):**
+
+```ts
+import { paymentMiddleware } from "@parallel-protocol/x402/express";
+
+app.use(paymentMiddleware({
+  facilitator: { url: "https://agents.parallel.best" },
+  routes: {
+    "/api/search": {
+      price: "0.01",
+      network: "base",
+      payTo: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+    }
+  }
+}));
+```
+
+The shape changes — `payTo` moves into the route, and prices drop the `$` prefix — but every concept maps one-to-one. Agents paying in USDC keep paying in USDC. Agents holding USDp can now pay you natively, with the facilitator handling conversion at no extra fee.
 
 ## What you gain
 
-- **Zero conversion fees** when the agent holds one stablecoin and you accept another.
-- **Gas sponsored on L2** — Base, Arbitrum, HyperEVM, and Avalanche.
-- **More stablecoins accepted** — USDp, USDC, and other major stables.
+- **Automatic conversion** when the agent holds one token and you accept another — no extra platform fee.
+- **Gas sponsored** on Base, HyperEVM, and Avalanche.
+- **More tokens accepted** — USDp, USDC, and sUSDp (yield-bearing: your revenue earns from the moment it settles).
 - **Same x402 standard** — no API change, no breaking change, no agent migration required.
 
 ## What stays the same
 
 - Your handler signatures.
-- Your pricing configuration.
 - Your existing agent clients.
 - Your wallet address — funds still settle directly to it.
 
@@ -42,9 +59,9 @@ That's it. Agents paying in USDC keep paying in USDC. Agents holding USDp can no
 
 |  | Coinbase x402 | **Parallel x402** |
 |---|---|---|
-| Stablecoins accepted | USDC only | **USDC, USDp, and other major stables** |
-| Conversion fee | — | **0%** |
-| Gas on L2 | Standard | **Sponsored** |
+| Tokens accepted | USDC only | **USDC, USDp, and sUSDp** |
+| Conversion | — | **Automatic, no extra platform fee** |
+| Gas | Standard | **Sponsored on Base, HyperEVM, and Avalanche** |
 | Settles to | Your wallet | **Your wallet** |
 | Standard | x402 | **x402 (compatible)** |
 
@@ -52,8 +69,8 @@ That's it. Agents paying in USDC keep paying in USDC. Agents holding USDp can no
 
 **Do I lose access to USDC payments?** No. USDC is fully supported.
 
-**Do I need to update my agent clients?** No. x402 is a standard — agents using the Coinbase facilitator on the other side keep working transparently.
+**Do I need to update my agent clients?** No. x402 is a standard — agents sending standard USDC payment payloads keep working.
 
-**Can I run both facilitators in parallel?** Yes. Some merchants A/B test by routing a percentage of traffic to each.
+**Can I run both facilitators in parallel?** Yes — point different routes (or different deployments) at different facilitators.
 
 <HelpFooter />
