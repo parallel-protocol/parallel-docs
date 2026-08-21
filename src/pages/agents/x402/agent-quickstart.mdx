@@ -1,0 +1,88 @@
+---
+title: Build an agent that pays in 5 minutes
+description: Make your AI agent pay x402 APIs autonomously with @parallel-protocol/x402-fetch — a drop-in fetch replacement. Gasless, with a hard spend cap.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Build an agent that pays
+
+This guide makes an agent pay x402 APIs autonomously. The whole integration is one function: `wrapFetchWithPayment` turns any `fetch` into a payment-aware fetch. When an API answers `402` with an invoice, the agent picks a token it holds, signs a gasless payment authorization, and retries the call with the payment attached — you just use it like `fetch`.
+
+## 1. Install
+
+```bash
+npm install @parallel-protocol/x402-fetch
+```
+
+## 2. Fund a wallet
+
+The agent needs a wallet holding a small amount of **USDp, USDC, or sUSDp** on the target chain. **No ETH required** — settlement is relayed and gas is sponsored. Use a dedicated wallet holding only what you intend to spend.
+
+## 3. Wrap fetch
+
+```ts
+import {
+  wrapFetchWithPayment,
+  decodePaymentResponse,
+  X402FetchError,
+} from "@parallel-protocol/x402-fetch";
+
+const payFetch = wrapFetchWithPayment(fetch, {
+  privateKey: process.env.AGENT_PRIVATE_KEY as `0x${string}`,
+  chain: "base",
+  maxAmount: "1", // hard spend cap per request
+});
+
+try {
+  const res = await payFetch("https://api.example.com/paid/data");
+  const data = await res.json();
+
+  const receipt = decodePaymentResponse(res);
+  console.log("paid:", receipt?.txHash, "gas sponsored:", receipt?.gasSponsored);
+} catch (err) {
+  if (err instanceof X402FetchError) {
+    // A guard refused the invoice BEFORE signing — nothing was spent.
+    console.error(`refused [${err.code}]: ${err.message}`);
+  }
+}
+```
+
+That's the entire agent. The first request costs nothing (it just reads the `402` invoice); the paid retry carries the signed authorization.
+
+## Options
+
+| Option | Default | Purpose |
+|---|---|---|
+| `privateKey` | — | The agent's signing key. Pass it explicitly (recommended, any env var name you like) — or omit it and the package falls back to the `PARALLEL_PRIVATE_KEY` environment variable. It never leaves the machine; only signatures go over the network. |
+| `chain` | — | Chain to pay on: `"base"`, `"avalanche"`, `"hyperevm"`, or `"ethereum"`. Invoices for any other chain are refused. |
+| `payWith` | *(auto)* | Force a payment token (`"usdp"`, `"usdc"`, `"susdp"`). Omitted, the agent picks from its balances. |
+| `maxAmount` | `"1"` | Hard spend cap per request, in token units. Invoices above it are refused before signing. |
+
+## Refusals cost nothing
+
+Every guard fires **before** the agent signs — a refused invoice never spends anything. Refusals throw an `X402FetchError` with a `code`:
+
+| Code | Cause |
+|---|---|
+| `NO_SIGNING_KEY` | No private key provided (option or env). |
+| `AMOUNT_EXCEEDS_MAX` | The invoice asks more than `maxAmount`. |
+| `CHAIN_MISMATCH` | The invoice targets a different chain than configured. |
+| `INVALID_INVOICE` | The `402` response is malformed. |
+| `INSECURE_URL` | The merchant URL is plain `http://` (localhost excepted). |
+| `ENGINE_FAILED` | Payment preparation failed — the message carries the cause (usually balance, or a transient RPC error). |
+| `ENGINE_TIMEOUT` | Payment preparation exceeded its time budget. |
+
+## The safety model
+
+- **Nothing moves without a signature**, and the signature authorizes exactly one transfer, to one recipient, within a time window.
+- **`maxAmount` is enforced client-side** against a verified token catalog — a merchant cannot re-scale amounts or trick the agent into overpaying.
+- **You only pay for success.** The merchant settles the payment only when it serves a successful response; an API error means nothing is charged, and unsettled authorizations simply expire.
+
+## Next steps
+
+- [How the facilitator works](/agents/x402/concepts)
+- [The verify / settle flow](/agents/x402/verify-vs-settle)
+- [Accept payments in your own API](/agents/x402/quickstart)
+
+<HelpFooter />
