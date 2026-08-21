@@ -715,13 +715,13 @@ export const sidebar: Sidebar = [
             "text": "x402",
             "link": "/agents/x402",
             "items": [
-              { "text": "Quickstart", "link": "/agents/x402/quickstart" },
+              { "text": "Merchant quickstart", "link": "/agents/x402/quickstart" },
+              { "text": "Agent quickstart", "link": "/agents/x402/agent-quickstart" },
               { "text": "How the facilitator works", "link": "/agents/x402/concepts" },
               { "text": "Verify / settle flow", "link": "/agents/x402/verify-vs-settle" },
               { "text": "API reference", "link": "/agents/x402/api-reference" },
               { "text": "Schemas", "link": "/agents/x402/schemas" },
               { "text": "Error codes", "link": "/agents/x402/error-codes" },
-              { "text": "Self-hosting", "link": "/agents/x402/self-hosting" },
               { "text": "Webhooks", "link": "/agents/x402/webhooks" }
             ]
           },
