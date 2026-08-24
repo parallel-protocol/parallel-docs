@@ -35,7 +35,7 @@ const payFetch = wrapFetchWithPayment(fetch, {
 });
 
 try {
-  const res = await payFetch("https://api.example.com/paid/data");
+  const res = await payFetch("https://api.parallel.best/public/x402/base/snapshot");
   const data = await res.json();
 
   const receipt = decodePaymentResponse(res);
@@ -49,6 +49,8 @@ try {
 ```
 
 That's the entire agent. The first request costs nothing (it just reads the `402` invoice); the paid retry carries the signed authorization.
+
+The URL in the example is real: it is Parallel's **live demo API**, where every route charges 0.0001 of whichever token you pay with — try it as-is. For a complete runnable agent that also decodes the invoice and the on-chain settlement, clone the [agent starter](https://github.com/parallel-protocol/parallel-x402-agent-starter).
 
 ## Options
 
@@ -81,6 +83,7 @@ Every guard fires **before** the agent signs — a refused invoice never spends 
 
 ## Next steps
 
+- [The agent starter on GitHub](https://github.com/parallel-protocol/parallel-x402-agent-starter) — clone, fund, `bun start`
 - [How the facilitator works](/agents/x402/concepts)
 - [The verify / settle flow](/agents/x402/verify-vs-settle)
 - [Accept payments in your own API](/agents/x402/quickstart)
