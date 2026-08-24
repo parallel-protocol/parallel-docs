@@ -32,10 +32,10 @@ interface PaymentMiddlewareConfig {
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `price` | `string \| bigint` | Yes | Amount required. A string like `"0.01"` is parsed at `decimals` precision. Pass a `bigint` to skip parsing. |
-| `decimals` | `number` | No | Token decimals for string-price parsing. Default `18` (USDp). Use `6` for USDC-denominated prices. |
+| `decimals` | `number` | No | Override for custom tokens only. Each accepted token's decimals are resolved automatically from Parallel's on-chain token catalog; an unknown token without `decimals` throws `X402ConfigError` at startup. |
 | `network` | `string` | Yes | Chain slug: `"ethereum"`, `"base"`, `"avalanche"`, or `"hyperevm"`. |
 | `payTo` | `Address` | Yes | The merchant's receiving address. |
-| `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to the supported stablecoins for the network. |
+| `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to USDp, USDC, and sUSDp for the network; required on networks without defaults. |
 | `description` | `string` | No | Human-readable description of the resource, included in the `402` body. |
 
 Route matching is **longest-prefix-wins**: `/api/v1/users` matches a `/api/v1` config before a `/api` one.
@@ -58,7 +58,7 @@ Low-level client for the facilitator's x402 endpoints. Use it directly if you ar
 ```ts
 import { FacilitatorClient } from "@parallel-protocol/x402";
 
-const client = new FacilitatorClient({ url: "https://facilitator.parallel.best" });
+const client = new FacilitatorClient({ url: "https://agents.parallel.best" });
 
 // Phase 1: verify signature + reserve nonce (no on-chain tx)
 await client.verify(paymentHeader, paymentRequirements);
@@ -72,7 +72,7 @@ if (result.success) {
 }
 ```
 
-Both methods use a 10-second timeout. `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure; `settle` returns a result union on facilitator errors and throws only on connectivity issues.
+`verify` uses a 10-second timeout; `settle` uses a 60-second timeout (it waits for on-chain inclusion). `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure; `settle` returns a result union on facilitator errors and throws only on connectivity issues.
 
 ## `createPaymentGate`
 

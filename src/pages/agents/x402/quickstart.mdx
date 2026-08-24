@@ -1,6 +1,6 @@
 ---
 title: Accept stablecoins in Express in 5 minutes
-description: Add stablecoin payment support to any Express, Next.js, Fastify, or Hono API with one middleware. Free, gasless on L2, no signup.
+description: Add stablecoin payment support to any Express, Next.js, Fastify, or Hono API with one middleware. Free, sponsored gas, no signup.
 ---
 
 import { Tabs, Tab } from '@/components/Tabs'
@@ -37,7 +37,7 @@ const app = express();
 
 app.use(
   paymentMiddleware({
-    facilitator: { url: "https://facilitator.parallel.best" },
+    facilitator: { url: "https://agents.parallel.best" },
     routes: {
       "/api/data": { price: "0.01", network: "base", payTo: "0xYourAddress" },
     },
@@ -59,7 +59,7 @@ app.listen(3000);
 import { withPayment } from "@parallel-protocol/x402/next";
 
 const config = {
-  facilitator: { url: "https://facilitator.parallel.best" },
+  facilitator: { url: "https://agents.parallel.best" },
   routes: {
     "/api/data": { price: "0.10", network: "ethereum", payTo: "0xYourAddress" },
   },
@@ -81,7 +81,7 @@ const app = Fastify();
 
 await app.register(
   paymentMiddleware({
-    facilitator: { url: "https://facilitator.parallel.best" },
+    facilitator: { url: "https://agents.parallel.best" },
     routes: {
       "/api/data": { price: "0.05", network: "avalanche", payTo: "0xYourAddress" },
     },
@@ -102,7 +102,7 @@ const app = new Hono();
 
 app.use(
   paymentMiddleware({
-    facilitator: { url: "https://facilitator.parallel.best" },
+    facilitator: { url: "https://agents.parallel.best" },
     routes: {
       "/api/data": { price: "0.01", network: "base", payTo: "0xYourAddress" },
     },
@@ -120,7 +120,7 @@ That's it. Your API now charges $0.01 per request to `/api/data`. Agents pay in 
 **No signup. No platform fee. Funds settle straight to your wallet.**
 
 :::tip
-`price` is a string parsed at the token's decimals (18 for USDp by default). For a USDC-denominated price, set `decimals: 6` on the route. See the [route configuration](/agents/x402/api-reference#routeconfig).
+`price` is a human amount (`"0.01"`). Each accepted token is priced with its own decimals automatically, from Parallel's on-chain token catalog — `"0.01"` invoices 0.01 USDp and 0.01 USDC on the same 402. Set `decimals` on a route only for a custom token the catalog doesn't know; an unknown token without it fails fast at startup. See the [route configuration](/agents/x402/api-reference#routeconfig).
 :::
 
 ## 3. What happens behind the scenes

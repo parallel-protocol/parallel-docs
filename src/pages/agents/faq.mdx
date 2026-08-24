@@ -1,6 +1,6 @@
 ---
 title: Frequently asked questions
-description: Common questions about the Parallel x402 facilitator and SDK — fees, supported stablecoins, accounts, self-hosting, and how it compares to Stripe and Coinbase x402.
+description: Common questions about the Parallel x402 facilitator and SDK — fees, supported stablecoins, accounts, and how it compares to Stripe and Coinbase x402.
 ---
 
 import { FAQ } from '@/components/FAQ'
@@ -11,7 +11,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 <FAQ items={[
   {
     question: "Is the facilitator free?",
-    answer: "Yes. The hosted facilitator is free to use — Parallel takes no cut of your revenue. You pay only your own gas, and that's sponsored on L2 (Base, Arbitrum, HyperEVM, Avalanche)."
+    answer: "Yes. The hosted facilitator is free to use — Parallel takes no cut of your revenue. Gas is sponsored on Base, HyperEVM, and Avalanche (1,000 transactions per agent per month)."
   },
   {
     question: "Do I need to create an account?",
@@ -19,7 +19,7 @@ import { HelpFooter } from '@/components/HelpFooter'
   },
   {
     question: "What stablecoins are supported?",
-    answer: "USDp and USDC by default, plus other major stablecoins depending on the network. The SDK selects the cheapest settlement route automatically — you don't choose, and the agent doesn't choose."
+    answer: "USDp, USDC, and sUSDp. The merchant picks which tokens to accept; the agent can choose which token to pay with — or let the SDK select the route automatically."
   },
   {
     question: "How is this different from Stripe?",
@@ -27,23 +27,19 @@ import { HelpFooter } from '@/components/HelpFooter'
   },
   {
     question: "How is this different from Coinbase x402?",
-    answer: "Coinbase x402 handles USDC only. Parallel x402 accepts USDp, USDC, and other major stablecoins, with zero conversion fees and gas sponsored on L2. It's the same x402 standard, so you can migrate in one line."
+    answer: "Coinbase x402 handles USDC only. Parallel x402 accepts USDp, USDC, and sUSDp, converts automatically when the agent pays in a different token than you receive, and sponsors gas on Base, HyperEVM, and Avalanche. It's the same x402 standard, so you can migrate in minutes."
   },
   {
     question: "Is the facilitator audited?",
-    answer: "Audit status is published on the security page. The hosted facilitator is in beta; the code is open source and MIT licensed so you can review and self-host it."
+    answer: "The smart contracts that settle every payment are audited by Bailsec, Cyfrin, and Certora. The facilitator itself is a hosted service operated by Parallel."
   },
   {
     question: "What happens if the facilitator goes down?",
-    answer: "The facilitator is open source, so you can self-host it and your traffic is never gated by Cooper Labs. A public status page for the hosted instance is being set up."
+    answer: "Payments fail safe: if the facilitator is unreachable, nothing settles — signed authorizations simply expire and no funds move. A public status page for the hosted instance is being set up."
   },
   {
     question: "How do I get notified when an agent pays?",
-    answer: "In V1, read the payment-response header on the successful response (it contains the on-chain transaction hash) or watch your wallet on-chain. Webhook delivery is planned for V1.1 (Q3 2026)."
-  },
-  {
-    question: "Can I self-host the facilitator?",
-    answer: "Yes. The facilitator is open source and MIT licensed. Point your middleware's facilitator URL at your own instance."
+    answer: "Read the payment-response header on the successful response (it contains the on-chain transaction hash) or watch your wallet on-chain. Webhook delivery is on the roadmap."
   },
   {
     question: "What about KYC / AML?",

@@ -34,6 +34,10 @@ When the facilitator rejects a payment, its error code is forwarded as the `erro
 | `INSUFFICIENT_AMOUNT` | The signed amount is less than the required amount. |
 | `NETWORK_MISMATCH` | The payload's chain does not match the route's configured chain. |
 | `RATE_LIMIT_EXCEEDED` | The signer has exceeded the hourly transaction limit. |
+| `PAYMENT_NOT_VERIFIED` | `/settle` was called without a prior `/verify` (or the verify context expired — 120 s). |
+| `PARALLELIZER_PAUSED` | The swap is paused on-chain — nothing moved, the authorization simply expires. |
+| `PAYMENT_METHOD_NOT_SUPPORTED` | The payment method does not match any settlement route. |
+| `COLLATERAL_NOT_SUPPORTED` | The requested output token is not an accepted collateral on this chain. |
 
 ## Handling errors
 
