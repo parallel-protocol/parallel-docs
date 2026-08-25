@@ -16,6 +16,15 @@
  *    head/slots hook reaches `<head>`), so build-time injection is the only
  *    non-patch way to add the script tag.
  *
+ * 3. Injects `<link rel="canonical">` and `<meta property="og:url">` into every
+ *    page, for the same reason — Vocs emits neither, and `baseUrl` (which would
+ *    give it an origin to build them from) has to stay unset. The URL comes from
+ *    the page's own output path, so it always matches where the page is served,
+ *    and the same route mapping feeds the sitemap, so the two cannot drift.
+ *
+ * Steps 2 and 3 strip what a previous run added before re-adding it, so running
+ * this over an already-processed build is a byte-for-byte no-op.
+ *
  * Output dirs handled: `dist/public` (local `vocs build`) and
  * `.vercel/output/static` (Vocs Vercel adapter / Build Output API).
  */
@@ -51,24 +60,41 @@ function walk(
   return files;
 }
 
-/** Mirrors the route mapping of vocs' built-in `vocs:sitemap` plugin. */
-function routeFor(pageFile: string): string {
-  const rel = `/${relative(PAGES_DIR, pageFile)}`;
+/**
+ * Maps a path relative to a page root — `src/pages` for sources, the build
+ * output dir for prerendered HTML — to the route it is served at. Mirrors the
+ * route mapping of vocs' built-in `vocs:sitemap` plugin. Single source of truth:
+ * the sitemap and the canonical/og:url injection must never disagree.
+ */
+function routeFromRelative(relPath: string): string {
   return (
-    rel
-      .replace(/\.(mdx?|tsx?)$/, "")
+    `/${relPath}`
+      .replace(/\.(mdx?|tsx?|html)$/, "")
       .replace(/\/index$/, "/")
       .replace(/\/$/, "") || "/"
   );
 }
 
-function buildSitemap(): string {
+/** Route for a source page under `src/pages`. */
+function routeFor(pageFile: string): string {
+  return routeFromRelative(relative(PAGES_DIR, pageFile));
+}
+
+/** Absolute canonical URL for a route. The home page carries no trailing slash. */
+function urlForRoute(route: string): string {
+  return route === "/" ? SITE_URL : `${SITE_URL}${route}`;
+}
+
+/** Every route that is a real page, i.e. exactly what the sitemap lists. */
+function pageRoutes(): Set<string> {
   // `_`-prefixed files/dirs are layout internals (`_slots.tsx`, `_root.css`), not pages.
   const pages = walk(PAGES_DIR, (name) => /\.(mdx?|tsx?)$/.test(name), { skipUnderscore: true });
+  return new Set(pages.map(routeFor));
+}
+
+function buildSitemap(routes: Set<string>): string {
   const lastmod = new Date().toISOString().split("T")[0];
-  const locs = pages
-    .map((page) => `${SITE_URL}${routeFor(page)}`)
-    .sort((a, b) => a.localeCompare(b));
+  const locs = [...routes].map(urlForRoute).sort((a, b) => a.localeCompare(b));
 
   const entries = locs
     .map((loc) =>
@@ -87,19 +113,66 @@ function buildSitemap(): string {
   ].join("\n");
 }
 
-function injectPosthog(outDir: string): number {
+// Existing canonical/og:url tags are stripped before ours are written, so a
+// re-run replaces rather than duplicates. Attribute order varies between
+// emitters, hence matching on the identifying attribute rather than a fixed shape.
+const CANONICAL_TAG = /[ \t]*<link\b[^>]*\brel=["']?canonical["']?[^>]*>[ \t]*\n?/gi;
+const OG_URL_TAG = /[ \t]*<meta\b[^>]*\bproperty=["']?og:url["']?[^>]*>[ \t]*\n?/gi;
+// Any previously injected PostHog script, identified by the project key rather
+// than by an exact snippet match so an older snippet is still replaced.
+const POSTHOG_TAG = new RegExp(
+  `[ \\t]*<script\\b[^>]*>(?:(?!<\\/script>)[\\s\\S])*?${POSTHOG_KEY}(?:(?!<\\/script>)[\\s\\S])*?<\\/script>[ \\t]*\\n?`,
+  "gi",
+);
+
+type HeadStats = { posthog: number; canonical: number; skipped: string[] };
+
+/**
+ * Injects the PostHog snippet into every prerendered page, plus a canonical
+ * link and `og:url` into the ones that are real routes.
+ *
+ * The canonical is derived from each file's own output path, so it always
+ * matches the URL the page is actually served at; `routes` (the sitemap's route
+ * set) then decides which files are pages at all. That keeps the canonical count
+ * equal to the sitemap URL count by construction and leaves waku's `404.html`
+ * and `_root.d/index.html` shells without a canonical, which is what we want —
+ * they are not addressable content.
+ */
+function injectHeadTags(outDir: string, routes: Set<string>): HeadStats {
   // Keep `_`-prefixed dirs here: `_root.d/index.html` is waku's fallback HTML
   // shell served for routes that are not statically generated.
   const htmlFiles = walk(outDir, (name) => name.endsWith(".html"), { skipUnderscore: false });
-  let injected = 0;
+  const stats: HeadStats = { posthog: 0, canonical: 0, skipped: [] };
+
   for (const file of htmlFiles) {
     const html = readFileSync(file, "utf-8");
-    if (html.includes(POSTHOG_KEY)) continue; // idempotent
-    if (!html.includes("</head>")) continue;
-    writeFileSync(file, html.replace("</head>", `${POSTHOG_SNIPPET}</head>`), "utf-8");
-    injected++;
+    const headEnd = html.indexOf("</head>");
+    if (headEnd === -1) continue;
+
+    const before = html.slice(0, headEnd);
+    const rest = html.slice(headEnd);
+
+    // Strip anything this script previously added, then re-append in a fixed
+    // order, so a re-run over an already-processed build is a byte-for-byte no-op.
+    const hadPosthog = POSTHOG_TAG.test(before);
+    POSTHOG_TAG.lastIndex = 0;
+    let head = before.replace(CANONICAL_TAG, "").replace(OG_URL_TAG, "").replace(POSTHOG_TAG, "");
+
+    const route = routeFromRelative(relative(outDir, file));
+    if (routes.has(route)) {
+      const url = urlForRoute(route);
+      head += `<link rel="canonical" href="${url}"/><meta property="og:url" content="${url}"/>`;
+      stats.canonical++;
+    } else {
+      stats.skipped.push(relative(outDir, file));
+    }
+
+    head += POSTHOG_SNIPPET;
+    if (!hadPosthog) stats.posthog++;
+
+    if (head !== before) writeFileSync(file, head + rest, "utf-8");
   }
-  return injected;
+  return stats;
 }
 
 function main(): void {
@@ -111,14 +184,25 @@ function main(): void {
     process.exit(1);
   }
 
-  const sitemap = buildSitemap();
+  const routes = pageRoutes();
+  const sitemap = buildSitemap(routes);
   const urlCount = (sitemap.match(/<loc>/g) ?? []).length;
   for (const dir of outDirs) {
     writeFileSync(join(dir, "sitemap.xml"), sitemap, "utf-8");
-    const injected = injectPosthog(dir);
+    const { posthog, canonical, skipped } = injectHeadTags(dir, routes);
     console.log(
-      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs), PostHog injected into ${injected} HTML file(s)`,
+      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs), canonical + og:url on ${canonical} page(s), PostHog injected into ${posthog} HTML file(s)`,
     );
+    if (canonical !== urlCount) {
+      console.error(
+        `[postbuild-seo] canonical count (${canonical}) does not match sitemap URL count (${urlCount}) in ${relative(ROOT, dir)}`,
+      );
+      process.exit(1);
+    }
+    // Never let a page lose its canonical silently.
+    if (skipped.length > 0) {
+      console.log(`[postbuild-seo]   no canonical (not a page route): ${skipped.join(", ")}`);
+    }
   }
 }
 
