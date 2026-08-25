@@ -32,9 +32,11 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { PRODUCTION_ORIGIN } from "../site.config";
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PAGES_DIR = join(ROOT, "src/pages");
-const SITE_URL = "https://docs.parallel.best";
+const SITE_URL = PRODUCTION_ORIGIN;
 const OUTPUT_DIRS = [join(ROOT, "dist/public"), join(ROOT, ".vercel/output/static")];
 
 const POSTHOG_KEY = "phc_pSCW7Si5pRWrp7Fdt4A8u37jrCWnPt9nN3qYAX6FHtW3";
