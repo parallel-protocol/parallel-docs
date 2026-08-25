@@ -45,21 +45,18 @@ interface SitemapEntry {
  * Map: route Vocs (ex. `/products/parallel-v3/how-it-works/parallelizer-module`)
  * → position dans le sitemap (entier, plus petit = plus haut).
  *
- * Si le sitemap n'existe pas, on ABORTE au lieu de retomber sur l'ordre
- * alphabétique. Le fallback silencieux réordonnait toute la navigation — il
- * remontait notamment Parallel V2 (legacy) au-dessus de Parallel V3 — et
- * réécrivait ~800 lignes de `sidebar.generated.ts` sans que ça se voie.
- * Mieux vaut refuser de générer que produire une nav plausible mais fausse.
+ * Si le sitemap n'existe pas, renvoie une map vide et prévient. `main()` refuse
+ * alors d'écrire : sans cet ordre, `sortChildren` retombe sur l'alphabétique, ce
+ * qui réordonne toute la navigation (Parallel V2 legacy passe au-dessus de V3)
+ * en réécrivant ~800 lignes sans que ça se voie.
  */
 export function loadSitemapOrder(sitemapPath: string = SITEMAP_CACHE): Map<string, number> {
   const order = new Map<string, number>();
   if (!existsSync(sitemapPath)) {
-    throw new Error(
-      `[generate-sidebar] route order cache not found at ${sitemapPath}.
-Without it every child would be re-sorted alphabetically, which reorders the whole
-sidebar (legacy v2 ends up above v3). Run \`pnpm crawl <sitemap-url>\` to rebuild the
-cache before regenerating, or edit CHILDREN_ORDER in this script for a manual order.`,
+    console.warn(
+      `[generate-sidebar] route order cache not found at ${sitemapPath} — order would fall back to alphabetical.`,
     );
+    return order;
   }
   try {
     const raw = readFileSync(sitemapPath, "utf-8");
@@ -162,7 +159,11 @@ function buildItem(absPath: string, depth: number): SidebarItem | null {
   if (stats.isFile()) {
     if (!absPath.endsWith(".mdx")) return null;
     const route = pathToRoute(absPath);
-    const slug = absPath.replace(/\.mdx$/, "").split("/").pop() || "";
+    const slug =
+      absPath
+        .replace(/\.mdx$/, "")
+        .split("/")
+        .pop() || "";
     if (slug === "index") return null; // handled at parent level
     return {
       text: readTitle(absPath) || slugToText(slug),
@@ -296,6 +297,19 @@ function orderTopLevel(items: SidebarItem[]): SidebarItem[] {
 }
 
 function main(): void {
+  // Refuse to emit a sidebar we know is mis-ordered. Without the route-order
+  // cache every child sorts alphabetically, which silently rewrites the whole
+  // navigation — legacy Parallel V2 lands above V3. Better to fail than to
+  // produce a plausible but wrong nav.
+  if (SITEMAP_ORDER.size === 0) {
+    console.error(
+      `[generate-sidebar] refusing to write ${relative(ROOT, OUTPUT)}: no route order available.\n` +
+        `Run \`pnpm crawl <sitemap-url>\` to rebuild ${relative(ROOT, SITEMAP_CACHE)}, or set an\n` +
+        "explicit order in CHILDREN_ORDER, then re-run. The existing sidebar is left untouched.",
+    );
+    process.exit(1);
+  }
+
   const entries = readdirSync(PAGES_DIR);
   const root: SidebarItem[] = [];
 
