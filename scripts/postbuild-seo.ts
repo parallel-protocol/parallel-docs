@@ -32,6 +32,8 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import matter from "gray-matter";
+
 import { PRODUCTION_ORIGIN } from "../site.config";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -87,11 +89,37 @@ function urlForRoute(route: string): string {
   return route === "/" ? SITE_URL : `${SITE_URL}${route}`;
 }
 
-/** Every route that is a real page, i.e. exactly what the sitemap lists. */
-function pageRoutes(): Set<string> {
+/** Every source file under `src/pages` that is a real page. */
+function pageFiles(): string[] {
   // `_`-prefixed files/dirs are layout internals (`_slots.tsx`, `_root.css`), not pages.
-  const pages = walk(PAGES_DIR, (name) => /\.(mdx?|tsx?)$/.test(name), { skipUnderscore: true });
-  return new Set(pages.map(routeFor));
+  return walk(PAGES_DIR, (name) => /\.(mdx?|tsx?)$/.test(name), { skipUnderscore: true });
+}
+
+/**
+ * A page opts out of the sitemap by setting `robots: 'noindex, …'` in its
+ * frontmatter — the same field Vocs reads to emit the `<meta name="robots">`
+ * tag. Keeping both off one declaration means a page can never be noindexed in
+ * its head while still being advertised in the sitemap.
+ */
+function isNoindex(pageFile: string): boolean {
+  if (!/\.mdx?$/.test(pageFile)) return false;
+  const { data } = matter(readFileSync(pageFile, "utf-8"));
+  return typeof data.robots === "string" && /\bnoindex\b/i.test(data.robots);
+}
+
+type RouteSets = {
+  /** Every served route — these all get a canonical, noindex or not. */
+  all: Set<string>;
+  /** Routes we want crawled and indexed — exactly what the sitemap lists. */
+  indexable: Set<string>;
+};
+
+function collectRoutes(): RouteSets {
+  const files = pageFiles();
+  return {
+    all: new Set(files.map(routeFor)),
+    indexable: new Set(files.filter((file) => !isNoindex(file)).map(routeFor)),
+  };
 }
 
 function buildSitemap(routes: Set<string>): string {
@@ -186,18 +214,21 @@ function main(): void {
     process.exit(1);
   }
 
-  const routes = pageRoutes();
-  const sitemap = buildSitemap(routes);
+  const { all, indexable } = collectRoutes();
+  const sitemap = buildSitemap(indexable);
   const urlCount = (sitemap.match(/<loc>/g) ?? []).length;
+  const noindexCount = all.size - indexable.size;
   for (const dir of outDirs) {
     writeFileSync(join(dir, "sitemap.xml"), sitemap, "utf-8");
-    const { posthog, canonical, skipped } = injectHeadTags(dir, routes);
+    const { posthog, canonical, skipped } = injectHeadTags(dir, all);
     console.log(
-      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs), canonical + og:url on ${canonical} page(s), PostHog injected into ${posthog} HTML file(s)`,
+      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs, ${noindexCount} noindex page(s) excluded), canonical + og:url on ${canonical} page(s), PostHog injected into ${posthog} HTML file(s)`,
     );
-    if (canonical !== urlCount) {
+    // Every served route keeps a canonical, including the noindex ones: they
+    // are still real URLs, they are just not advertised for indexing.
+    if (canonical !== all.size) {
       console.error(
-        `[postbuild-seo] canonical count (${canonical}) does not match sitemap URL count (${urlCount}) in ${relative(ROOT, dir)}`,
+        `[postbuild-seo] canonical count (${canonical}) does not match page count (${all.size}) in ${relative(ROOT, dir)}`,
       );
       process.exit(1);
     }
