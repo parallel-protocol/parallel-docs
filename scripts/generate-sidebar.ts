@@ -30,7 +30,7 @@ import matter from "gray-matter";
 
 const __dirname_ = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname_, "..");
-const PAGES_DIR = join(ROOT, "docs/pages");
+const PAGES_DIR = join(ROOT, "src/pages");
 const OUTPUT = join(ROOT, "src/sidebar.generated.ts");
 const SITEMAP_CACHE = join(ROOT, "tmp/gitbook-source/_sitemap.json");
 
@@ -45,17 +45,21 @@ interface SitemapEntry {
  * Map: route Vocs (ex. `/products/parallel-v3/how-it-works/parallelizer-module`)
  * → position dans le sitemap (entier, plus petit = plus haut).
  *
- * Si le sitemap n'existe pas (premier crawl pas encore fait, ou env CI minimal),
- * renvoie une map vide → `sortChildren` tombera sur le fallback alphabétique
- * avec un warning explicite.
+ * Si le sitemap n'existe pas, on ABORTE au lieu de retomber sur l'ordre
+ * alphabétique. Le fallback silencieux réordonnait toute la navigation — il
+ * remontait notamment Parallel V2 (legacy) au-dessus de Parallel V3 — et
+ * réécrivait ~800 lignes de `sidebar.generated.ts` sans que ça se voie.
+ * Mieux vaut refuser de générer que produire une nav plausible mais fausse.
  */
 export function loadSitemapOrder(sitemapPath: string = SITEMAP_CACHE): Map<string, number> {
   const order = new Map<string, number>();
   if (!existsSync(sitemapPath)) {
-    console.warn(
-      `[generate-sidebar] sitemap not found at ${sitemapPath} — sidebar order will fall back to alphabetical. Run \`pnpm crawl <sitemap-url>\` to fix.`,
+    throw new Error(
+      `[generate-sidebar] route order cache not found at ${sitemapPath}.
+Without it every child would be re-sorted alphabetically, which reorders the whole
+sidebar (legacy v2 ends up above v3). Run \`pnpm crawl <sitemap-url>\` to rebuild the
+cache before regenerating, or edit CHILDREN_ORDER in this script for a manual order.`,
     );
-    return order;
   }
   try {
     const raw = readFileSync(sitemapPath, "utf-8");
