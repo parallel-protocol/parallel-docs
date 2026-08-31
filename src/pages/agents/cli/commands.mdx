@@ -1,0 +1,146 @@
+---
+title: CLI command reference
+description: Every Parallel CLI command — protocol data, swap, savings, bridge, staking, governance and x402 payments. Exact syntax, flags and error codes.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Command reference
+
+Amounts are always human-readable (`--amount 100` = 100 tokens, never wei); chains are lowercase slugs (`base`, `ethereum`, `avalanche`, …).
+
+Global flags, available across commands:
+
+| Flag | Alias | Purpose |
+|---|---|---|
+| `--chain <chain>` | `-c` | Target chain (default: `network.default_chain` from config) |
+| `--json` | `-j` | Force JSON output |
+| `--dry-run` | | Build the transaction without signing or broadcasting |
+| `--wallet [path\|env]` | `-w` | Sign and broadcast — see [the wallet model](/agents/cli#the-wallet-model) |
+
+## Protocol data
+
+Read-only, no wallet.
+
+```bash
+parallel protocol overview                    # TVL · supply · APY · solvency
+parallel protocol tvl            [--chain <chain>]
+parallel protocol supply         <usdp|susdp|prl|sprl1|sprl2>
+parallel protocol backing        [--chain <chain>]
+parallel protocol chains                      # feature matrix per chain
+parallel protocol collaterals    --chain <chain>
+parallel protocol mint-capacity  --collateral <symbol> --chain <chain> [--amount <n>]
+parallel protocol fees           [--collateral <symbol>] [--chain <chain>]
+parallel protocol savings-rate   [--chain <chain>]
+parallel protocol exchange-rate  [--chain <chain>]
+parallel protocol solvency       [--chain <chain>]
+parallel protocol surplus        [--chain <chain>]
+parallel protocol flashloan      [--chain <chain>]
+```
+
+`backing`, `tvl`, `savings-rate` and `supply` also take `--history [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>]` for daily time series (`supply --history` is available for `usdp` only).
+
+## Swap — mint, burn, redeem
+
+```bash
+parallel swap quote  --op <mint|burn|redeem> --amount <n> [--collateral <symbol>]
+parallel swap mint   --collateral USDC --amount 1000 --chain base --dry-run
+parallel swap burn   --collateral USDC --amount 500  --chain base --wallet
+parallel swap redeem --amount 500 --chain base --wallet    # proportional redeem
+```
+
+`--collateral` is required for `mint` and `burn`; a proportional `redeem` pays out the whole basket.
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `--slippage <pct>` | `0.5` | Slippage tolerance in percent |
+| `--address <0x…>` | | Simulate for a real account without a wallet |
+
+## Savings (sUSDp)
+
+```bash
+parallel savings rate     [--chain <chain>]
+parallel savings estimate --amount <n> --duration <days>
+parallel savings balance  <address> [--chain <chain>]
+parallel savings deposit  --amount <n> --chain <chain> --wallet
+parallel savings withdraw --amount <n> --chain <chain> --wallet   # amount in sUSDp
+```
+
+In a terminal, `deposit` offers two methods: EIP-3009 `depositWithAuthorization` (no approval transaction — two signatures, one transaction) or standard approve + deposit. In JSON / non-TTY mode the standard path is used.
+
+## Bridge (LayerZero)
+
+```bash
+parallel bridge quote   --from <chain> --to <chain> --amount <n>
+parallel bridge fees    --from <chain>              # fees to all destinations
+parallel bridge limits  [--chain <chain>]           # daily + global capacity
+parallel bridge send    --from <chain> --to <chain> --amount <n> --wallet [--recipient <address>]
+parallel bridge status  <txHash> --from <chain>
+parallel bridge history <address> [--limit <n>] [--offset <n>]
+```
+
+Only USDp bridges for now. Every chain supports it except Mantle.
+
+## Staking (PRL)
+
+```bash
+parallel staking overview
+parallel staking info     <address>
+parallel staking cooldown <address>
+parallel staking stake    --type <sprl1|sprl2> --amount <n> --wallet
+parallel staking unstake  --type <sprl1|sprl2> --amount <n> --wallet   # starts cooldown
+parallel staking unstake  --type sprl2 --wallet                        # withdraw matured requests
+parallel staking claim    --type <sprl1|sprl2|all> --wallet
+```
+
+Staking transactions run on Ethereum. The sPRL2 stake takes `--weth-amount <n>` for the PRL + WETH path; `claim` can return transactions on both Ethereum and Polygon.
+
+## Governance
+
+```bash
+parallel gov proposals [--status active|pending|passed|rejected] [--type PIP|PGP|PIR]
+parallel gov proposal  <PIP-65|0xabc…>
+parallel gov params
+```
+
+## Payments (x402)
+
+```bash
+parallel pay capabilities [--chain <chain>]     # routes + gas sponsoring per chain
+parallel pay quota  <address> [--chain <chain>] # gas sponsoring quota
+parallel pay verify <txHash> [--chain <chain>]
+parallel pay prepare --amount <n> --recipient <address> [--chain <chain>] [--wallet]
+```
+
+`pay prepare` builds an x402 payment payload: `--token` sets what the merchant receives (`usdp` by default, `usdc`, `susdp`, a collateral symbol or a token address), `--pay-with` forces the paying token (`usdp`, `usdc` or `susdp`). With `--wallet` it auto-selects the route from your balances and signs the payload. This is the engine behind [agent payments](/agents/x402/agent-quickstart) — agents rarely call it directly.
+
+## Utilities
+
+```bash
+parallel version                    # CLI, bundled server and Node versions
+parallel health [--chain <chain>]   # RPC latency per chain
+parallel config init | get <key> | set <key> <value>
+```
+
+## Errors
+
+Failures exit 1 and print `Error [CODE]: message` — in JSON mode, `{ "success": false, "error": { "code", "message" } }`.
+
+| Code | Trigger |
+|---|---|
+| `MISSING_OPTION` | Required flag not provided |
+| `INVALID_ADDRESS` | Argument is not a valid EVM address |
+| `INVALID_AMOUNT` | Negative, zero or unparseable amount |
+| `UNKNOWN_CHAIN` | Chain identifier not recognised |
+| `CHAIN_SUNSET` | Operation not available on a sunset chain |
+| `PARALLELIZER_NOT_DEPLOYED` | Mint, redeem and savings need a chain with a Parallelizer |
+| `COLLATERAL_NOT_SUPPORTED` | Collateral (or bridge token) not accepted on this chain |
+| `INSUFFICIENT_BALANCE` | Wallet balance too low for the requested amount |
+| `WALLET_REQUIRED` | Signing requested but no wallet available |
+| `INVALID_KEYSTORE` | Keystore unreadable, invalid format, or wrong password |
+| `RPC_ERROR` | RPC call failed |
+| `UNKNOWN` | Anything else |
+
+Protocol-layer failures (caps, bridge limits, slippage, cooldowns) arrive as `UNKNOWN` with the reason prefixed in the message — e.g. `[EXCEEDS_BRIDGE_LIMIT] Daily bridge limit reached`. Match on the message prefix for these.
+
+<HelpFooter />

@@ -1,0 +1,69 @@
+---
+title: How MCP transactions work
+description: Every write tool of the Parallel MCP server returns unsigned calldata — your wallet signs and submits. Approval flow, pre-flight simulation, warnings and error behaviour explained.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# How transactions work
+
+The server prepares; **your wallet decides**. No write tool signs, broadcasts or custodies anything — each returns an **unsigned** transaction object you inspect, sign and submit yourself (from a wallet, a script, or an agent runtime).
+
+## The transaction object
+
+Every write tool returns the same shape — raw calldata, no signature anywhere in it:
+
+```json
+{
+  "to": "0xC3BEF21Ea7dEB5C34CF33E918c8e28972C8048eD",
+  "data": "0x...",
+  "value": "0",
+  "chainId": 8453,
+  "gas": "210000",
+  "simulation": { "success": true },
+  "warnings": []
+}
+```
+
+- `to`, `data`, `value`, `chainId` — pass them to your wallet as-is.
+- `gas` is a best-effort estimate; it can be absent (for `bridge` the field is named `gasEstimate`). Never block on it — your wallet estimates anyway.
+- Staking tools return **arrays** (`txs`, `approvalTxs`) with a `description` per transaction, and `claim_rewards` can span several chains — check each transaction's `chainId` before sending.
+
+## Approvals
+
+When the operation spends a token the contract cannot pull yet, the response carries an `approvalTx` alongside the main transaction:
+
+```
+sign & submit approvalTx  →  wait for it to confirm on-chain  →  sign & submit tx
+```
+
+Submitting the main transaction before the approval confirms makes it revert.
+
+:::tip
+The approval granted is **unlimited** (`maxUint256`) for the specific spender contract — the standard pattern to avoid re-approving on every operation. If you prefer exact approvals, replace `approvalTx.data` with your own approval for `approvalAmount`.
+:::
+
+## Pre-flight simulation
+
+Every write is statically simulated before it reaches you:
+
+- `simulation.success: false` comes with a `revertReason` and a `SIMULATION_FAILED` warning — the transaction would fail on-chain; don't send it.
+- `warnings[]` also surfaces business risks before you sign: an sPRL1 early-unstake penalty (`EARLY_UNSTAKE_PENALTY`), a ParaBoost about to be lost on unstake (`PARABOOST_LOST`) or locked on stake (`PARABOOST_LOCK`).
+
+Each warning has a `severity` (`info`, `warning`, `error`) and a human-readable `message` — surface them to whoever approves the transaction.
+
+## When the server refuses
+
+Impossible operations fail with a plain message instead of doomed calldata: a chain without a Parallelizer deployment, a collateral whose minting is paused, a bridge amount above the daily capacity (`EXCEEDS_BRIDGE_LIMIT`, with the remaining capacity and reset time), USDp bridging on Mantle.
+
+## Data freshness
+
+Read tools cache briefly: savings and exchange rates 30 s, TVL/supply/staking 60 s, collaterals and fees 120 s, chain list 5 min. Bridge status and history are always live. If an RPC degrades, the server serves the last known value for up to 2 minutes rather than failing.
+
+## Next steps
+
+- [Tools reference](/agents/mcp/tools) — which tools return transactions
+- [Connect your AI](/agents/mcp) — setup in 2 minutes
+- [x402 payments](/agents/x402) — payments that settle without your wallet ever holding gas
+
+<HelpFooter />

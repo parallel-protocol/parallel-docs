@@ -1,0 +1,84 @@
+---
+title: Connect your AI to Parallel in 2 minutes
+description: The Parallel MCP server gives Claude, Cursor and any MCP client live protocol data and ready-to-sign transactions. Zero config, no API key, never touches your private key.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Connect your AI to Parallel
+
+The Parallel MCP server lets any AI assistant read the protocol and prepare transactions for you: live TVL and savings rates, mint and redeem quotes, bridge transfers, staking — 36 tools behind one URL.
+
+**Zero config. Never signs.** There is no API key, no account and no private key to provide. Read tools return live on-chain data; write tools return **unsigned transaction data** that you review and sign in your own wallet. The server cannot move funds — yours or anyone's.
+
+## 1. Connect
+
+**Claude Code** — one command:
+
+```bash
+claude mcp add --transport http parallel https://mcp.parallel.best/mcp
+```
+
+**Claude Desktop** — add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS), then restart the app:
+
+```json
+{
+  "mcpServers": {
+    "parallel": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.parallel.best/mcp"]
+    }
+  }
+}
+```
+
+`parallel` appears in **Settings → Developer** with a green status.
+
+**Any other MCP client** — point it at `https://mcp.parallel.best/mcp` with the Streamable HTTP transport.
+
+## 2. Try it
+
+Ask in plain language — the assistant picks the right tools:
+
+```
+Give me a full overview of the Parallel Protocol
+```
+
+Total TVL, USDp supply, the savings APY and the proof-of-solvency ratio, in one answer.
+
+```
+What's the current sUSDp savings rate?
+```
+
+The live protocol-wide APY (around 12% at the time of writing), the exchange rate and total deposits per chain.
+
+```
+Quote me a mint of 500 USDp with USDC on Base
+```
+
+Expected output, fees and price impact — a read, nothing to sign.
+
+```
+Deposit 100 USDp into savings on Base, receiver 0xYourAddress
+```
+
+An unsigned transaction (plus an approval if needed) ready to review and sign in your wallet — see [how transactions work](/agents/mcp/transactions).
+
+## Trust model
+
+| The server | Your wallet |
+|---|---|
+| Reads on-chain data through public RPCs | — |
+| Builds and simulates unsigned transactions | Reviews, signs and submits every transaction |
+| Warns before risky operations (slippage, penalties, lost boosts) | Decides |
+| Holds no keys, no funds, no user accounts | Holds the keys |
+
+The endpoint is public and unauthenticated by design: there is nothing to steal and nothing to configure.
+
+## Next steps
+
+- [Tools reference](/agents/mcp/tools) — the full catalogue, grouped by what you're doing
+- [How transactions work](/agents/mcp/transactions) — unsigned calldata, approvals, simulations
+- [Pay APIs with x402](/agents/x402/agent-quickstart) — give your agent a wallet that spends
+
+<HelpFooter />

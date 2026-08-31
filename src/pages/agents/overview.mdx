@@ -12,6 +12,8 @@ Tools for accepting stablecoin payments and building agents that pay autonomousl
 
 <PageCardGrid items={[
   { title: "x402", href: "/agents/x402" },
+  { title: "MCP server", href: "/agents/mcp" },
+  { title: "CLI", href: "/agents/cli" },
 ]} />
 
 ## How AI agents pay for APIs
@@ -29,12 +31,22 @@ Parallel runs an [x402 facilitator](/agents/x402/concepts) that:
 
 [Read the x402 quickstart →](/agents/x402/quickstart)
 
+## Talk to the protocol from your AI
+
+The [Parallel MCP server](/agents/mcp) connects Claude, Cursor or any MCP client to the protocol: live data, quotes, and ready-to-sign transactions — zero config, and it never touches your keys.
+
+## Or from the terminal
+
+The [Parallel CLI](/agents/cli) puts the same surface in your shell and your scripts: live data as JSON, transactions built, signed and broadcast from the command line — with the wallet strictly opt-in.
+
 ## Which one do you need?
 
 | You want to... | Use |
 |---|---|
 | Accept stablecoin payments in your API | [x402](/agents/x402) |
 | Build an AI agent that pays APIs autonomously | [Agent quickstart](/agents/x402/agent-quickstart) |
+| Ask your AI about Parallel, or prepare transactions from chat | [MCP server](/agents/mcp) |
+| Script the protocol from your terminal or CI | [CLI](/agents/cli) |
 | Migrate from another x402 facilitator | [Migration guide](/agents/recipes/migrate-from-coinbase-x402) |
 
 <HelpFooter />
