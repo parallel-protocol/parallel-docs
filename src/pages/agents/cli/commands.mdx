@@ -124,8 +124,23 @@ parallel config init | get <key> | set <key> <value>
 
 ## Errors
 
-Failures print `Error [CODE]: message` (JSON: `{ "success": false, "error": { "code", "message" } }`) and exit 1. Codes: `MISSING_OPTION`, `INVALID_ADDRESS`, `INVALID_AMOUNT`, `UNKNOWN_CHAIN`, `CHAIN_SUNSET`, `PARALLELIZER_NOT_DEPLOYED`, `COLLATERAL_NOT_SUPPORTED`, `INSUFFICIENT_BALANCE`, `WALLET_REQUIRED`, `INVALID_KEYSTORE`, `RPC_ERROR`, `UNKNOWN`.
+Failures exit 1 and print `Error [CODE]: message` — in JSON mode, `{ "success": false, "error": { "code", "message" } }`.
 
-Protocol-layer failures (caps, bridge limits, slippage, cooldowns) arrive as `code: "UNKNOWN"` with the reason prefixed in the message — e.g. `[EXCEEDS_BRIDGE_LIMIT] Daily bridge limit reached`. Match on the message prefix for these.
+| Code | Trigger |
+|---|---|
+| `MISSING_OPTION` | Required flag not provided |
+| `INVALID_ADDRESS` | Argument is not a valid EVM address |
+| `INVALID_AMOUNT` | Negative, zero or unparseable amount |
+| `UNKNOWN_CHAIN` | Chain identifier not recognised |
+| `CHAIN_SUNSET` | Operation not available on a sunset chain |
+| `PARALLELIZER_NOT_DEPLOYED` | Mint, redeem and savings need a chain with a Parallelizer |
+| `COLLATERAL_NOT_SUPPORTED` | Collateral (or bridge token) not accepted on this chain |
+| `INSUFFICIENT_BALANCE` | Wallet balance too low for the requested amount |
+| `WALLET_REQUIRED` | Signing requested but no wallet available |
+| `INVALID_KEYSTORE` | Keystore unreadable, invalid format, or wrong password |
+| `RPC_ERROR` | RPC call failed |
+| `UNKNOWN` | Anything else |
+
+Protocol-layer failures (caps, bridge limits, slippage, cooldowns) arrive as `UNKNOWN` with the reason prefixed in the message — e.g. `[EXCEEDS_BRIDGE_LIMIT] Daily bridge limit reached`. Match on the message prefix for these.
 
 <HelpFooter />

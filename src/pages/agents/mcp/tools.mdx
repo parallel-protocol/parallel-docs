@@ -7,7 +7,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 # Tools reference
 
-36 tools. Reads return live data; tools marked **tx** return [unsigned transactions](/agents/mcp/transactions) for your wallet to sign.
+36 tools. Reads return live data; transaction tools build [unsigned transactions](/agents/mcp/transactions) that your wallet reviews and signs — the server itself never signs, broadcasts or pays anything.
 
 ## Conventions
 
@@ -35,24 +35,24 @@ import { HelpFooter } from '@/components/HelpFooter'
 |---|---|
 | `get_susdp_exchange_rate` | Live sUSDp → USDp rate per chain |
 | `estimate_savings_yield` | Projects yield for an amount over a duration at the current APY |
-| `deposit_savings` **tx** | Deposit USDp, receive sUSDp (`amount`, `chain`, `receiver`) |
-| `withdraw_savings` **tx** | Redeem sUSDp back to USDp (`amount` in sUSDp, `chain`, `receiver`) |
+| `deposit_savings` | Builds the deposit transaction — USDp in, sUSDp out (`amount`, `chain`, `receiver`) |
+| `withdraw_savings` | Builds the withdrawal — sUSDp back to USDp (`amount` in sUSDp, `chain`, `receiver`) |
 
 ## Mint & redeem (Parallelizer)
 
 | Tool | What it does |
 |---|---|
 | `get_quote` | Exact mint or redeem quote: output, fees, price impact — read-only |
-| `mint` **tx** | Mint USDp from a collateral (`collateral`, `amount`, `chain`, `receiver`, `slippageTolerance?`) |
-| `redeem` **tx** | Redeem USDp into one collateral |
-| `redeem_proportional` **tx** | Redeem USDp into the whole collateral basket, market-neutral |
+| `mint` | Builds a mint of USDp from a collateral (`collateral`, `amount`, `chain`, `receiver`, `slippageTolerance?`) |
+| `redeem` | Builds a redemption of USDp into one collateral |
+| `redeem_proportional` | Builds a redemption into the whole collateral basket, market-neutral |
 
 ## Bridge (LayerZero)
 
 | Tool | What it does |
 |---|---|
 | `get_bridge_quote` | Cost of bridging USDp between two chains — no bridge fee, only the LayerZero native fee (~10 min delivery) |
-| `bridge` **tx** | Bridge USDp (`fromChain`, `toChain`, `amount`, `recipientAddress` — your own address, which sends and receives) |
+| `bridge` | Builds a USDp bridge transfer (`fromChain`, `toChain`, `amount`, `recipientAddress` — your own address, which sends and receives) |
 | `get_bridge_status` | Track a bridge transfer by transaction hash |
 | `get_bridge_limits` | Daily and global mint/burn capacity on a chain |
 | `get_bridge_history` | Past transfers for an address |
@@ -64,9 +64,9 @@ import { HelpFooter } from '@/components/HelpFooter'
 | `get_staking_overview` | Epochs, totals staked in sPRL1/sPRL2, APRs, voting power |
 | `get_staking_info` | One address's full staking position: balances, rewards, cooldowns, ParaBoost |
 | `get_cooldown_status` | Pending unstake requests, remaining time and estimated penalties |
-| `stake` **tx** | Stake PRL into sPRL1, or PRL/BPT into sPRL2 |
-| `unstake` **tx** | With `amount`: starts the cooldown. Without: withdraws matured requests |
-| `claim_rewards` **tx** | Claim sPRL1/sPRL2 rewards — may return transactions on several chains |
+| `stake` | Builds staking transactions — PRL into sPRL1, or PRL/BPT into sPRL2 |
+| `unstake` | With `amount`: builds the cooldown start. Without: builds the withdrawal of matured requests |
+| `claim_rewards` | Builds reward claims for sPRL1/sPRL2 — may return transactions on several chains |
 
 sPRL1 is deployed on Ethereum, Polygon, Base and Sonic; sPRL2 on Ethereum only.
 
@@ -83,8 +83,8 @@ sPRL1 is deployed on Ethereum, Polygon, Base and Sonic; sPRL2 on Ethereum only.
 | Tool | What it does |
 |---|---|
 | `get_payment_capabilities` | Payment routes available on a chain and whether gas is sponsored |
-| `prepare_x402_payment` **tx** | Builds a gasless x402 payment: returns typed data to sign, the facilitator settles on-chain |
-| `prepare_convert_and_pay` **tx** | Redeem USDp to a collateral, then pay it — two steps, for recipients wanting a specific token |
+| `prepare_x402_payment` | Builds a gasless x402 payment — returns typed data for your wallet to sign; the facilitator settles on-chain only after that |
+| `prepare_convert_and_pay` | Builds a two-step payment — redeem USDp to a collateral, then pay it, for recipients wanting a specific token |
 
 Gas is sponsored on every Parallelizer chain except Ethereum. See [x402](/agents/x402) for the full payment protocol.
 
