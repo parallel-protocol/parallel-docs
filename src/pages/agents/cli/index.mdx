@@ -1,0 +1,82 @@
+---
+title: Use Parallel from your terminal
+description: The Parallel CLI queries live protocol data, builds and signs transactions, and makes x402 payments from the terminal or any script. One npm install, no config, wallet strictly opt-in.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# The Parallel CLI
+
+`parallel` brings the whole protocol to your terminal: live data, mint and redeem, savings, bridge, staking, governance and x402 payments — human-readable tables for you, clean JSON for your scripts.
+
+Where the [MCP server](/agents/mcp) never signs, the CLI is the layer that can. Hand it a wallet and it signs and broadcasts; without one it never touches a key — transaction commands only run as dry-runs that print the unsigned transaction.
+
+## 1. Install
+
+```bash
+npm install -g @parallel-protocol/cli
+
+# or run without installing
+npx @parallel-protocol/cli protocol overview
+```
+
+Requires Node.js ≥ 22.
+
+## 2. Read the protocol — no wallet, no config
+
+```bash
+parallel protocol overview      # TVL, USDp supply, savings APY, solvency ratio
+parallel protocol tvl --chain base
+parallel savings rate           # protocol-wide sUSDp APY (~12% at the time of writing)
+```
+
+Optionally, set your defaults once — `parallel config init` walks you through it and writes `~/.parallel/config.toml`.
+
+## 3. Script it
+
+JSON output is automatic whenever stdout is not a terminal, so the CLI pipes straight into `jq`:
+
+```bash
+parallel savings rate | jq '.data.currentAPY'
+# 0.1204…
+```
+
+Force it anywhere with `--json` (or `PARALLEL_JSON=true`). Every command uses the same envelope:
+
+```json
+{ "success": true, "data": { ... } }
+{ "success": false, "error": { "code": "MISSING_OPTION", "message": "..." } }
+```
+
+Failures set exit code 1 — safe to chain in CI and cron jobs.
+
+## The wallet model
+
+The CLI never looks for a key unless you pass `--wallet`. Without it, nothing signs: add `--dry-run` to any transaction command and it prints the full unsigned transaction (add `--address <addr>` to simulate for a real account instead of the zero address); with neither `--wallet` nor `--dry-run`, the command refuses with `WALLET_REQUIRED`.
+
+| You run | What happens |
+|---|---|
+| `parallel swap mint … --dry-run` | Builds and prints the unsigned transaction. No key involved |
+| `parallel swap mint … --wallet env` | Signs with `$PARALLEL_PRIVATE_KEY` and broadcasts |
+| `parallel swap mint … --wallet ~/.parallel/keystore.json` | Prompts for the keystore password, signs and broadcasts |
+| `parallel swap mint … --wallet` | Auto-resolves: keystore path from config first, then `$PARALLEL_PRIVATE_KEY` |
+
+Keystores use the standard encrypted V3 format. Create one from any private key with Foundry:
+
+```bash
+cast wallet import parallel-cli --keystore-dir ~/.parallel --interactive
+# paste the private key, choose a password → writes ~/.parallel/parallel-cli
+parallel config set wallet.keystore_path ~/.parallel/parallel-cli
+```
+
+:::warning
+Use a dedicated wallet with limited funds — never your main wallet. With `--wallet`, transactions broadcast **immediately** after signing (or after the password prompt): there is no extra confirmation step. Preview any command first by swapping `--wallet` for `--dry-run`.
+:::
+
+## Next steps
+
+- [Command reference](/agents/cli/commands) — every command, grouped by what you're doing
+- [Pay APIs with x402](/agents/x402/agent-quickstart) — the CLI's `pay prepare` is the engine behind agent payments
+- [MCP server](/agents/mcp) — the same protocol surface for AI assistants, signing-free
+
+<HelpFooter />
