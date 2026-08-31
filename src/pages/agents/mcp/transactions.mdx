@@ -7,9 +7,11 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 # How transactions work
 
-The server prepares; **your wallet decides**. No write tool signs, broadcasts or custodies anything — each returns a transaction object you inspect, sign and submit yourself (from a wallet, a script, or an agent runtime).
+The server prepares; **your wallet decides**. No write tool signs, broadcasts or custodies anything — each returns an **unsigned** transaction object you inspect, sign and submit yourself (from a wallet, a script, or an agent runtime).
 
 ## The transaction object
+
+Every write tool returns the same shape — raw calldata, no signature anywhere in it:
 
 ```json
 {
