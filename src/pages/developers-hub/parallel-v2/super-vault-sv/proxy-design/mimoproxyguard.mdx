@@ -1,9 +1,9 @@
 ---
 title: MIMOProxyGuard
 description: >-
-  As previously mentioned, the management of MIMOProxy's permissions has been
-  delegated to the `MIMOProxyGuard`, which is deployed through the Openzeppelin
-  Clone…
+  MIMOProxyGuard holds each MIMOProxy's permissions in a separate cloned
+  contract, cutting storage collision risk and letting a new owner clear them in
+  one call.
 ---
 
 # MIMOProxyGuard

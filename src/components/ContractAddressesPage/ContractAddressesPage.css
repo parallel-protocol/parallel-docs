@@ -28,6 +28,8 @@
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
+  /* Anchors, not buttons: cancel the themed link underline/colour. */
+  text-decoration: none;
   transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
 }
 
@@ -41,10 +43,27 @@
   outline-offset: 2px;
 }
 
-.cooper-contract-addresses-chain-button[data-active="true"] {
+/* The chain the reader jumped to, so the picker still shows where they are. */
+.cooper-contract-addresses-chain:target .cooper-contract-addresses-chain-title {
   color: var(--vocs-color-accent);
-  background-color: var(--vocs-background-color-surfaceMuted);
-  border-color: var(--vocs-color-accent);
+}
+
+.cooper-contract-addresses-chain {
+  /* Leave room under the sticky header when jumping to an anchor. */
+  scroll-margin-top: 6rem;
+}
+
+.cooper-contract-addresses-chain + .cooper-contract-addresses-chain {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--vocs-border-color-primary);
+}
+
+.cooper-contract-addresses-chain-title {
+  margin: 0 0 1rem;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--vocs-text-color-primary);
 }
 
 .cooper-contract-addresses-module + .cooper-contract-addresses-module {

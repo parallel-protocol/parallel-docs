@@ -1,8 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import { ContractTable, type Contract } from "@/components/ContractTable";
+import { type Contract, ContractTable } from "@/components/ContractTable";
 import { CHAIN_LABELS, type ChainSlug } from "@/lib/chains";
+import { ChainDeepLink } from "./ChainDeepLink";
 import "./ContractAddressesPage.css";
 
 export type ContractEntry = {
@@ -23,11 +21,9 @@ function getChainLabel(slug: string): string {
   return (CHAIN_LABELS as Record<string, string>)[slug] ?? slug;
 }
 
-function getInitialChain(chains: Record<string, ContractEntry[]>): string {
-  if (typeof window === "undefined") return Object.keys(chains)[0] ?? "";
-  const fromUrl = new URLSearchParams(window.location.search).get("chain");
-  if (fromUrl && fromUrl in chains) return fromUrl;
-  return Object.keys(chains)[0] ?? "";
+/** Anchor id for a chain's section. Prefixed to avoid colliding with MDX heading ids. */
+export function chainAnchorId(slug: string): string {
+  return `chain-${slug}`;
 }
 
 interface ModuleGroup {
@@ -52,64 +48,80 @@ function groupByModule(contracts: ContractEntry[]): ModuleGroup[] {
   return groups;
 }
 
+/**
+ * Contract addresses for one token, across every chain it is deployed on.
+ *
+ * Renders entirely on the server. It previously held the selected chain in
+ * client state and rendered only that one chain, which meant the prerendered
+ * HTML carried a single chain's addresses and the other two dozen existed only
+ * after hydration — invisible to search engines and to anything reading the
+ * page without running JavaScript. "What is the USDp contract on Base" is
+ * exactly what these pages are asked, so every address now ships in the HTML.
+ *
+ * The chain picker is therefore a list of same-page anchors rather than
+ * buttons: no JavaScript, and each chain gets a linkable `#chain-<slug>` URL.
+ */
 export function ContractAddressesPage({ stablecoin, chains }: ContractAddressesPageProps) {
-  const [selected, setSelected] = useState<string>(() => getInitialChain(chains));
-
-  function selectChain(slug: string) {
-    setSelected(slug);
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", `?chain=${slug}`);
-    }
-  }
-
-  const contracts = selected ? (chains[selected] ?? []) : [];
+  const slugs = Object.keys(chains);
 
   return (
     <div className="cooper-contract-addresses-page" aria-label={`${stablecoin} Contracts`}>
-      <div
-        className="cooper-contract-addresses-chain-picker"
-        role="group"
-        aria-label="Select chain"
-      >
-        {Object.keys(chains).map((slug) => (
-          <button
+      <ChainDeepLink chains={slugs} />
+
+      <nav className="cooper-contract-addresses-chain-picker" aria-label="Jump to chain">
+        {slugs.map((slug) => (
+          <a
             key={slug}
-            type="button"
             className="cooper-contract-addresses-chain-button"
-            data-active={slug === selected}
-            aria-pressed={slug === selected}
-            onClick={() => selectChain(slug)}
+            href={`#${chainAnchorId(slug)}`}
           >
             {getChainLabel(slug)}
-          </button>
+          </a>
         ))}
-      </div>
+      </nav>
 
-      {contracts.length === 0 ? (
-        <p className="cooper-contract-addresses-empty">
-          No contracts deployed yet on {getChainLabel(selected) || "this chain"}.
-        </p>
-      ) : (
-        groupByModule(contracts).map((group) => (
+      {slugs.map((slug) => {
+        const contracts = chains[slug] ?? [];
+        const headingId = `${chainAnchorId(slug)}-heading`;
+        return (
           <section
-            key={group.module ?? "ungrouped"}
-            className="cooper-contract-addresses-module"
-            aria-label={group.module ?? undefined}
+            key={slug}
+            id={chainAnchorId(slug)}
+            className="cooper-contract-addresses-chain"
+            aria-labelledby={headingId}
           >
-            {group.module ? (
-              <h2 className="cooper-contract-addresses-module-title">{group.module}</h2>
-            ) : null}
-            <ContractTable
-              chain={selected as ChainSlug}
-              contracts={
-                // The module name is now the section heading — drop it from
-                // the rows so it isn't repeated under every contract name.
-                group.contracts.map(({ name, address }) => ({ name, address })) as Contract[]
-              }
-            />
+            <h2 id={headingId} className="cooper-contract-addresses-chain-title">
+              {getChainLabel(slug)}
+            </h2>
+
+            {contracts.length === 0 ? (
+              <p className="cooper-contract-addresses-empty">
+                No contracts deployed yet on {getChainLabel(slug)}.
+              </p>
+            ) : (
+              groupByModule(contracts).map((group) => (
+                <section
+                  key={group.module ?? "ungrouped"}
+                  className="cooper-contract-addresses-module"
+                  aria-label={group.module ?? undefined}
+                >
+                  {group.module ? (
+                    <h3 className="cooper-contract-addresses-module-title">{group.module}</h3>
+                  ) : null}
+                  <ContractTable
+                    chain={slug as ChainSlug}
+                    contracts={
+                      // The module name is now the section heading — drop it from
+                      // the rows so it isn't repeated under every contract name.
+                      group.contracts.map(({ name, address }) => ({ name, address })) as Contract[]
+                    }
+                  />
+                </section>
+              ))
+            )}
           </section>
-        ))
-      )}
+        );
+      })}
     </div>
   );
 }

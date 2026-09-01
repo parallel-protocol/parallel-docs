@@ -1,4 +1,5 @@
 import { defineConfig } from "vocs/config";
+import { resolveSiteUrl } from "./site.config";
 import { sidebar } from "./src/sidebar.generated";
 
 // Absolute site origin — used ONLY for the absolute `og:image` URL.
@@ -8,13 +9,12 @@ import { sidebar } from "./src/sidebar.generated";
 // localhost) the hashed assets 404 against production → no hydration →
 // search / sidebar / theme all dead. Leaving `baseUrl` unset lets assets
 // resolve relative to the actual serving host (works on prod + previews).
-const SITE_URL = (() => {
-  if (process.env.SITE_URL) return process.env.SITE_URL;
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "https://docs-parallel.vercel.app";
-})();
+//
+// Previously this fell back to the project's `.vercel.app` host, so every
+// production page advertised its social card on a preview domain. It now
+// resolves to the real production origin, shared with the sitemap and the
+// canonical tags — see `site.config.ts`.
+const SITE_URL = resolveSiteUrl();
 
 export default defineConfig({
   title: "Parallel Documentation",
