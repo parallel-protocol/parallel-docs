@@ -23,6 +23,7 @@ export type ChainSlug =
   | "fraxtal"
   | "world"
   | "hemi"
+  | "mantle"
   | "fantom"; // PRL only, not USDp
 
 export const CHAIN_LABELS: Record<ChainSlug, string> = {
@@ -50,6 +51,7 @@ export const CHAIN_LABELS: Record<ChainSlug, string> = {
   fraxtal: "Fraxtal",
   world: "World Chain",
   hemi: "Hemi",
+  mantle: "Mantle",
   fantom: "Fantom",
 };
 
@@ -80,5 +82,6 @@ export const EXPLORERS: Record<ChainSlug, (addr: string) => string> = {
   fraxtal: (a) => `https://fraxscan.com/address/${a}`,
   world: (a) => `https://worldscan.org/address/${a}`,
   hemi: (a) => `https://explorer.hemi.xyz/address/${a}`,
+  mantle: (a) => `https://mantlescan.xyz/address/${a}`,
   fantom: (a) => `https://ftmscan.com/address/${a}`,
 };
