@@ -58,12 +58,29 @@ describe("withDeliveryRoutes", () => {
     }
   });
 
+
+  it("sends AI crawlers to llms.txt on the root, and nobody else", () => {
+    const route = withDeliveryRoutes(adapterConfig).routes?.find((r) => r.dest === "/llms.txt");
+    expect(route?.src).toBe("^/$");
+    const ua = (route?.has as { value: string }[])[0].value;
+    const re = new RegExp(ua.replace("(?i)", ""), "i");
+    for (const agent of ["ChatGPT-User/1.0", "ClaudeBot/1.0", "PerplexityBot", "GPTBot/1.2", "CCBot/2.0"]) {
+      expect(re.test(agent)).toBe(true);
+    }
+    // Search engines keep the HTML, as upstream intends, and so do readers.
+    for (const agent of ["Googlebot/2.1", "Bingbot/2.0", "Mozilla/5.0 (Macintosh) Safari/605"]) {
+      expect(re.test(agent)).toBe(false);
+    }
+    // Only the root — every other path already works without us.
+    expect(new RegExp(route?.src as string).test("/security/audits")).toBe(false);
+  });
+
   it("is idempotent — a second merge does not stack duplicates", () => {
     const once = withDeliveryRoutes(adapterConfig);
     expect(withDeliveryRoutes(once)).toEqual(once);
   });
 
   it("copes with a config that has no routes yet", () => {
-    expect(withDeliveryRoutes({ version: 3 }).routes).toHaveLength(3);
+    expect(withDeliveryRoutes({ version: 3 }).routes).toHaveLength(4);
   });
 });

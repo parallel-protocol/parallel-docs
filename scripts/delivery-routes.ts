@@ -43,6 +43,36 @@ const REDIRECTS: { from: string; to: string }[] = [
   { from: "/developers-hub", to: "/developers-hub/developers-guide" },
 ];
 
+
+/**
+ * The user agents Vocs classifies as AI crawlers, mirrored from its
+ * `aiUserAgents` list. Search engines are deliberately absent: upstream serves
+ * them the HTML, and so do we.
+ */
+const AI_USER_AGENTS = [
+  "GPTBot", "OAI-SearchBot", "ChatGPT-User", "anthropic-ai", "ClaudeBot", "claude-web",
+  "PerplexityBot", "Perplexity-User", "Google-Extended", "FacebookBot", "meta-externalagent",
+  "Bytespider", "cohere-ai", "AI2Bot", "CCBot", "Diffbot", "omgili", "Timpibot",
+  "MistralAI-User", "GoogleAgent-Mariner",
+];
+
+/**
+ * Vocs answers AI crawlers with markdown on every page except the root, where
+ * its condition checks the terminal and `Accept` cases but not the crawler one.
+ * A patch fixes that, but a patch only applies when the dependency is actually
+ * reinstalled — and Vercel restores `node_modules` from the build cache, so the
+ * fix reached production as a no-op and nobody could tell.
+ *
+ * Doing it here instead makes the behaviour independent of how the dependency
+ * was installed: the root is rewritten to `/llms.txt`, which is what the
+ * patched middleware serves anyway.
+ */
+const AI_ROOT_REWRITE: VercelRoute = {
+  src: "^/$",
+  has: [{ type: "header", key: "user-agent", value: `(?i).*(${AI_USER_AGENTS.join("|")}).*` }],
+  dest: "/llms.txt",
+};
+
 const ALL_RESPONSES = "^/(.*)$";
 
 /**
@@ -55,6 +85,7 @@ function ourSources(): Set<string> {
   return new Set([
     ALL_RESPONSES,
     STATIC_IMAGES,
+    AI_ROOT_REWRITE.src as string,
     ...REDIRECTS.map(({ from }) => `^${from}/?$`),
   ]);
 }
@@ -75,6 +106,7 @@ export function withDeliveryRoutes(config: VercelConfig): VercelConfig {
       status: 308,
       headers: { Location: to },
     })),
+    AI_ROOT_REWRITE,
   ];
 
   return { ...config, routes: [...ours, ...existing] };
