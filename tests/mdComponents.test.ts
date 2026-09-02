@@ -68,6 +68,29 @@ describe("expandComponents", () => {
     expect(out).not.toContain("<Tab");
   });
 
+
+  it("turns an FAQ into question and answer prose", () => {
+    const out = expand('<FAQ items={[\n  { question: "Is it free?", answer: "Yes. No cut, no signup." },\n]} />');
+    expect(out).not.toContain("<FAQ");
+    expect(out).toBe("**Is it free?**\n\nYes. No cut, no signup.");
+  });
+
+  it("keeps an answer that contains an escaped quote", () => {
+    const out = expand('<FAQ items={[{ question: "Q?", answer: "He said \\"no\\" twice." }]} />');
+    expect(out).toContain('He said "no" twice.');
+  });
+
+  it("recovers the TeX behind a rendered KaTeX block", () => {
+    const tag =
+      '<Math html={"<span class=\\"katex\\"><annotation encoding=\\"application/x-tex\\">a = \\\\frac{b}{c}</annotation></span>"} />';
+    expect(expand(tag)).toBe("$$\na = \\frac{b}{c}\n$$");
+  });
+
+  it("leaves a Math tag alone when it carries no TeX", () => {
+    const tag = '<Math html={"<span>no annotation here</span>"} />';
+    expect(expand(tag)).toBe(tag);
+  });
+
   it("is idempotent — a second pass changes nothing", () => {
     const once = expand(
       '# T\n\n<ContractAddressesPage stablecoin="USDp" chains={USDP_ADDRESSES} />\n\n<HelpFooter />\n',
