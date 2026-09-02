@@ -1,5 +1,5 @@
 diff --git a/dist/internal/vite-plugins.js b/dist/internal/vite-plugins.js
-index c6be5cc8713bfa484271f927be03e6014042f207..007c8cb2593e5200647aa4f0583cef320c30d080 100644
+index c6be5cc..007c8cb 100644
 --- a/dist/internal/vite-plugins.js
 +++ b/dist/internal/vite-plugins.js
 @@ -84,6 +84,7 @@ export function deps() {
@@ -11,7 +11,7 @@ index c6be5cc8713bfa484271f927be03e6014042f207..007c8cb2593e5200647aa4f0583cef32
                          ...(Array.isArray(config?.resolve?.alias)
                              ? config.resolve.alias
 diff --git a/dist/react/internal/Sidebar.js b/dist/react/internal/Sidebar.js
-index 5e77b02117f101591467c6dd8a4b8f8b58ae1767..e183470ec519a88c6ac1e3441f43abf6f7a72440 100644
+index 5e77b02..e183470 100644
 --- a/dist/react/internal/Sidebar.js
 +++ b/dist/react/internal/Sidebar.js
 @@ -100,16 +100,16 @@ function Section(props) {
@@ -43,8 +43,21 @@ index 5e77b02117f101591467c6dd8a4b8f8b58ae1767..e183470ec519a88c6ac1e3441f43abf6
                      // Non-link item is a header.
                      if (text)
                          return (_jsxs("div", { className: depth > 0 ? Section.childHeaderClassName : Section.rootHeaderClassName, "data-condensed": condensed && depth > 1, "data-collapsed": collapsed, "data-collapsable": collapsable, "data-v-sidebar-section-header": true, ...(collapsable
+diff --git a/dist/waku/internal/middleware/md-router.js b/dist/waku/internal/middleware/md-router.js
+index 45d5e40..9347192 100644
+--- a/dist/waku/internal/middleware/md-router.js
++++ b/dist/waku/internal/middleware/md-router.js
+@@ -97,7 +97,7 @@ export function middleware() {
+         const isTerminal = terminalUserAgents.some((agent) => userAgent.includes(agent));
+         const acceptHeader = context.req.header('accept') ?? '';
+         const acceptsMarkdown = acceptHeader.includes('text/markdown');
+-        if (url.pathname === '/' && (acceptsMarkdown || isTerminal) && !isSearchEngine) {
++        if (url.pathname === '/' && (acceptsMarkdown || isTerminal || isAiAgent) && !isSearchEngine) {
+             let text;
+             if (isDev) {
+                 const content = await resolveContent();
 diff --git a/src/internal/vite-plugins.ts b/src/internal/vite-plugins.ts
-index 3668d87c44921b5dd5c151194fbf64514c4f9d83..d97dd60b470700b7e4de5051a43bdb76d2f567a0 100644
+index 3668d87..d97dd60 100644
 --- a/src/internal/vite-plugins.ts
 +++ b/src/internal/vite-plugins.ts
 @@ -86,6 +86,7 @@ export function deps(): PluginOption {
@@ -56,7 +69,7 @@ index 3668d87c44921b5dd5c151194fbf64514c4f9d83..d97dd60b470700b7e4de5051a43bdb76
              ...(Array.isArray(config?.resolve?.alias)
                ? config.resolve.alias
 diff --git a/src/react/internal/Sidebar.tsx b/src/react/internal/Sidebar.tsx
-index 6c14434b7bf7a0a398c96da8eb746e58a86568b2..248c124225dce20867cb77892ff97448232555bf 100644
+index 6c14434..248c124 100644
 --- a/src/react/internal/Sidebar.tsx
 +++ b/src/react/internal/Sidebar.tsx
 @@ -230,14 +230,14 @@ function Section(props: Section.Props) {
@@ -93,3 +106,16 @@ index 6c14434b7bf7a0a398c96da8eb746e58a86568b2..248c124225dce20867cb77892ff97448
                    <span className="vocs:inline-flex vocs:items-center vocs:gap-1">
                      {text}
                      {groupLinkIsExternal && <LucideArrowUpRight className="vocs:size-3" />}
+diff --git a/src/waku/internal/middleware/md-router.ts b/src/waku/internal/middleware/md-router.ts
+index 6f22b54..4891958 100644
+--- a/src/waku/internal/middleware/md-router.ts
++++ b/src/waku/internal/middleware/md-router.ts
+@@ -107,7 +107,7 @@ export function middleware(): MiddlewareHandler {
+     const acceptHeader = context.req.header('accept') ?? ''
+     const acceptsMarkdown = acceptHeader.includes('text/markdown')
+ 
+-    if (url.pathname === '/' && (acceptsMarkdown || isTerminal) && !isSearchEngine) {
++    if (url.pathname === '/' && (acceptsMarkdown || isTerminal || isAiAgent) && !isSearchEngine) {
+       let text: string | null
+       if (isDev) {
+         const content = await resolveContent()

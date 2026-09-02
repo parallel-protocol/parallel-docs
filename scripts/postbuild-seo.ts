@@ -35,6 +35,13 @@ import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 
 import { PRODUCTION_ORIGIN } from "../site.config";
+import { MIMO_DEPRECATED_ADDRESSES } from "../src/data/mimo-deprecated-addresses";
+import { PAR_ADDRESSES } from "../src/data/par-addresses";
+import { PAUSD_DEPRECATED_ADDRESSES } from "../src/data/pausd-deprecated-addresses";
+import { PRL_ADDRESSES } from "../src/data/prl-addresses";
+import { USDP_ADDRESSES } from "../src/data/usdp-addresses";
+import { type AddressBook, expandComponents } from "./md-components";
+import { type VercelConfig, withDeliveryRoutes } from "./delivery-routes";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PAGES_DIR = join(ROOT, "src/pages");
@@ -122,16 +129,22 @@ function collectRoutes(): RouteSets {
   };
 }
 
-function buildSitemap(routes: Set<string>): string {
-  const lastmod = new Date().toISOString().split("T")[0];
-  const locs = [...routes].map(urlForRoute).sort((a, b) => a.localeCompare(b));
+function buildSitemap(routes: Set<string>, modified: Map<string, string>): string {
+  const buildDate = new Date().toISOString().split("T")[0];
+  const sorted = [...routes].sort((a, b) => urlForRoute(a).localeCompare(urlForRoute(b)));
 
-  const entries = locs
-    .map((loc) =>
-      ["  <url>", `    <loc>${loc}</loc>`, `    <lastmod>${lastmod}</lastmod>`, "  </url>"].join(
-        "\n",
-      ),
-    )
+  const entries = sorted
+    .map((route) => {
+      // The page's own `article:modified_time` when we have it, the build date
+      // only as a fallback for pages that never emitted one.
+      const lastmod = (modified.get(route) ?? buildDate).split("T")[0];
+      return [
+        "  <url>",
+        `    <loc>${urlForRoute(route)}</loc>`,
+        `    <lastmod>${lastmod}</lastmod>`,
+        "  </url>",
+      ].join("\n");
+    })
     .join("\n");
 
   return [
@@ -155,7 +168,7 @@ const POSTHOG_TAG = new RegExp(
   "gi",
 );
 
-type HeadStats = { posthog: number; canonical: number; skipped: string[] };
+type HeadStats = { posthog: number; canonical: number; jsonld: number; skipped: string[] };
 
 /**
  * Injects the PostHog snippet into every prerendered page, plus a canonical
@@ -168,11 +181,16 @@ type HeadStats = { posthog: number; canonical: number; skipped: string[] };
  * and `_root.d/index.html` shells without a canonical, which is what we want —
  * they are not addressable content.
  */
-function injectHeadTags(outDir: string, routes: Set<string>): HeadStats {
+function injectHeadTags(
+  outDir: string,
+  routes: Set<string>,
+  meta: Map<string, { title: string; description: string }>,
+  modified: Map<string, string>,
+): HeadStats {
   // Keep `_`-prefixed dirs here: `_root.d/index.html` is waku's fallback HTML
   // shell served for routes that are not statically generated.
   const htmlFiles = walk(outDir, (name) => name.endsWith(".html"), { skipUnderscore: false });
-  const stats: HeadStats = { posthog: 0, canonical: 0, skipped: [] };
+  const stats: HeadStats = { posthog: 0, canonical: 0, jsonld: 0, skipped: [] };
 
   for (const file of htmlFiles) {
     const html = readFileSync(file, "utf-8");
@@ -186,12 +204,18 @@ function injectHeadTags(outDir: string, routes: Set<string>): HeadStats {
     // order, so a re-run over an already-processed build is a byte-for-byte no-op.
     const hadPosthog = POSTHOG_TAG.test(before);
     POSTHOG_TAG.lastIndex = 0;
-    let head = before.replace(CANONICAL_TAG, "").replace(OG_URL_TAG, "").replace(POSTHOG_TAG, "");
+    let head = before
+      .replace(CANONICAL_TAG, "")
+      .replace(OG_URL_TAG, "")
+      .replace(JSONLD_TAG, "")
+      .replace(POSTHOG_TAG, "");
 
     const route = routeFromRelative(relative(outDir, file));
     if (routes.has(route)) {
       const url = urlForRoute(route);
       head += `<link rel="canonical" href="${url}"/><meta property="og:url" content="${url}"/>`;
+      head += jsonLdScript(buildGraph(route, meta, modified));
+      stats.jsonld++;
       stats.canonical++;
     } else {
       stats.skipped.push(relative(outDir, file));
@@ -205,6 +229,267 @@ function injectHeadTags(outDir: string, routes: Set<string>): HeadStats {
   return stats;
 }
 
+// ---------------------------------------------------------------------------
+// Structured data, real `lastmod`, and an llms.txt in the llmstxt.org shape.
+// ---------------------------------------------------------------------------
+
+/** The shared entity id. Every Parallel host points its schema at this one. */
+const ORG_ID = "https://parallel.best/#organization";
+const WEBSITE_ID = `${SITE_URL}/#website`;
+
+/**
+ * Vocs emits `article:modified_time` per page. We reuse it rather than the build
+ * clock so `lastmod` and `dateModified` describe the content, not the deploy —
+ * a sitemap that claims every page changed on every deploy trains crawlers to
+ * ignore the field.
+ */
+const MODIFIED_TIME_TAG =
+  /<meta\b[^>]*\bproperty=["']?article:modified_time["']?[^>]*\bcontent=["']([^"']+)["'][^>]*>/i;
+
+/** Any `<script type="application/ld+json">` this script previously injected. */
+const JSONLD_TAG =
+  /[ \t]*<script\b[^>]*\btype=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>[ \t]*\n?/gi;
+
+function readModifiedTimes(outDir: string): Map<string, string> {
+  const times = new Map<string, string>();
+  for (const file of walk(outDir, (name) => name.endsWith(".html"), { skipUnderscore: false })) {
+    const match = readFileSync(file, "utf-8").match(MODIFIED_TIME_TAG);
+    if (match) times.set(routeFromRelative(relative(outDir, file)), match[1]);
+  }
+  return times;
+}
+
+/** Route → frontmatter title, used for breadcrumb names and llms.txt entries. */
+function pageMeta(): Map<string, { title: string; description: string }> {
+  const meta = new Map<string, { title: string; description: string }>();
+  for (const file of pageFiles()) {
+    if (!/\.mdx?$/.test(file)) continue;
+    const { data } = matter(readFileSync(file, "utf-8"));
+    meta.set(routeFor(file), {
+      title: typeof data.title === "string" ? data.title : "",
+      description:
+        typeof data.description === "string" ? data.description.replace(/\s+/g, " ").trim() : "",
+    });
+  }
+  return meta;
+}
+
+function jsonLdScript(payload: unknown): string {
+  // `<` is escaped so a value can never close the script element early.
+  return `<script type="application/ld+json">${JSON.stringify(payload).replace(/</g, "\\u003c")}</script>`;
+}
+
+/** Ancestor routes of `/a/b/c`, deepest last, home first. */
+function breadcrumbTrail(route: string): string[] {
+  if (route === "/") return ["/"];
+  const parts = route.split("/").filter(Boolean);
+  const trail = ["/"];
+  for (let i = 0; i < parts.length; i++) trail.push(`/${parts.slice(0, i + 1).join("/")}`);
+  return trail;
+}
+
+function buildGraph(
+  route: string,
+  meta: Map<string, { title: string; description: string }>,
+  modified: Map<string, string>,
+): unknown {
+  const url = urlForRoute(route);
+  const organization = {
+    "@type": "Organization",
+    "@id": ORG_ID,
+    name: "Parallel Protocol",
+    url: "https://parallel.best",
+    sameAs: [
+      `${SITE_URL}/`,
+      "https://x.com/ParallelMoney",
+      "https://github.com/parallel-protocol",
+      "https://t.me/parallel_money",
+      "https://discord.gg/vuuAVAxpcF",
+    ],
+  };
+  const website = {
+    "@type": "WebSite",
+    "@id": WEBSITE_ID,
+    url: `${SITE_URL}/`,
+    name: "Parallel Documentation",
+    isPartOf: { "@id": "https://parallel.best/#website" },
+    publisher: { "@id": ORG_ID },
+  };
+  const graph: unknown[] = [organization, website];
+
+  if (route !== "/") {
+    const title = meta.get(route)?.title;
+    const dateModified = modified.get(route);
+    graph.push({
+      "@type": "TechArticle",
+      ...(title ? { headline: title } : {}),
+      url,
+      ...(dateModified ? { dateModified } : {}),
+      publisher: { "@id": ORG_ID },
+      isPartOf: { "@id": WEBSITE_ID },
+      image: `${SITE_URL}/og-image.png`,
+    });
+
+    // Only rungs that are real, titled routes — a breadcrumb pointing at a URL
+    // that does not exist is worse than a shorter breadcrumb.
+    const items = breadcrumbTrail(route)
+      .map((step) => ({ step, name: step === "/" ? "Docs" : meta.get(step)?.title }))
+      .filter((rung): rung is { step: string; name: string } => Boolean(rung.name))
+      .map((rung, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: rung.name,
+        item: urlForRoute(rung.step),
+      }));
+    if (items.length > 1) graph.push({ "@type": "BreadcrumbList", itemListElement: items });
+  }
+
+  return { "@context": "https://schema.org", "@graph": graph };
+}
+
+/**
+ * Sections of `llms.txt`, in reading order. Vocs' own generator emits one flat
+ * list of every page with no summary and no grouping; llmstxt.org asks for an
+ * H1, a blockquote summary, then H2 sections of described links. Keyed by the
+ * first route segment.
+ */
+const LLMS_SECTIONS: { key: string; heading: string }[] = [
+  { key: "introduction", heading: "Start here" },
+  { key: "products", heading: "Products" },
+  { key: "agents", heading: "Agents and payments" },
+  { key: "developers-hub", heading: "Developer reference" },
+  { key: "governance", heading: "Governance" },
+  { key: "security", heading: "Security" },
+  { key: "resources", heading: "Resources" },
+];
+
+const LLMS_SUMMARY =
+  "Public documentation of Parallel, a decentralized stablecoin protocol by Cooper Labs. " +
+  "USDp is an overcollateralized USD stablecoin live on 24 chains; sUSDp is its ERC-4626 " +
+  "savings vault; PRL is the governance token. The Parallelizer engine mints and redeems " +
+  "USDp at a 0% fee on the chains carrying a deployment, and the protocol runs an x402 " +
+  "payment facilitator and an MCP server for AI agents.";
+
+/**
+ * Answer engines routinely confuse this protocol with similarly named projects.
+ * Stating the distinction in the file they read first is cheaper than correcting
+ * the answers afterwards.
+ */
+const LLMS_DISAMBIGUATION = [
+  "## Disambiguation",
+  "",
+  "Parallel Protocol (this documentation) is a decentralized stablecoin protocol issuing USDp.",
+  "It is unrelated to:",
+  "",
+  "- Parallel.ai, the AI web-research company.",
+  "- Parallel Finance, the Polkadot lending protocol.",
+  "- USDP by Paxos, a centrally issued stablecoin — Parallel's stablecoin is USDp.",
+  "",
+  "Parallel V2 was previously known as Mimo. Pages under `/products/parallel-v2` document",
+  "that legacy system; current work is Parallel V3.",
+].join("\n");
+
+function buildLlmsTxt(
+  routes: Set<string>,
+  meta: Map<string, { title: string; description: string }>,
+  modified: Map<string, string>,
+): string {
+  const latest = [...modified.values()].sort().pop();
+  const lines: string[] = [
+    "# Parallel Documentation",
+    "",
+    `> ${LLMS_SUMMARY}`,
+    "",
+    `Last updated: ${(latest ?? new Date().toISOString()).split("T")[0]}`,
+    "",
+  ];
+
+  const seen = new Set<string>();
+  const entry = (route: string): string | null => {
+    const info = meta.get(route);
+    if (!info?.title) return null;
+    seen.add(route);
+    const description = info.description ? `: ${info.description}` : "";
+    return `- [${info.title}](${urlForRoute(route)})${description}`;
+  };
+
+  const overview = entry("/");
+  if (overview) lines.push("## Overview", "", overview, "");
+
+  for (const { key, heading } of LLMS_SECTIONS) {
+    const items = [...routes]
+      .filter((route) => route === `/${key}` || route.startsWith(`/${key}/`))
+      .sort()
+      .map(entry)
+      .filter((line): line is string => line !== null);
+    if (items.length > 0) lines.push(`## ${heading}`, "", ...items, "");
+  }
+
+  const rest = [...routes]
+    .filter((route) => !seen.has(route))
+    .sort()
+    .map(entry)
+    .filter((line): line is string => line !== null);
+  if (rest.length > 0) lines.push("## Other pages", "", ...rest, "");
+
+  lines.push(
+    "## Full text",
+    "",
+    `- [Complete documentation as a single file](${SITE_URL}/llms-full.txt)`,
+    "",
+    LLMS_DISAMBIGUATION,
+    "",
+  );
+
+  return lines.join("\n");
+}
+
+/**
+ * The address books, keyed by the identifier the MDX passes as `chains={…}`.
+ * Kept next to the expander so a new book is one line here and nothing else.
+ */
+const ADDRESS_BOOKS: Record<string, AddressBook> = {
+  USDP_ADDRESSES,
+  PRL_ADDRESSES,
+  PAR_ADDRESSES,
+  MIMO_DEPRECATED_ADDRESSES,
+  PAUSD_DEPRECATED_ADDRESSES,
+};
+
+/**
+ * Rewrites the markdown exports in place so answer engines read the content a
+ * browser shows, not the JSX that would have produced it.
+ */
+function expandMarkdownExports(outDir: string): { touched: number; total: number } {
+  const mdDir = join(outDir, "assets/md");
+  if (!existsSync(mdDir)) return { touched: 0, total: 0 };
+  const files = walk(mdDir, (name) => name.endsWith(".md"), { skipUnderscore: false });
+  let touched = 0;
+  for (const file of files) {
+    const before = readFileSync(file, "utf-8");
+    const after = expandComponents(before, ADDRESS_BOOKS);
+    if (after !== before) {
+      writeFileSync(file, after, "utf-8");
+      touched++;
+    }
+  }
+  return { touched, total: files.length };
+}
+
+
+/**
+ * Merges our headers and redirects into the routing config the Vocs Vercel
+ * adapter wrote. Absent on a plain `vocs build` — the adapter only runs inside
+ * a Vercel build — so a local run reports it and moves on.
+ */
+function applyDeliveryRoutes(): "written" | "absent" {
+  const configPath = join(ROOT, ".vercel/output/config.json");
+  if (!existsSync(configPath)) return "absent";
+  const config = JSON.parse(readFileSync(configPath, "utf-8")) as VercelConfig;
+  writeFileSync(configPath, `${JSON.stringify(withDeliveryRoutes(config), null, 2)}\n`, "utf-8");
+  return "written";
+}
+
 function main(): void {
   const outDirs = OUTPUT_DIRS.filter((dir) => existsSync(dir));
   if (outDirs.length === 0) {
@@ -214,15 +499,30 @@ function main(): void {
     process.exit(1);
   }
 
+  const delivery = applyDeliveryRoutes();
+  console.log(
+    delivery === "written"
+      ? "[postbuild-seo] .vercel/output/config.json: security headers, static image cache and redirects merged"
+      : "[postbuild-seo] .vercel/output/config.json absent (local build) — headers and redirects not applied",
+  );
+
   const { all, indexable } = collectRoutes();
-  const sitemap = buildSitemap(indexable);
+  const meta = pageMeta();
+  // Read once, from the first output dir: both dirs hold the same pages.
+  const modified = readModifiedTimes(outDirs[0]);
+  const sitemap = buildSitemap(indexable, modified);
+  const llms = buildLlmsTxt(indexable, meta, modified);
   const urlCount = (sitemap.match(/<loc>/g) ?? []).length;
   const noindexCount = all.size - indexable.size;
+  const datedCount = [...indexable].filter((route) => modified.has(route)).length;
   for (const dir of outDirs) {
     writeFileSync(join(dir, "sitemap.xml"), sitemap, "utf-8");
-    const { posthog, canonical, skipped } = injectHeadTags(dir, all);
+    // Overwrites the flat list Vocs writes at `buildEnd` — this step runs after it.
+    writeFileSync(join(dir, "llms.txt"), llms, "utf-8");
+    const md = expandMarkdownExports(dir);
+    const { posthog, canonical, jsonld, skipped } = injectHeadTags(dir, all, meta, modified);
     console.log(
-      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs, ${noindexCount} noindex page(s) excluded), canonical + og:url on ${canonical} page(s), PostHog injected into ${posthog} HTML file(s)`,
+      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs, ${noindexCount} noindex page(s) excluded, ${datedCount} with a real lastmod), llms.txt, components expanded in ${md.touched}/${md.total} markdown export(s), canonical + og:url on ${canonical} page(s), JSON-LD on ${jsonld} page(s), PostHog injected into ${posthog} HTML file(s)`,
     );
     // Every served route keeps a canonical, including the noindex ones: they
     // are still real URLs, they are just not advertised for indexing.

@@ -1,6 +1,8 @@
 ---
 title: Addresses
-description: Deployed Parallel Contracts
+description: >-
+  Every deployed Parallel contract address, split by protocol version: USDp
+  and PRL for Parallel V3, PAR and the deprecated tokens for Parallel V2.
 subtitle: Deployed Parallel Contracts
 ---
 
@@ -8,4 +10,19 @@ subtitle: Deployed Parallel Contracts
 
 import { PageCardGrid } from '@/components/PageCardGrid'
 
-<PageCardGrid items={[{"title":"Parallel V3","href":"/developers-hub/contract-addresses/parallel-v3"},{"title":"Parallel V2","href":"/developers-hub/contract-addresses/parallel-v2"}]} />
+Deployed contract addresses for every Parallel token, one click away.
+
+## Parallel V3
+
+<PageCardGrid items={[
+  { title: "USDp", href: "/developers-hub/contract-addresses/parallel-v3/usdp" },
+  { title: "PRL", href: "/developers-hub/contract-addresses/parallel-v3/prl" },
+]} />
+
+## Parallel V2
+
+<PageCardGrid items={[
+  { title: "PAR", href: "/developers-hub/contract-addresses/parallel-v2/par" },
+  { title: "paUSD (deprecated)", href: "/developers-hub/contract-addresses/parallel-v2/pausd-deprecated" },
+  { title: "MIMO (deprecated)", href: "/developers-hub/contract-addresses/parallel-v2/mimo-deprecated" },
+]} />
