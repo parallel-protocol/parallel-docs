@@ -22,7 +22,7 @@ describe("withDeliveryRoutes", () => {
 
   it("sets the security headers on every response without answering it", () => {
     const route = withDeliveryRoutes(adapterConfig).routes?.[0];
-    expect(route?.src).toBe("/(.*)");
+    expect(route?.src).toBe("^/(.*)$");
     expect(route?.headers).toEqual(SECURITY_HEADERS);
     // Without `continue`, this route would answer the request and serve nothing.
     expect(route?.continue).toBe(true);
@@ -48,6 +48,14 @@ describe("withDeliveryRoutes", () => {
     }
     // Must not swallow the pages under it.
     expect(new RegExp(redirect?.src as string).test("/developers-hub/developers-guide")).toBe(false);
+  });
+
+
+  it("adds no field Vercel does not know — an unknown key fails the whole deployment", () => {
+    const allowed = new Set(["src", "dest", "headers", "status", "continue", "handle", "check", "methods", "has", "missing"]);
+    for (const route of withDeliveryRoutes(adapterConfig).routes ?? []) {
+      for (const key of Object.keys(route)) expect(allowed).toContain(key);
+    }
   });
 
   it("is idempotent — a second merge does not stack duplicates", () => {

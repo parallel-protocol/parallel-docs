@@ -43,19 +43,34 @@ const REDIRECTS: { from: string; to: string }[] = [
   { from: "/developers-hub", to: "/developers-hub/developers-guide" },
 ];
 
-/** Marks our routes so a re-run replaces them instead of stacking duplicates. */
-const MARKER = "x-vocs-seo";
+const ALL_RESPONSES = "^/(.*)$";
+
+/**
+ * Vercel validates every route against a fixed schema and rejects the whole
+ * deployment (`invalid_routes`) if an object carries a field it does not know,
+ * so our routes cannot be tagged with a marker of our own. They are recognised
+ * on a re-run by their `src` instead, which is what makes the merge idempotent.
+ */
+function ourSources(): Set<string> {
+  return new Set([
+    ALL_RESPONSES,
+    STATIC_IMAGES,
+    ...REDIRECTS.map(({ from }) => `^${from}/?$`),
+  ]);
+}
 
 export function withDeliveryRoutes(config: VercelConfig): VercelConfig {
-  const existing = (config.routes ?? []).filter((route) => !(MARKER in route));
+  const mine = ourSources();
+  const existing = (config.routes ?? []).filter(
+    (route) => typeof route.src !== "string" || !mine.has(route.src),
+  );
 
   const ours: VercelRoute[] = [
     // `continue: true` applies the headers and keeps matching, so the adapter's
     // own routes still decide what actually answers the request.
-    { [MARKER]: 1, src: "/(.*)", headers: SECURITY_HEADERS, continue: true },
-    { [MARKER]: 1, src: STATIC_IMAGES, headers: { "cache-control": STATIC_IMAGE_CACHE }, continue: true },
+    { src: ALL_RESPONSES, headers: SECURITY_HEADERS, continue: true },
+    { src: STATIC_IMAGES, headers: { "cache-control": STATIC_IMAGE_CACHE }, continue: true },
     ...REDIRECTS.map(({ from, to }) => ({
-      [MARKER]: 1,
       src: `^${from}/?$`,
       status: 308,
       headers: { Location: to },
