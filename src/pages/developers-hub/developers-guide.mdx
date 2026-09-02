@@ -1,11 +1,64 @@
 ---
-title: Introduction
+title: Developers Guide
 description: >-
-  Coming Soon
-  ([https://github.com/orgs/parallel-protocol/repositories](https://github.com/orgs/parallel-protocol/repositories))
-robots: 'noindex, follow'
+  Entry point to the Parallel developer documentation: V3 modules, contract
+  addresses on 25 chains, oracles, subgraphs, the PRL token and the agent
+  tooling.
 ---
 
-# Introduction
+import { PageCardGrid } from '@/components/PageCardGrid'
 
-Coming Soon ([https://github.com/orgs/parallel-protocol/repositories](https://github.com/orgs/parallel-protocol/repositories))
+# Developers Guide
+
+This is the entry point to the technical documentation of Parallel. Every
+contract is open source under [parallel-protocol](https://github.com/orgs/parallel-protocol/repositories).
+
+## Parallel V3
+
+The current protocol. USDp is live on 25 chains; minting, redeeming and savings
+run on the chains that carry a Parallelizer deployment.
+
+<PageCardGrid items={[
+  { title: "Parallelizer Module — minting and redeeming USDp", href: "/developers-hub/parallel-v3/parallelizer-module" },
+  { title: "Savings Module — the sUSDp ERC-4626 vault", href: "/developers-hub/parallel-v3/savings-module" },
+  { title: "Bridging Module — moving USDp across chains", href: "/developers-hub/parallel-v3/bridging-module" },
+  { title: "Flashloan Module", href: "/developers-hub/parallel-v3/flashloan-module" },
+  { title: "Build on Parallel — integration guides", href: "/developers-hub/parallel-v3/build-on-parallel" },
+]} />
+
+## Contract addresses
+
+<PageCardGrid items={[
+  { title: "All contract addresses", href: "/developers-hub/contract-addresses" },
+  { title: "USDp — Parallel V3", href: "/developers-hub/contract-addresses/parallel-v3/usdp" },
+  { title: "PRL — Parallel V3", href: "/developers-hub/contract-addresses/parallel-v3/prl" },
+]} />
+
+## Data and oracles
+
+<PageCardGrid items={[
+  { title: "On-chain tools — DIA and RedStone oracles", href: "/developers-hub/parallel-v3/onchain-tools" },
+  { title: "Off-chain tools — subgraphs and Dune", href: "/developers-hub/parallel-v3/offchain-tools" },
+]} />
+
+## Governance token
+
+<PageCardGrid items={[
+  { title: "PRL — overview", href: "/developers-hub/parallel-governance-token-prl" },
+  { title: "PRL tokenomics contracts", href: "/developers-hub/parallel-governance-token-prl/tokenomics/contracts" },
+]} />
+
+## Agents and payments
+
+<PageCardGrid items={[
+  { title: "x402 — pay for an API request with stablecoins", href: "/agents/x402" },
+  { title: "MCP server — read the protocol from an AI assistant", href: "/agents/mcp" },
+]} />
+
+## Legacy — Parallel V2
+
+Kept for reference. New integrations should target V3.
+
+<PageCardGrid items={[
+  { title: "Parallel V2 developer documentation", href: "/developers-hub/parallel-v2" },
+]} />

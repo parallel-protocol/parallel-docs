@@ -158,6 +158,13 @@ export const USDP_ADDRESSES: Record<string, ContractEntry[]> = {
     { name: "FlashParallel", address: "0x46B053Ce47F16390574Bb8f54cAccd04C1E3Faf2", description: "Flashloan Module" },
     { name: "FlashParallelToken", address: "0x10eb3f443baa258b3417d6c318f7865ad61b539b", description: "Flashloan Module" },
   ],
+  "mantle": [
+    { name: "ParallelAccessManager", address: "0xfD28f108e95f4D41daAE9dbfFf707D677985998E", description: "Core Protocol" },
+    { name: "USDp", address: "0x9eE1963f05553eF838604Dd39403be21ceF26AA4", description: "Core Protocol" },
+    { name: "TokenP", address: "0xcB3e564293393E0d4F43305a250d4e1716dE600b", description: "Core Protocol" },
+    { name: "FlashParallel", address: "0x9e0DCF7a33bBde6689560C5c807dd2a3dF991277", description: "Flashloan Module" },
+    { name: "FlashParallelToken", address: "0xe23B5DED6f7B7cb56Ebcd459B19Dad4D7E05cF7b", description: "Flashloan Module" },
+  ],
   "optimism": [
     { name: "ParallelAccessManager", address: "0x0e4e7Ca9D7b1e6293D0713EFEfB4BCA010DeBF46", description: "Core Protocol" },
     { name: "USDp", address: "0x90337e484B1Cb02132fc150d3Afa262147348545", description: "Core Protocol" },

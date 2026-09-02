@@ -431,7 +431,7 @@ export const sidebar: Sidebar = [
     text: "DEVELOPERS HUB",
     items: [
       {
-        text: "Introduction",
+        text: "Developers Guide",
         link: "/developers-hub/developers-guide",
       },
       {
