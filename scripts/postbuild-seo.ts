@@ -41,6 +41,7 @@ import { PAUSD_DEPRECATED_ADDRESSES } from "../src/data/pausd-deprecated-address
 import { PRL_ADDRESSES } from "../src/data/prl-addresses";
 import { USDP_ADDRESSES } from "../src/data/usdp-addresses";
 import { type AddressBook, expandComponents } from "./md-components";
+import { type VercelConfig, withDeliveryRoutes } from "./delivery-routes";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PAGES_DIR = join(ROOT, "src/pages");
@@ -475,6 +476,20 @@ function expandMarkdownExports(outDir: string): { touched: number; total: number
   return { touched, total: files.length };
 }
 
+
+/**
+ * Merges our headers and redirects into the routing config the Vocs Vercel
+ * adapter wrote. Absent on a plain `vocs build` — the adapter only runs inside
+ * a Vercel build — so a local run reports it and moves on.
+ */
+function applyDeliveryRoutes(): "written" | "absent" {
+  const configPath = join(ROOT, ".vercel/output/config.json");
+  if (!existsSync(configPath)) return "absent";
+  const config = JSON.parse(readFileSync(configPath, "utf-8")) as VercelConfig;
+  writeFileSync(configPath, `${JSON.stringify(withDeliveryRoutes(config), null, 2)}\n`, "utf-8");
+  return "written";
+}
+
 function main(): void {
   const outDirs = OUTPUT_DIRS.filter((dir) => existsSync(dir));
   if (outDirs.length === 0) {
@@ -483,6 +498,13 @@ function main(): void {
     );
     process.exit(1);
   }
+
+  const delivery = applyDeliveryRoutes();
+  console.log(
+    delivery === "written"
+      ? "[postbuild-seo] .vercel/output/config.json: security headers, static image cache and redirects merged"
+      : "[postbuild-seo] .vercel/output/config.json absent (local build) — headers and redirects not applied",
+  );
 
   const { all, indexable } = collectRoutes();
   const meta = pageMeta();
