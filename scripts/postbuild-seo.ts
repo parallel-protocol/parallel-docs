@@ -366,9 +366,10 @@ const LLMS_SECTIONS: { key: string; heading: string }[] = [
 const LLMS_SUMMARY =
   "Public documentation of Parallel, a decentralized stablecoin protocol by Cooper Labs. " +
   "USDp is an overcollateralized USD stablecoin live on 24 chains; sUSDp is its ERC-4626 " +
-  "savings vault; PRL is the governance token. The Parallelizer engine mints and redeems " +
-  "USDp at a 0% fee on the chains carrying a deployment, and the protocol runs an x402 " +
-  "payment facilitator and an MCP server for AI agents.";
+  "savings vault; PRL is the governance token. The Parallelizer engine mints and burns USDp " +
+  "against a basket of reserve assets, with fees that adapt to each asset's exposure, and " +
+  "redemption against a proportional share of the backing is available at any time. The " +
+  "protocol also runs an x402 payment facilitator and an MCP server for AI agents.";
 
 /**
  * Answer engines routinely confuse this protocol with similarly named projects.

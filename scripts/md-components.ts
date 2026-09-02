@@ -65,6 +65,38 @@ function linkPairs(payload: string): { title: string; href: string }[] {
   return pairs;
 }
 
+
+/** Undoes the JS string escaping of an MDX attribute value. */
+function unescapeAttr(value: string): string {
+  return value.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+}
+
+/**
+ * `<Math html={…} />` carries KaTeX's rendered HTML, and that HTML embeds the
+ * original TeX in a MathML annotation. Serving the markup to an answer engine
+ * is worse than useless, so the TeX is recovered and written as a display
+ * equation.
+ */
+function mathToTex(tag: string): string | null {
+  const match = tag.match(/annotation encoding=\\?"application\/x-tex\\?">([^<]*)</);
+  if (!match) return null;
+  const tex = unescapeAttr(match[1]).trim();
+  return tex ? `$$\n${tex}\n$$` : null;
+}
+
+/** Pulls `question`/`answer` pairs, tolerating escaped quotes inside answers. */
+function faqPairs(payload: string): { question: string; answer: string }[] {
+  const pairs: { question: string; answer: string }[] = [];
+  const re =
+    /["']?question["']?\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*["']?answer["']?\s*:\s*"((?:[^"\\]|\\.)*)"/g;
+  let match = re.exec(payload);
+  while (match !== null) {
+    pairs.push({ question: unescapeAttr(match[1]), answer: unescapeAttr(match[2]) });
+    match = re.exec(payload);
+  }
+  return pairs;
+}
+
 function attr(tag: string, name: string): string | null {
   const match = tag.match(new RegExp(`\\b${name}=["']([^"']*)["']`));
   return match ? match[1] : null;
@@ -115,6 +147,16 @@ export function expandComponents(markdown: string, books: Record<string, Address
     const pairs = linkPairs(tag);
     return pairs.length > 0 ? pairs.map((p) => `- [${p.title}](${p.href})`).join("\n") : tag;
   });
+
+
+  out = out.replace(/<FAQ\b[\s\S]*?\/>/g, (tag) => {
+    const pairs = faqPairs(tag);
+    return pairs.length > 0
+      ? pairs.map(({ question, answer }) => `**${question}**\n\n${answer}`).join("\n\n")
+      : tag;
+  });
+
+  out = out.replace(/<Math\b[\s\S]*?\/>/g, (tag) => mathToTex(tag) ?? tag);
 
   // Tabs hold real markdown, indented inside the wrapper. Dropping the tags
   // alone would leave that indentation behind — and four leading spaces turn a
