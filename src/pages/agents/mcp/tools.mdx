@@ -13,7 +13,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 - **Amounts are human-readable strings** — pass `"100"` for 100 USDp, never wei. The server handles decimals.
 - **Slippage is in basis points** — `50` = 0.5%. Default 50, maximum 500. Applies to `mint`, `redeem` and `redeem_proportional`.
-- **Chains are lowercase slugs** (`base`, `ethereum`, `hyperevm`, …). USDp lives on 25 chains; minting, redeeming and savings run on the chains with a Parallelizer deployment — Ethereum, Base, Avalanche and HyperEVM, plus Sonic, which is being wound down. Bridging covers every chain except Mantle.
+- **Chains are lowercase slugs** (`base`, `ethereum`, `hyperevm`, …). USDp lives on 24 chains; minting, redeeming and savings run on the chains with a Parallelizer deployment — Ethereum, Base, Avalanche and HyperEVM, plus Sonic, which is being wound down. Bridging covers every chain.
 
 ## Protocol data
 
@@ -23,7 +23,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 | `get_supply` | Total and circulating supply of `usdp`, `susdp`, `prl`, `sprl1` or `sprl2`, with a per-chain breakdown |
 | `get_tvl` | TVL, per chain and per collateral |
 | `get_backing_composition` | Every collateral backing USDp: amounts, USD values, oracle prices, share of the basket |
-| `get_supported_chains` | The 25 chains with status and contract addresses |
+| `get_supported_chains` | The 24 chains with status and contract addresses |
 | `get_supported_collaterals` | Collaterals accepted on a chain, with caps, utilization and mint/redeem status |
 | `get_fee_rates` | Adaptive mint/redeem fees per collateral — can be negative (incentives) |
 | `get_savings_rate` | The protocol-wide sUSDp APY (7d/30d/90d), exchange rate and total deposits |
@@ -93,6 +93,6 @@ Gas is sponsored on every Parallelizer chain except Ethereum. See [x402](/agents
 | Tool | What it does |
 |---|---|
 | `parallel_query_docs` | Full-text search over the server's own documentation |
-| `parallel_health_check` | Server status and RPC latency for all 25 chains |
+| `parallel_health_check` | Server status and RPC latency for all 24 chains |
 
 <HelpFooter />

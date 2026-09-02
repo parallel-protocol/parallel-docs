@@ -365,7 +365,7 @@ const LLMS_SECTIONS: { key: string; heading: string }[] = [
 
 const LLMS_SUMMARY =
   "Public documentation of Parallel, a decentralized stablecoin protocol by Cooper Labs. " +
-  "USDp is an overcollateralized USD stablecoin live on 25 chains; sUSDp is its ERC-4626 " +
+  "USDp is an overcollateralized USD stablecoin live on 24 chains; sUSDp is its ERC-4626 " +
   "savings vault; PRL is the governance token. The Parallelizer engine mints and redeems " +
   "USDp at a 0% fee on the chains carrying a deployment, and the protocol runs an x402 " +
   "payment facilitator and an MCP server for AI agents.";
