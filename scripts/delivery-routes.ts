@@ -40,7 +40,19 @@ const STATIC_IMAGE_CACHE = "public, max-age=86400, stale-while-revalidate=604800
 
 /** Bare section roots that would otherwise 404. */
 const REDIRECTS: { from: string; to: string }[] = [
+  // Every section root a reader can reach by truncating a URL. Targets are the
+  // first entry the sidebar shows for that section, not the alphabetically
+  // first route, so the redirect lands where the navigation would have taken
+  // them. `/introduction` goes to the home page, which is what its sidebar
+  // group points at.
+  { from: "/introduction", to: "/" },
+  { from: "/products", to: "/products/parallel-v3" },
+  { from: "/security", to: "/security/proof-of-solvency" },
+  { from: "/governance", to: "/governance/parallel-governance-token-prl" },
   { from: "/developers-hub", to: "/developers-hub/developers-guide" },
+  // Not in the sidebar — it hangs off the "Build" item in the top nav.
+  { from: "/agents", to: "/agents/overview" },
+  { from: "/resources", to: "/resources/user-guides" },
 ];
 
 /**

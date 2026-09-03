@@ -65,7 +65,6 @@ function linkPairs(payload: string): { title: string; href: string }[] {
   return pairs;
 }
 
-
 /** Undoes the JS string escaping of an MDX attribute value. */
 function unescapeAttr(value: string): string {
   return value.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
@@ -148,7 +147,6 @@ export function expandComponents(markdown: string, books: Record<string, Address
     return pairs.length > 0 ? pairs.map((p) => `- [${p.title}](${p.href})`).join("\n") : tag;
   });
 
-
   out = out.replace(/<FAQ\b[\s\S]*?\/>/g, (tag) => {
     const pairs = faqPairs(tag);
     return pairs.length > 0
@@ -180,4 +178,53 @@ export function expandComponents(markdown: string, books: Record<string, Address
   );
 
   return out;
+}
+
+/**
+ * Drops the MDX component imports that survive the markdown export.
+ *
+ * `remark-mdx` keeps ESM nodes when it stringifies, so a page that imports a
+ * component leaves `import { LinkCard } from '@/components/LinkCard'` sitting
+ * under its own H1 — the first line of prose an answer engine reads.
+ *
+ * Only the `@/` alias is matched, and only outside fenced code blocks. Pages
+ * like the x402 quickstart are *about* imports: their samples open with
+ * `import { paymentMiddleware } from "@parallel-protocol/x402/express"`, and a
+ * looser rule would delete the very content the page exists to show.
+ */
+export function stripComponentImports(markdown: string): string {
+  const componentImport = /^import\s[^\n]*\sfrom\s*['"]@\/[^'"]+['"];?[ \t]*$/;
+  let inFence = false;
+  const kept: string[] = [];
+  for (const line of markdown.split("\n")) {
+    if (/^\s*(?:```|~~~)/.test(line)) inFence = !inFence;
+    if (!inFence && componentImport.test(line)) continue;
+    kept.push(line);
+  }
+  // Collapse the blank line the removed import leaves behind.
+  return kept.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+/**
+ * Replaces the full navigation dump Vocs prepends to every markdown export
+ * with a pointer to the two files that already hold it.
+ *
+ * The block is identical on all 151 pages and runs to roughly 33 KB, which is
+ * 75-96% of a typical response — an answer engine reading the top of the
+ * document meets the sitemap of every other page before a word of this one.
+ * `/llms.txt` is that same index, and `/llms-full.txt` the whole corpus, so
+ * nothing is lost by linking to them instead of repeating them 151 times.
+ */
+export function condenseSitemap(markdown: string, siteUrl: string): string {
+  return markdown.replace(
+    /^<!--\nSitemap:\n[\s\S]*?\n-->\n/,
+    [
+      "<!--",
+      "Parallel Documentation — this page, as markdown.",
+      `Index of every page: ${siteUrl}/llms.txt`,
+      `The whole documentation in one file: ${siteUrl}/llms-full.txt`,
+      "-->",
+      "",
+    ].join("\n"),
+  );
 }

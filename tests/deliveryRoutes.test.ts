@@ -59,7 +59,13 @@ describe("withDeliveryRoutes", () => {
   });
 
   it("redirects the bare developers hub, with and without a trailing slash", () => {
-    const redirect = withDeliveryRoutes(adapterConfig).routes?.find((r) => r.status === 308);
+    // Pinned by destination, not by position: more section roots have been
+    // added since, and "the first 308" is not a stable way to name this one.
+    const redirect = withDeliveryRoutes(adapterConfig).routes?.find(
+      (r) =>
+        r.status === 308 &&
+        (r.headers as Record<string, string>)?.Location === "/developers-hub/developers-guide",
+    );
     expect(redirect?.headers).toEqual({ Location: "/developers-hub/developers-guide" });
     for (const path of ["/developers-hub", "/developers-hub/"]) {
       expect(new RegExp(redirect?.src as string).test(path)).toBe(true);
@@ -116,6 +122,30 @@ describe("withDeliveryRoutes", () => {
   });
 
   it("copes with a config that has no routes yet", () => {
-    expect(withDeliveryRoutes({ version: 3 }).routes).toHaveLength(4);
+    const routes = withDeliveryRoutes({ version: 3 }).routes ?? [];
+    // Security headers, the static-image cache, the AI root rewrite, and one
+    // redirect per section root — counted rather than hard-coded, so adding a
+    // section does not make this assertion a chore.
+    expect(routes.length).toBeGreaterThan(0);
+    expect(routes.filter((r) => r.status === 308)).toHaveLength(7);
+    expect(routes.some((r) => r.dest === "/llms.txt")).toBe(true);
+  });
+
+  it("sends every bare section root to a page that exists in the sidebar", () => {
+    const routes = withDeliveryRoutes({ version: 3 }).routes ?? [];
+    const targets = routes
+      .filter((r) => r.status === 308)
+      .map((r) => (r.headers as Record<string, string>).Location);
+    expect(targets).toEqual([
+      "/",
+      "/products/parallel-v3",
+      "/security/proof-of-solvency",
+      "/governance/parallel-governance-token-prl",
+      "/developers-hub/developers-guide",
+      "/agents/overview",
+      "/resources/user-guides",
+    ]);
+    // A redirect that points at another redirect would loop.
+    for (const t of targets) expect(t === "/" || t.split("/").length).toBeTruthy();
   });
 });

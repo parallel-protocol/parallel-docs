@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { type AddressBook, expandComponents, renderAddressBook } from "../scripts/md-components";
+import {
+  type AddressBook,
+  condenseSitemap,
+  expandComponents,
+  renderAddressBook,
+  stripComponentImports,
+} from "../scripts/md-components";
 
 const BOOKS: Record<string, AddressBook> = {
   USDP_ADDRESSES: {
@@ -68,9 +74,10 @@ describe("expandComponents", () => {
     expect(out).not.toContain("<Tab");
   });
 
-
   it("turns an FAQ into question and answer prose", () => {
-    const out = expand('<FAQ items={[\n  { question: "Is it free?", answer: "Yes. No cut, no signup." },\n]} />');
+    const out = expand(
+      '<FAQ items={[\n  { question: "Is it free?", answer: "Yes. No cut, no signup." },\n]} />',
+    );
     expect(out).not.toContain("<FAQ");
     expect(out).toBe("**Is it free?**\n\nYes. No cut, no signup.");
   });
@@ -104,5 +111,80 @@ describe("renderAddressBook", () => {
     const out = renderAddressBook("USDp", BOOKS.USDP_ADDRESSES);
     expect(out.indexOf("### Base")).toBeLessThan(out.indexOf("### X Layer"));
     expect(out).toContain("| Contract | Address | Module |");
+  });
+});
+
+describe("stripComponentImports", () => {
+  it("drops an MDX component import left under the H1", () => {
+    const md =
+      "# Proof of Solvency\n\nimport { LinkCard } from '@/components/LinkCard'\n\n## Introduction\n";
+    const out = stripComponentImports(md);
+    expect(out).not.toContain("@/components/LinkCard");
+    expect(out).toContain("# Proof of Solvency");
+    expect(out).toContain("## Introduction");
+  });
+
+  it("keeps import statements that are the page's actual content", () => {
+    // The x402 quickstart exists to show these lines; a rule matching every
+    // `import ... from` would delete the sample it is documenting.
+    const md = [
+      "# Quickstart",
+      "",
+      "```ts",
+      'import express from "express";',
+      'import { paymentMiddleware } from "@parallel-protocol/x402/express";',
+      "```",
+      "",
+    ].join("\n");
+    expect(stripComponentImports(md)).toBe(md);
+  });
+
+  it("leaves a package import outside a fence alone", () => {
+    // Only the `@/` alias is ours; anything else is prose or a bare sample.
+    const md = 'import { paymentMiddleware } from "x402-express";\n';
+    expect(stripComponentImports(md)).toBe(md);
+  });
+
+  it("does not strip inside a fence that opens with tildes", () => {
+    const md = ["~~~mdx", "import { LinkCard } from '@/components/LinkCard'", "~~~", ""].join("\n");
+    expect(stripComponentImports(md)).toBe(md);
+  });
+});
+
+describe("condenseSitemap", () => {
+  const sitemap = [
+    "<!--",
+    "Sitemap:",
+    "- [Overview](/index): Public documentation of Parallel.",
+    "- [Audits](/security/audits): Security reviews.",
+    "-->",
+    "",
+  ].join("\n");
+
+  it("replaces the nav dump with a pointer to the two index files", () => {
+    const out = condenseSitemap(`${sitemap}\n# Audits\n\nBody.\n`, "https://docs.parallel.best");
+    expect(out).not.toContain("Sitemap:");
+    expect(out).not.toContain("/security/audits): Security reviews.");
+    expect(out).toContain("https://docs.parallel.best/llms.txt");
+    expect(out).toContain("https://docs.parallel.best/llms-full.txt");
+    expect(out).toContain("# Audits");
+    expect(out).toContain("Body.");
+  });
+
+  it("shrinks the preamble by orders of magnitude", () => {
+    const before = `${sitemap}\n# Audits\n`;
+    const after = condenseSitemap(before, "https://docs.parallel.best");
+    expect(after.length).toBeLessThan(before.length + 200);
+  });
+
+  it("leaves a document without the block untouched", () => {
+    const md = "# Overview\n\nNo sitemap here.\n";
+    expect(condenseSitemap(md, "https://docs.parallel.best")).toBe(md);
+  });
+
+  it("only touches a block at the very top", () => {
+    // A sitemap-shaped comment further down is page content, not the preamble.
+    const md = `# Title\n\n${sitemap}`;
+    expect(condenseSitemap(md, "https://docs.parallel.best")).toBe(md);
   });
 });

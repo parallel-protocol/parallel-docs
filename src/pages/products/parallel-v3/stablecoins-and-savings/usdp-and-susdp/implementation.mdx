@@ -1,6 +1,6 @@
 ---
 title: USDp & sUSDp — Implementation
-description: Detailing current USDp production implementation
+description: "How USDp is implemented in production: the Parallelizer Module, the assets accepted in the backing, per-asset mint and burn fees, and the Savings Module."
 subtitle: Detailing current USDp production implementation
 ---
 
@@ -109,7 +109,7 @@ The Parallelizer Module is deployed on several initial chains with these paramet
 
 ## Savings Module
 
-The Savings USDp, which is called sUSDp is deployed on 4 chains. The Savings USDp will act as a low risk yield bearing with real yield coming from assets generating yield in the backing of USDp. Main use cases include, but are not limited to wallet integration for one click USD saving account & collateral asset in lending protocols.
+The Savings USDp, which is called sUSDp is deployed on 4 chains. A fifth deployment, on Sonic, is being wound down and should not be used for new positions. The Savings USDp will act as a low risk yield bearing with real yield coming from assets generating yield in the backing of USDp. Main use cases include, but are not limited to wallet integration for one click USD saving account & collateral asset in lending protocols.
 
 As mentioned previously, savings rates aren’t automatically updated and need to be updated by a keeper. Cooper Labs and Mimo Labs have been approved as keepers.
 
@@ -123,6 +123,10 @@ The Savings Module is deployed on 4 chains with these parameters including:
 * Base
 * HyperEVM
 * Avalanche
+
+Contracts also exist on Sonic, where the deployment is being wound down. They stay listed in the
+[contract addresses](/developers-hub/contract-addresses) so existing positions can be exited, but
+Sonic is not counted among the supported chains.
 
 ## Bridging Module
 
