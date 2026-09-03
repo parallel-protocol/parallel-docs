@@ -28,6 +28,7 @@
  * Output dirs handled: `dist/public` (local `vocs build`) and
  * `.vercel/output/static` (Vocs Vercel adapter / Build Output API).
  */
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,7 +42,12 @@ import { PAUSD_DEPRECATED_ADDRESSES } from "../src/data/pausd-deprecated-address
 import { PRL_ADDRESSES } from "../src/data/prl-addresses";
 import { USDP_ADDRESSES } from "../src/data/usdp-addresses";
 import { type VercelConfig, withDeliveryRoutes } from "./delivery-routes";
-import { type AddressBook, expandComponents } from "./md-components";
+import {
+  type AddressBook,
+  condenseSitemap,
+  expandComponents,
+  stripComponentImports,
+} from "./md-components";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PAGES_DIR = join(ROOT, "src/pages");
@@ -233,6 +239,7 @@ function injectHeadTags(
   routes: Set<string>,
   meta: Map<string, { title: string; description: string }>,
   modified: Map<string, string>,
+  published: Map<string, string>,
 ): HeadStats {
   // Keep `_`-prefixed dirs here: `_root.d/index.html` is waku's fallback HTML
   // shell served for routes that are not statically generated.
@@ -261,7 +268,7 @@ function injectHeadTags(
     if (routes.has(route)) {
       const url = urlForRoute(route);
       head += `<link rel="canonical" href="${url}"/><meta property="og:url" content="${url}"/>`;
-      head += jsonLdScript(buildGraph(route, meta, modified));
+      head += jsonLdScript(buildGraph(route, meta, modified, published));
       stats.jsonld++;
       stats.canonical++;
     } else {
@@ -323,6 +330,59 @@ function pageMeta(): Map<string, { title: string; description: string }> {
   return meta;
 }
 
+/**
+ * Route → the date its source file first entered the repository.
+ *
+ * `TechArticle` wants a `datePublished`, and the only honest source for one is
+ * the history: reusing `dateModified` would assert that every page was written
+ * the day it was last touched. Renames are followed, so the audits page keeps
+ * the date it was added rather than the date it was moved.
+ *
+ * One `git log` for the whole repository rather than one per page — 155
+ * invocations would add seconds to every build. A shallow clone yields nothing
+ * and every page simply goes without the field, which is the correct failure:
+ * Vocs already depends on this history for `article:modified_time`, so a build
+ * that loses it loses the modified dates too and the gap is visible.
+ */
+function readPublishedTimes(): Map<string, string> {
+  let log: string;
+  try {
+    log = execFileSync(
+      "git",
+      ["log", "--diff-filter=AR", "--find-renames", "--reverse", "--format=C%aI", "--name-status"],
+      { cwd: ROOT, encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 },
+    );
+  } catch {
+    return new Map();
+  }
+
+  const added = new Map<string, string>();
+  let when = "";
+  for (const line of log.split("\n")) {
+    if (line.startsWith("C")) {
+      when = line.slice(1).trim();
+      continue;
+    }
+    const [status, from, to] = line.split("\t");
+    if (!status || !when) continue;
+    if (status.startsWith("R") && from && to) {
+      // A rename carries the original's date forward; the move is not a birth.
+      const inherited = added.get(from) ?? when;
+      if (!added.has(to)) added.set(to, inherited);
+    } else if (status.startsWith("A") && from && !added.has(from)) {
+      added.set(from, when);
+    }
+  }
+
+  const times = new Map<string, string>();
+  for (const file of pageFiles()) {
+    if (!/\.mdx?$/.test(file)) continue;
+    const date = added.get(relative(ROOT, file));
+    if (date) times.set(routeFor(file), date);
+  }
+  return times;
+}
+
 function jsonLdScript(payload: unknown): string {
   // `<` is escaped so a value can never close the script element early.
   return `<script type="application/ld+json">${JSON.stringify(payload).replace(/</g, "\\u003c")}</script>`;
@@ -341,6 +401,7 @@ function buildGraph(
   route: string,
   meta: Map<string, { title: string; description: string }>,
   modified: Map<string, string>,
+  published: Map<string, string>,
 ): unknown {
   const url = urlForRoute(route);
   const organization = {
@@ -369,11 +430,16 @@ function buildGraph(
   if (route !== "/") {
     const title = meta.get(route)?.title;
     const dateModified = modified.get(route);
+    const datePublished = published.get(route);
     graph.push({
       "@type": "TechArticle",
       ...(title ? { headline: title } : {}),
       url,
+      ...(datePublished ? { datePublished } : {}),
       ...(dateModified ? { dateModified } : {}),
+      // The docs carry no per-page byline, so the organisation is the author.
+      // Pointing at the node already in this graph rather than repeating it.
+      author: { "@id": ORG_ID },
       publisher: { "@id": ORG_ID },
       isPartOf: { "@id": WEBSITE_ID },
       image: `${SITE_URL}/og-image.png`,
@@ -510,20 +576,47 @@ const ADDRESS_BOOKS: Record<string, AddressBook> = {
  * Rewrites the markdown exports in place so answer engines read the content a
  * browser shows, not the JSX that would have produced it.
  */
-function expandMarkdownExports(outDir: string): { touched: number; total: number } {
+function expandMarkdownExports(outDir: string): {
+  touched: number;
+  total: number;
+  llmsFull: boolean;
+} {
   const mdDir = join(outDir, "assets/md");
-  if (!existsSync(mdDir)) return { touched: 0, total: 0 };
-  const files = walk(mdDir, (name) => name.endsWith(".md"), { skipUnderscore: false });
   let touched = 0;
-  for (const file of files) {
-    const before = readFileSync(file, "utf-8");
-    const after = expandComponents(before, ADDRESS_BOOKS);
-    if (after !== before) {
-      writeFileSync(file, after, "utf-8");
-      touched++;
+  let files: string[] = [];
+  if (existsSync(mdDir)) {
+    files = walk(mdDir, (name) => name.endsWith(".md"), { skipUnderscore: false });
+    for (const file of files) {
+      const before = readFileSync(file, "utf-8");
+      const after = condenseSitemap(
+        stripComponentImports(expandComponents(before, ADDRESS_BOOKS)),
+        SITE_URL,
+      );
+      if (after !== before) {
+        writeFileSync(file, after, "utf-8");
+        touched++;
+      }
     }
   }
-  return { touched, total: files.length };
+
+  // `llms-full.txt` is assembled by Vocs straight from the raw MDX, on a path
+  // that never touches the per-page exports above — so every component fix
+  // applied there has to be applied here too, or the one file most likely to
+  // be ingested wholesale keeps shipping raw `<Math html={...}>` blobs. Its
+  // own leading sitemap is left alone: there it appears once, as the corpus's
+  // table of contents, rather than repeated on 151 pages.
+  const llmsFullPath = join(outDir, "llms-full.txt");
+  let llmsFull = false;
+  if (existsSync(llmsFullPath)) {
+    const before = readFileSync(llmsFullPath, "utf-8");
+    const after = stripComponentImports(expandComponents(before, ADDRESS_BOOKS));
+    if (after !== before) {
+      writeFileSync(llmsFullPath, after, "utf-8");
+      llmsFull = true;
+    }
+  }
+
+  return { touched, total: files.length, llmsFull };
 }
 
 /**
@@ -556,6 +649,7 @@ function main(): void {
   );
 
   const { all, indexable } = collectRoutes();
+  const published = readPublishedTimes();
   const meta = pageMeta();
   // Read once, from the first output dir: both dirs hold the same pages.
   const modified = readModifiedTimes(outDirs[0]);
@@ -569,9 +663,15 @@ function main(): void {
     // Overwrites the flat list Vocs writes at `buildEnd` — this step runs after it.
     writeFileSync(join(dir, "llms.txt"), llms, "utf-8");
     const md = expandMarkdownExports(dir);
-    const { posthog, canonical, jsonld, skipped } = injectHeadTags(dir, all, meta, modified);
+    const { posthog, canonical, jsonld, skipped } = injectHeadTags(
+      dir,
+      all,
+      meta,
+      modified,
+      published,
+    );
     console.log(
-      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs, ${noindexCount} noindex page(s) excluded, ${datedCount} with a real lastmod), llms.txt, components expanded in ${md.touched}/${md.total} markdown export(s), canonical + og:url on ${canonical} page(s), JSON-LD on ${jsonld} page(s), PostHog injected into ${posthog} HTML file(s)`,
+      `[postbuild-seo] ${relative(ROOT, dir)}: sitemap.xml (${urlCount} URLs, ${noindexCount} noindex page(s) excluded, ${datedCount} with a real lastmod), llms.txt, components expanded in ${md.touched}/${md.total} markdown export(s), llms-full.txt ${md.llmsFull ? "expanded" : "unchanged"}, canonical + og:url on ${canonical} page(s), JSON-LD on ${jsonld} page(s), PostHog injected into ${posthog} HTML file(s)`,
     );
     // Every served route keeps a canonical, including the noindex ones: they
     // are still real URLs, they are just not advertised for indexing.
