@@ -79,7 +79,7 @@ The USDp you get back is the deposited amount plus the yield accrued since, beca
 
 ## How the rate is set
 
-The savings rate cannot be computed on-chain without opening the door to manipulation, so the protocol relies on [keepers](/security/keepers). Keepers approved by the DAO, currently Cooper Labs and Mimo Labs, encode the rate into the Savings contract based on the revenue the protocol actually collected. Between two updates the rate is fixed, and updates can happen anywhere from weekly to every few months depending on governance.
+The savings rate cannot be computed on-chain without opening the door to manipulation, so the protocol relies on [keepers](/security/keepers). Keepers approved by the DAO, listed on the keepers page, encode the rate into the Savings contract based on the revenue the protocol actually collected. Between two updates the rate is fixed, and updates can happen anywhere from weekly to every few months depending on governance.
 
 Two safeguards limit what a keeper can do:
 
@@ -116,7 +116,7 @@ The Bridging Module moves USDp, not sUSDp. To move a savings position to another
   },
   {
     question: "Who decides the rate, and can it be set to anything?",
-    answer: "DAO-approved keepers (Cooper Labs and Mimo Labs) update the rate from actual protocol revenue. The contract enforces a hard cap of 35.00%, and the keeper role is whitelisted by the DAO and protected by a timelock."
+    answer: "DAO-approved keepers (see the keepers page) update the rate from actual protocol revenue. The contract enforces a hard cap of 35.00%, and the keeper role is whitelisted by the DAO and protected by a timelock."
   },
   {
     question: "Can I bridge sUSDp to another chain?",

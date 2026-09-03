@@ -174,7 +174,7 @@ Reserves are the exception: the Parallelizer holds the backing in permissionless
 
 PRL is a governance token. Its price is set by the market and can fall to zero. Staking it adds mechanisms you should understand before you commit:
 
-- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a cooldown of one epoch (30 days). You can skip the cooldown by paying a penalty that starts at 50% of the amount and decreases linearly over the epoch; the penalty goes to the DAO Treasury.
+- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a cooldown of one epoch (30 days). You can skip the cooldown by paying a penalty that starts at 50% of the amount and decreases linearly over time; the penalty goes to the DAO Treasury.
 - **ParaBoost loss.** Your ParaBoost score is computed off-chain by a keeper at the end of each epoch and determines your share of fee distribution. Transferring or unstaking sPRL resets it.
 - **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, itself staked on Aura. You take impermanent loss between PRL and wETH, plus Balancer and Aura smart-contract risk, on top of Parallel's own. sPRL2 is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl).
 - **Claim window.** Fee rewards for stakers can be claimed during 12 epochs (about one year). Unclaimed rewards return to the DAO Treasury.
@@ -287,7 +287,7 @@ MCP read tools cache briefly (30 seconds for savings and exchange rates, 60 seco
   },
   {
     question: "What happens to my PRL if I unstake early?",
-    answer: "Unstaking sPRL normally takes a one-epoch (30-day) cooldown with no cost. Skipping the cooldown costs a penalty that starts at 50% of the amount and falls linearly to zero over the epoch, paid to the DAO Treasury. Unstaking or transferring sPRL also resets your ParaBoost score. The MCP server warns you about both before you sign."
+    answer: "Unstaking sPRL normally takes a one-epoch (30-day) cooldown with no cost. Skipping the cooldown costs a penalty that starts at 50% of the amount and falls linearly to zero over time, paid to the DAO Treasury. Unstaking or transferring sPRL also resets your ParaBoost score. The MCP server warns you about both before you sign."
   }
 ]} />
 
