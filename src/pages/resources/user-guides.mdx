@@ -1,32 +1,44 @@
 ---
 title: User Guides
 description: >-
-  Step-by-step guides for using Parallel: minting USDp, staking it into sUSDp,
-  bridging tokens across chains, and staking or migrating to PRL.
+  Step-by-step guides for the Parallel app: mint USDp, stake it into sUSDp,
+  bridge USDp and PRL across chains, and stake PRL for sPRL1 or sPRL2.
 subtitle: >-
-  Just discovered Parallel? This page will help you get started and understand
-  how to use and make the most of it.
+  Just discovered Parallel? Start here to use the app and make the most of
+  the protocol.
 ---
+
+import { PageCardGrid } from '@/components/PageCardGrid'
+import { HelpFooter } from '@/components/HelpFooter'
 
 # User Guides
 
-### Where to start using Parallel  ?
+Each guide below walks through one action in the [Parallel app](https://app.parallel.best): what it does, what it costs today, the steps to follow, and what to do when something does not go as expected. They are written for people using the app directly; if you are integrating Parallel from code or an AI agent, start with [Build with Parallel](/agents/overview) instead.
 
-Everything you need to know to use the protocol can be found below.
+<PageCardGrid items={[
+  { title: "How to mint USDp", href: "/resources/user-guides/mint-usdp" },
+  { title: "How to stake USDp into sUSDp", href: "/resources/user-guides/stake-usdp-into-susdp" },
+  { title: "How to bridge USDp and PRL", href: "/resources/user-guides/bridge" },
+  { title: "How to stake PRL", href: "/resources/user-guides/stake-prl" },
+]} />
 
-**[How to Mint USDp?](https://blog.parallel.best/how-to-mint-usdp)**
-Minting and burning USDp through the Parallelizer Module: which stablecoins are accepted as collateral, the fees and exposure limits the DAO sets for each, and the steps to swap collateral for USDp — or USDp back — in the app. Minting pauses for a collateral that has reached its maximum exposure.
+## Guides
 
-**[How to Stake USDp into sUSDp?](https://blog.parallel.best/how-to-stake-usdp-into-susdp)**
-Staking USDp into sUSDp, the savings vault whose yield comes from the revenue the protocol earns on the assets backing USDp. Covers depositing and withdrawing from the Earn section, and how the rate is updated by keepers. There is no staking fee and sUSDp stays liquid.
+**[How to mint USDp](/resources/user-guides/mint-usdp)**
+Swap an accepted stablecoin for USDp through the Parallelizer Module on Ethereum, Base, HyperEVM or Avalanche. Covers the accepted collateral per chain, the current fees, and the two ways to get collateral back: burn or redeem.
 
-**[How to Bridge Parallel Tokens?](https://blog.parallel.best/how-to-bridge-parallel-tokens)**
-Moving PRL, PAR and paUSD between supported chains with Parallel's LayerZero-based bridge: choosing the origin and destination chains, sending 1:1 with no protocol-level fee, and setting a recipient address other than your own.
+**[How to stake USDp into sUSDp](/resources/user-guides/stake-usdp-into-susdp)**
+Deposit USDp into the Savings Module and receive sUSDp, the liquid ERC-4626 share that earns the protocol's yield. Covers where the yield comes from, how keepers set the rate, and how to withdraw.
 
-**[How to Stake PRL?](https://blog.parallel.best/how-to-stake-prl)**
-The two ways to stake PRL — sPRL1 single-sided, or sPRL2 in the 80/20 PRL/wETH Balancer pool — locked into 30-day epochs. Explains the ParaBoost score, and how governance weight and the share of protocol fees differ between the two.
+**[How to bridge USDp and PRL](/resources/user-guides/bridge)**
+Move USDp between its 24 chains, and PRL between its chains, one for one over LayerZero. Covers the DVN security set-up, the daily and global limits, the fees you pay, and how to track a delayed transfer.
 
-### Closed
+**[How to stake PRL](/resources/user-guides/stake-prl)**
+Stake PRL as sPRL1 (single-sided) or sPRL2 (80/20 PRL/wETH Balancer pool) to earn a share of protocol fees and voting power. Covers 30-day epochs, ParaBoost, claiming rewards, and the unstaking cooldown and early-exit penalty.
+
+## Closed
 
 **[How to Migrate to PRL?](https://blog.parallel.best/how-to-migrate-to-prl)**
-How MIMO was migrated to PRL, the governance token that replaced it, across Ethereum, Polygon, Fantom, Arbitrum, Optimism, Base and Sonic. **The migration closed on 1 August 2026** — see [MIMO to PRL Migration](/governance/parallel-governance-token-prl/mimo-to-prl-migration). Kept for reference.
+How MIMO was migrated to PRL, the governance token that replaced it, across Ethereum, Polygon, Fantom, Arbitrum, Optimism, Base and Sonic. **The migration closed on 1 August 2026**, see [MIMO to PRL Migration](/governance/parallel-governance-token-prl/mimo-to-prl-migration). Kept for reference.
+
+<HelpFooter />

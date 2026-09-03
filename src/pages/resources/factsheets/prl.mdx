@@ -1,0 +1,75 @@
+---
+title: PRL Factsheet
+description: >-
+  Key facts about PRL, the Parallel governance token: supply, chains, canonical
+  contract, staking as sPRL1 and sPRL2, epochs, ParaBoost, fee share and links.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# PRL Factsheet
+
+PRL is the governance token of the Parallel Protocol. It replaced MIMO, and staking it as sPRL gives voting power and a share of protocol fees. This sheet gives the facts a listing or integration team needs first.
+
+## Key facts
+
+| Field | Value |
+| --- | --- |
+| Name | Parallel Governance Token |
+| Ticker | PRL |
+| Type | Governance token |
+| Standard | ERC-20 with Permit (OpenZeppelin ERC20 and ERC20Permit), immutable; bridged as a LayerZero OFT |
+| Underlying | None. PRL is not pegged; it carries governance rights and fee share when staked |
+| Issuer | Parallel DAO; contracts built by Cooper Labs |
+| Native chain | Ethereum |
+| Total supply | 1,000,000,000 PRL, fixed. No mint, pause or admin function on the token |
+| Decimals | 18 |
+| Canonical contract (Ethereum) | [0x6c0aeceeDc55c9d55d8B99216a670D85330941c3](https://etherscan.io/address/0x6c0aeceeDc55c9d55d8B99216a670D85330941c3) |
+| Chains | 9 chain deployments in the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl): Ethereum, Base, Arbitrum, Optimism, Polygon, Sonic (token contract), plus Avalanche, HyperEVM (fee distributors only) and Fantom (deprecated migration contract) |
+| Staking | sPRL1 (single-sided PRL) and sPRL2 (80/20 PRL/wETH Balancer pool staked on Aura). See [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
+| Epochs | 30 days. Unstaking has a 1-epoch cooldown; leaving early costs a penalty that starts at 50% and decays linearly. See [Epoch Concept](/governance/parallel-governance-token-prl/tokenomics/epoch-concept) |
+| Fee share | sPRL1 and sPRL2 holders receive a share of protocol fees each epoch, weighted by ParaBoost, claimable for 12 epochs. See [Fee Distribution](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) and [Fees](/products/parallel-v3/fees) |
+| Governance role | sPRL1 and sPRL2 carry voting power, weighted by the previous epoch's [ParaBoost](/governance/parallel-governance-token-prl/tokenomics/paraboost). See [sPRL and Voting Power](/governance/sprl) |
+| Issuance | Under PIP-46, 100% of PRL issuance goes to the DAO PRL Inflation Multisig on Ethereum. See [Issuance](/governance/parallel-governance-token-prl/issuance) |
+| Migration | 1:1 from MIMO, closed on 1 August 2026 (PIP-61). See [MIMO to PRL Migration](/governance/parallel-governance-token-prl/mimo-to-prl-migration) |
+| Licensing | MIT. Audited by Bail Security and Zenith. See [Licensing](/products/parallel-v3/licensing) and [Audits](/security/audits) |
+
+## How it works
+
+PRL itself is a plain, immutable ERC-20 on Ethereum; every other chain holds a `PeripheralPRL` OFT that mints and burns against PRL locked in the Ethereum `LockBox`, over LayerZero with DAO-configured DVNs. See the [PRL Bridging Module](/governance/parallel-governance-token-prl/bridging-module). To take part in governance you stake PRL as sPRL1, or provide 80/20 PRL/wETH liquidity and stake the pool token as sPRL2, which counts x2.5 in ParaBoost. A keeper (Cooper Labs) computes ParaBoost off-chain at the end of each 30-day epoch and publishes a merkle root to the `RewardMerkleDistributor`, from which stakers claim their fee share. Transferring sPRL resets the accumulated ParaBoost, so voting power and rewards stay with long-term stakers. The full model is in [Tokenomics](/governance/parallel-governance-token-prl/tokenomics).
+
+## Backing and risk
+
+PRL is not backed by reserves and its value is not tied to the USDp collateral shown on the [Proof of Solvency](/security/proof-of-solvency) page. Its risks are those of a governance token: price volatility, the early-unstake penalty, impermanent loss on the sPRL2 pool, and bridge risk on chains other than Ethereum, mitigated by the DAO-controlled DVN set and pause functions. The tokenomics contracts use OpenZeppelin AccessManager, ReentrancyGuard and emergency pause. Read [Risks](/security/risks) before listing or integrating PRL.
+
+## Where to get it
+
+- **Stake** PRL as sPRL1 or sPRL2 and delegate voting power: [app.parallel.best/stake](https://app.parallel.best/stake)
+- **Bridge** PRL between Ethereum, Base, Arbitrum, Optimism, Polygon and Sonic: [app.parallel.best/bridge](https://app.parallel.best/bridge)
+- **Step-by-step**: [How to stake PRL](/resources/user-guides/stake-prl)
+
+The MIMO to PRL migration is closed; MIMO can no longer be exchanged for PRL.
+
+## Integrate it
+
+- [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl): token, LockBox, PeripheralPRL, sPRL1, sPRL2 and fee distributors on every chain
+- [PRL developer docs](/developers-hub/parallel-governance-token-prl): token, bridging and migration contracts
+- [Tokenomics contracts](/developers-hub/parallel-governance-token-prl/tokenomics/contracts) and [Key Operations Flows](/developers-hub/parallel-governance-token-prl/tokenomics/key-operations-flows): staking, withdrawal and reward-claim flows
+- [Subgraphs](/developers-hub/parallel-v3/offchain-tools/subgraphs) for indexed data; [Dune](/developers-hub/parallel-v3/offchain-tools/dune) dashboards are planned
+- [MCP server](/agents/mcp): live on 5 chains with 36 tools, giving any AI client staking positions and ready-to-sign stake, unstake and bridge transactions
+
+## Resources
+
+- [Brand assets](https://brand.parallel.best/)
+- [Parallel app](https://app.parallel.best/)
+- [Governance forum](https://gov.parallel.best/)
+- [Audits](/security/audits)
+- [PRL governance page](/governance/parallel-governance-token-prl)
+
+## Related
+
+- [USDp Factsheet](/resources/factsheets/usdp)
+- [sUSDp Factsheet](/resources/factsheets/susdp)
+- [Governance Process](/governance/governance-process)
+
+<HelpFooter />

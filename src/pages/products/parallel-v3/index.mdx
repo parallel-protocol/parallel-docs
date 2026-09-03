@@ -1,18 +1,89 @@
 ---
 title: Parallel V3 — Products
 description: >-
-  Parallel V3 is a modular, upgradable protocol for issuing decentralized,
-  over-collateralized stablecoins. Any peg can run on it: USD, EUR, CHF, ETH or
-  BTC.
+  Parallel V3 is a modular, upgradable, DAO-governed stablecoin protocol. What
+  its four modules do, what you can do with USDp and sUSDp, and where to go next.
 subtitle: Introducing Parallel V3
 ---
 
+import { PageCardGrid } from '@/components/PageCardGrid'
+import { HelpFooter } from '@/components/HelpFooter'
+
 # Parallel V3
 
-Parallel V3 is a stablecoins protocol allowing the creation of decentralized, capital-efficient and over-collateralized stablecoins built using a modular & upgradable architecture.
+Parallel V3 is a modular, upgradable and DAO-governed protocol for issuing decentralized, over-collateralized stablecoins. Every function of the protocol (minting, savings, bridging, flash loans) lives in its own module. The DAO can deploy, upgrade, pause or reconfigure a module without disrupting the others, and can add or remove modules over time.
 
-The protocol consists of several different modules,which can be added or removed over time by the DAO, from which stablecoins can be issued or minted.
-
-Any type of stablecoin can be deployed using Parallel V3, for instance: [USD](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp), EUR, CHF, ETH, BTC, etc..
+[USDp](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp) is the first stablecoin issued on Parallel V3, and [sUSDp](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp#staked-usdp) is its yield-bearing version. The same architecture can issue any peg: EUR, CHF, ETH or BTC.
 
 <figure><img src="/images/jdclW0DZ4u8SRshQTJL5.png" alt="" /><figcaption><p>High Level Architecture</p></figcaption></figure>
+
+## The four modules
+
+<PageCardGrid items={[
+  { title: "Parallelizer Module", href: "/products/parallel-v3/how-it-works/parallelizer-module" },
+  { title: "Savings Module", href: "/products/parallel-v3/how-it-works/savings-module" },
+  { title: "Bridging Module", href: "/products/parallel-v3/how-it-works/bridging-module" },
+  { title: "Flashloan Module", href: "/products/parallel-v3/how-it-works/flashloan-module" },
+]} />
+
+- **[Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module)**: mints and burns the stablecoin at oracle value against a basket of accepted assets, with adaptive fees that keep each asset's exposure inside DAO-set bounds. Holders can also redeem at any time for a proportional share of the whole backing.
+- **[Savings Module](/products/parallel-v3/how-it-works/savings-module)**: an ERC-4626 vault. Deposit USDp, receive sUSDp, and watch its value grow as protocol yield accrues. No deposit or withdrawal fee, and sUSDp stays liquid.
+- **[Bridging Module](/products/parallel-v3/how-it-works/bridging-module)**: moves the stablecoin between chains over LayerZero (OFT standard). Tokens are burned on the source chain and minted on the destination, under DVN quorums and daily and global limits set by the DAO.
+- **[Flashloan Module](/products/parallel-v3/how-it-works/flashloan-module)**: mints the stablecoin inside a single transaction and burns it at the end. The size is capped by a governance parameter, not by pool liquidity.
+
+Read [How It Works](/products/parallel-v3/how-it-works) for the architecture as a whole.
+
+## What you can do with it
+
+| You want to... | Where | Guide |
+| -------------- | ----- | ----- |
+| Mint USDp from an accepted stablecoin | [app.parallel.best/mint](https://app.parallel.best/mint) | [How to mint USDp](/resources/user-guides/mint-usdp) |
+| Earn yield on USDp with sUSDp | [app.parallel.best/earn](https://app.parallel.best/earn) | [How to stake USDp into sUSDp](/resources/user-guides/stake-usdp-into-susdp) |
+| Move USDp between chains | [app.parallel.best/bridge](https://app.parallel.best/bridge) | [How to bridge Parallel tokens](/resources/user-guides/bridge) |
+| Take a USDp flash loan | The `FlashParallel` contract on each chain, see [contract addresses](/developers-hub/contract-addresses) | [Flashloan Module](/products/parallel-v3/how-it-works/flashloan-module) |
+| Stake PRL and take part in governance | [app.parallel.best/stake](https://app.parallel.best/stake) | [How to stake PRL](/resources/user-guides/stake-prl) |
+| Build on Parallel with an AI agent or an API | [MCP server](/agents/mcp), [x402](/agents/x402), [CLI](/agents/cli) | [Build with Parallel](/agents/overview) |
+
+## At a glance
+
+| | Today | Details |
+| - | ----- | ------- |
+| USDp deployments | 24 chains | [USDp addresses](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp) |
+| Parallelizer and Savings deployments | 4 chains: Ethereum, Base, HyperEVM, Avalanche | [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
+| Mint fee | Currently 0.00% on every accepted asset | [Fees](/products/parallel-v3/fees) |
+| Burn fee | Currently 0.00% on base stablecoins, 0.05% on yield-bearing assets | [Fees](/products/parallel-v3/fees) |
+| Bridge fee | 0.00% protocol fee, only the LayerZero native gas fee | [Fees](/products/parallel-v3/fees) |
+| Flash loan | 0.00% fee, 100,000 USDp maximum per chain | [Fees](/products/parallel-v3/fees) |
+| Fee distribution | 90% to sUSDp holders, 10% to the DAO Treasury | [Fee Distribution](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/fee-distribution) |
+| Backing | Held in Parallelizer contracts, verifiable on-chain at any time | [Proof of Solvency](/security/proof-of-solvency) |
+| Governance | PRL holders, through sPRL | [Governance](/products/parallel-v3/governance) |
+
+:::info
+Mint and burn fees are adaptive: they depend on each asset's exposure in the backing and its deviation from target price, and can even be negative as an incentive. The figures above are the values set by the DAO today, not a guarantee.
+:::
+
+## How the pieces fit
+
+Follow the diagram from left to right. Collateral enters through the **Parallelizer Module**: you hand it an accepted asset (a base stablecoin such as USDe or USDS, or a yield-bearing one such as sUSDe or sUSDS) and receive USDp at oracle value. The assets stay in the Parallelizer contract as the backing, where adaptive fees and target prices keep the basket diversified. From there USDp can go three ways: into the **Savings Module** to become sUSDp, across chains through the **Bridging Module**, or into a **Flashloan Module** transaction that mints and burns it within one block.
+
+Every module feeds the same fee flow. Yield earned on the backing assets, together with mint, burn, bridge and flash-loan fees, is collected by the protocol and distributed 90% to sUSDp holders and 10% to the DAO Treasury. Keepers encode the resulting savings rate into the Savings Module, under a hard cap of 35.00% set by the DAO. Holders can leave at any time: burn USDp for one asset, or redeem for a proportional share of everything in the backing.
+
+:::tip Coming from V2?
+Parallel V2 (PAR and paUSD, vault-based) is still documented under [Products, Parallel V2](/products/parallel-v2). V3 replaces vaults with the Parallelizer basket and replaces MIMO with PRL as governance token. The [MIMO to PRL migration](/governance/parallel-governance-token-prl/mimo-to-prl-migration) closed on 1 August 2026.
+:::
+
+## Governance, licensing and security
+
+- [Governance](/products/parallel-v3/governance): what the DAO decides, from new chains and collateral to every module parameter.
+- [Licensing](/products/parallel-v3/licensing): the three repositories and their licenses (MIT and BUSL 1.1).
+- [Risks](/security/risks): what can go wrong and how the protocol responds.
+- [Audits](/security/audits): the security reviews covering deployed contracts.
+
+## Next steps
+
+- [How It Works](/products/parallel-v3/how-it-works)
+- [USDp & sUSDp](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp)
+- [Proof of Solvency](/security/proof-of-solvency)
+- [Contract addresses](/developers-hub/contract-addresses)
+
+<HelpFooter />

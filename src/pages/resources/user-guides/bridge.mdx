@@ -1,0 +1,158 @@
+---
+title: How to bridge USDp and PRL
+description: Move USDp across its 24 chains and PRL across its chains in the Parallel app, step by step. How LayerZero OFT works, fees, limits, and delayed transfers.
+subtitle: Send Parallel tokens between chains 1:1 over LayerZero, with no protocol fee
+---
+
+import { FAQ } from '@/components/FAQ'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# How to bridge USDp and PRL
+
+The Parallel bridge moves USDp and PRL between chains one for one. There is no wrapped token on the other side and no protocol fee: the token is burned on the origin chain and minted on the destination chain through the [Bridging Module](/products/parallel-v3/how-it-works/bridging-module), which runs on LayerZero. This guide covers which tokens bridge, how the transfer works, the steps in the app, what you pay, and what to do when a transfer takes longer than expected.
+
+## Which tokens bridge
+
+| Token | Bridgeable | Chains |
+| ----- | ---------- | ------ |
+| USDp | Yes | All 24 chains where USDp is deployed (see the [table below](#usdp-chains-and-limits)) |
+| PRL | Yes | Ethereum, Polygon PoS, Base, Sonic, Arbitrum, Optimism (see [PRL bridging](/governance/parallel-governance-token-prl/bridging-module)) |
+| PAR, paUSD | Yes, legacy | The Parallel V2 stablecoins still bridge over the same module: PAR between Ethereum, Polygon PoS and Fantom, paUSD between Ethereum and Polygon PoS (see the [V2 bridging module](/products/parallel-v2/how-it-works/bridging-module)) |
+| sUSDp | No | sUSDp is an ERC-4626 vault share that lives on the chains where the Savings Module is deployed. It has no bridging contract |
+
+:::info
+To move a savings position to another chain, withdraw sUSDp to USDp first, bridge the USDp, then deposit into sUSDp again on the destination chain. See [How to stake USDp into sUSDp](/resources/user-guides/stake-usdp-into-susdp).
+:::
+
+## How the bridge works
+
+The Bridging Module follows LayerZero's Omnichain Fungible Token (OFT) standard. Every chain runs the same contract, and the chains form a mesh: you can bridge from any supported chain to any other without passing through Ethereum.
+
+A transfer goes through five steps:
+
+1. **Burn.** The tokens are burned on the origin chain and a LayerZero message is sent.
+2. **Send.** The origin endpoint records the message and its path.
+3. **Verify.** Independent Decentralized Verifier Networks (DVNs) check the message on the destination side. The DAO requires two named DVNs, LayerZero Labs and Nethermind, plus one of two optional DVNs, Horizen or Canary. If a required DVN does not confirm, the message does not go through.
+4. **Execute.** A LayerZero Executor delivers the message on the destination chain and pays the destination gas, which you already covered in the LayerZero fee on the origin chain.
+5. **Mint.** The same amount of tokens is minted to the recipient on the destination chain.
+
+Every parameter of the module is set by the DAO: the DVN set, the limits below, the fee rate, the isolation mode and the emergency pause that [Parallel Emergency Guardians](/security/parallel-emergency-guardians) can trigger.
+
+### Daily and global limits
+
+Each chain has a daily and a global cap on how much can be minted and burned through the bridge. For USDp today, every chain uses the same values:
+
+| Limit | Mint | Burn |
+| ----- | ---- | ---- |
+| Daily | 2,500,000 USDp | 2,500,000 USDp |
+| Global | 10,000,000 USDp | 10,000,000 USDp |
+
+What happens when a limit is hit:
+
+- **Burn limit reached on the origin chain:** the transfer cannot start. Wait for the daily window to reset, or try a smaller amount.
+- **Mint limit reached on the destination chain:** the transfer still goes through, but you receive the bridge token (lz-USDp) instead of USDp. You can burn it for USDp once the destination limit is back under the cap, or bridge it on to another chain.
+
+The [`get_bridge_limits`](/agents/mcp/tools) MCP tool returns the remaining capacity on any chain if you want to check before sending.
+
+## Fees and delivery time
+
+- **Protocol fee: 0.00%.** The DAO can set a rate on the bridge, and it is currently zero. You receive on the destination exactly what you sent.
+- **Gas on the origin chain**, paid in that chain's native token.
+- **LayerZero native fee**, also paid on the origin chain in its native token. It covers verification by the DVNs and execution on the destination chain, so you need no gas on the destination.
+
+Delivery usually takes about 10 minutes. Some routes take longer, depending on how quickly the origin chain finalises and how busy the DVNs are.
+
+## Before you start
+
+- A wallet on the origin chain holding the token you want to bridge (MetaMask, Rabby, a Safe, or any WalletConnect wallet).
+- Enough of the origin chain's native token to cover gas plus the LayerZero fee. The app shows the total before you confirm.
+- The destination chain added to your wallet, so you can see the tokens when they arrive.
+
+## Bridge in the app
+
+1. Open [app.parallel.best/bridge](https://app.parallel.best/bridge).
+2. Connect your wallet and switch it to the origin chain.
+3. Pick the **origin** chain and the **destination** chain.
+4. Select the token (USDp or PRL) and enter the amount. The app shows the LayerZero fee and the amount you will receive, which is the same amount.
+5. Optional: enter a different **recipient** address. By default the tokens go to the wallet you are sending from. Double-check any address you type; a bridge transfer cannot be reversed.
+6. If this is the first time you bridge this token from this chain, approve it and confirm the approval in your wallet.
+7. Click **Bridge** and confirm the transaction in your wallet.
+8. Track the transfer. The app links to [LayerZero Scan](https://layerzeroscan.com) once the origin transaction is mined; the same page shows every step from verification to delivery.
+
+:::warning
+Bridge to an address you control on the destination chain. Sending to an exchange deposit address or a contract that does not exist on the destination chain will lose the funds.
+:::
+
+## If a transfer is delayed
+
+1. Paste the origin transaction hash into [LayerZero Scan](https://layerzeroscan.com). The status tells you whether the message is waiting for verification, verified but not yet executed, or delivered.
+2. If the message is verified but stuck before execution, the Executor may be behind. LayerZero Scan lets you execute the delivery yourself by calling `lzReceive` on the destination chain and paying that chain's gas. This is the fallback built into the module: no single executor can block a transfer.
+3. If you received lz-USDp instead of USDp, the destination mint limit was reached. Wait for it to reset, then burn the lz-USDp for USDp in the app, or bridge it on to another chain.
+4. If nothing moves after an hour and LayerZero Scan shows no error, ask in the Parallel Discord with your transaction hash. Your tokens are either still on the origin chain or already minted on the destination; they are not lost in between.
+
+## USDp chains and limits
+
+USDp bridges between all 24 chains below. Every chain uses the same DVN set (LayerZero Labs and Nethermind required, plus one of Horizen or Canary), a 0.00% fee and isolation mode off. Limits are per chain and per day; see the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation#bridging-module) for the source values.
+
+| Chain | Daily mint / burn limit | Global mint / burn limit |
+| ----- | ----------------------- | ------------------------ |
+| Ethereum | 2,500,000 | 10,000,000 |
+| Base | 2,500,000 | 10,000,000 |
+| Sonic | 2,500,000 | 10,000,000 |
+| HyperEVM | 2,500,000 | 10,000,000 |
+| Avalanche | 2,500,000 | 10,000,000 |
+| Polygon | 2,500,000 | 10,000,000 |
+| Arbitrum | 2,500,000 | 10,000,000 |
+| Optimism | 2,500,000 | 10,000,000 |
+| Sei | 2,500,000 | 10,000,000 |
+| BNB Chain | 2,500,000 | 10,000,000 |
+| Berachain | 2,500,000 | 10,000,000 |
+| Scroll | 2,500,000 | 10,000,000 |
+| Gnosis | 2,500,000 | 10,000,000 |
+| Unichain | 2,500,000 | 10,000,000 |
+| Ink | 2,500,000 | 10,000,000 |
+| TAC | 2,500,000 | 10,000,000 |
+| Linea | 2,500,000 | 10,000,000 |
+| X Layer | 2,500,000 | 10,000,000 |
+| Plume | 2,500,000 | 10,000,000 |
+| Plasma | 2,500,000 | 10,000,000 |
+| Katana | 2,500,000 | 10,000,000 |
+| Fraxtal | 2,500,000 | 10,000,000 |
+| World Chain | 2,500,000 | 10,000,000 |
+| Hemi | 2,500,000 | 10,000,000 |
+
+Contract addresses for the bridge on each chain are listed on the [USDp contract addresses](/developers-hub/contract-addresses/parallel-v3/usdp) page.
+
+## FAQ
+
+<FAQ items={[
+  {
+    question: "Is there a fee to bridge USDp or PRL?",
+    answer: "The protocol charges 0.00% today. You pay gas on the origin chain plus the LayerZero native fee, which covers verification and execution on the destination chain. The DAO can change the bridge fee rate, so check the quote in the app."
+  },
+  {
+    question: "How long does a bridge transfer take?",
+    answer: "Usually about 10 minutes. Delivery depends on the origin chain's finality and the DVNs, so some routes take longer. Track any transfer on LayerZero Scan with the origin transaction hash."
+  },
+  {
+    question: "Can I bridge sUSDp?",
+    answer: "No. sUSDp is a vault share on the chains where the Savings Module runs and has no bridging contract. Withdraw to USDp, bridge the USDp, then deposit into sUSDp again on the destination chain."
+  },
+  {
+    question: "Why did I receive lz-USDp instead of USDp?",
+    answer: "The destination chain hit its daily or global mint limit while your transfer was in flight. lz-USDp is the bridge token; once the limit resets you can burn it for USDp in the app, or bridge it on to another chain."
+  },
+  {
+    question: "Can I send the tokens to a different address?",
+    answer: "Yes. The recipient field defaults to your own wallet, but you can enter any EVM address on the destination chain. Make sure you control that address on the destination chain; bridge transfers cannot be reversed."
+  }
+]} />
+
+## Next steps
+
+- [How to mint USDp](/resources/user-guides/mint-usdp): get USDp on Ethereum, Base, HyperEVM or Avalanche.
+- [How to stake PRL](/resources/user-guides/stake-prl): stake bridged PRL for sPRL1 or sPRL2.
+- [Bridging Module](/products/parallel-v3/how-it-works/bridging-module): the design of the module, DVNs, limits and isolation mode.
+- [PRL bridging module](/governance/parallel-governance-token-prl/bridging-module): the DVN configuration for PRL on each chain.
+
+<HelpFooter />

@@ -1,0 +1,142 @@
+---
+title: How to stake PRL
+description: Stake PRL as sPRL1 or sPRL2 in the Parallel app, step by step. How 30-day epochs, ParaBoost, fee rewards, the unstaking cooldown and early-exit penalty work.
+subtitle: Earn a share of protocol fees and voting power with sPRL1 or sPRL2
+---
+
+import { FAQ } from '@/components/FAQ'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# How to stake PRL
+
+Staking PRL gives you two things: a share of the fees the protocol generates, and voting power in Parallel governance. There are two ways to stake, single-sided as sPRL1 or through the PRL/wETH Balancer pool as sPRL2. This guide explains both options, the epoch and ParaBoost mechanics behind them, the steps in the app, how rewards are paid, and how unstaking works.
+
+## The two staking options
+
+| | sPRL1 | sPRL2 |
+| --- | ----- | ----- |
+| What you stake | PRL only | The 80/20 PRL/wETH Balancer pool token (BPT) |
+| Exposure | PRL price only | PRL and wETH, with the impermanent loss of a liquidity position |
+| ParaBoost weight | 1x on the dollar value staked | 2.5x on the dollar value staked |
+| Voting power | 1 PRL = 1 vote | Boosted, through the 2.5x ParaBoost weight |
+| Under the hood | PRL held in the sPRL1 contract | BPT staked on Aura; BAL and AURA rewards go to the DAO Treasury |
+| Unstaking | 1 epoch cooldown, or early exit with a penalty | 1 epoch cooldown, or early exit with a penalty |
+| Best for | Holders who want governance rights without liquidity risk | Holders who want the maximum weight and are willing to provide PRL liquidity |
+
+Both sPRL1 and sPRL2 are transferable ERC-20 tokens. Transferring them resets the ParaBoost attached to them, so keep them in the wallet that staked.
+
+### Where you can stake
+
+sPRL1 and sPRL2 contracts are deployed on Ethereum and Base. The [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl) page lists the live contracts per chain; earlier sPRL1 deployments on Polygon PoS and Sonic are marked deprecated there. If your PRL sits on another chain, [bridge it](/resources/user-guides/bridge) first. The app only shows the chains that accept new stakes.
+
+## Epochs and ParaBoost
+
+An **epoch** is the 30-day unit of time in the PRL tokenomics. It sets three things: the window over which ParaBoost is computed, the length of the unstaking cooldown, and the schedule on which fees are shared with stakers. See the [epoch concept](/governance/parallel-governance-token-prl/tokenomics/epoch-concept).
+
+**ParaBoost** is the score that decides how much of the fee distribution you receive and how much voting power you hold. It is based on the dollar value of your sPRL1 and sPRL2, with sPRL2 counted 2.5 times, and it accumulates while you stay staked. At the end of each epoch a keeper (Cooper Labs) computes every staker's ParaBoost off-chain and publishes a Merkle root to the reward distributor contract, which is what you claim against. The current version is deliberately simple; a fuller ParaBoost is planned for tokenomics v2.1. Read [ParaBoost](/governance/parallel-governance-token-prl/tokenomics/paraboost) for the design.
+
+Two actions reset ParaBoost: transferring your sPRL, and unstaking. The MCP server and the app warn you before either (`PARABOOST_LOST` on an unstake, `PARABOOST_LOCK` on a stake); see [how transactions work](/agents/mcp/transactions).
+
+## Before you start
+
+- PRL in your wallet on Ethereum or Base. PRL trades on DEXs and bridges from Polygon PoS, Sonic, Arbitrum and Optimism.
+- Enough ETH on that chain for gas.
+- For sPRL2: wETH as well, to join the 80/20 PRL/wETH Balancer pool, unless the app builds the pool position for you (see below).
+- A wallet that supports the chain (MetaMask, Rabby, a Safe, or any WalletConnect wallet).
+
+## Stake as sPRL1
+
+1. Open [app.parallel.best/stake](https://app.parallel.best/stake).
+2. Connect your wallet and switch it to the chain you want to stake on.
+3. Choose **Stake PRL** (sPRL1).
+4. Enter the amount of PRL.
+5. Approve PRL the first time, and confirm the approval in your wallet.
+6. Click **Stake** and confirm the transaction.
+
+Your sPRL1 balance appears in the same wallet. It starts accruing ParaBoost from the current epoch.
+
+## Stake as sPRL2
+
+sPRL2 is minted against the Balancer pool token of the 80/20 PRL/wETH pool. There are two ways to get there.
+
+**Deposit the pool token yourself**
+
+1. Join the 80/20 PRL/wETH pool on Balancer with PRL and wETH (or a single asset, if the pool allows it). You receive the pool token (BPT).
+2. Open [app.parallel.best/stake](https://app.parallel.best/stake) and choose **Stake PRL/wETH LP** (sPRL2).
+3. Enter the amount of BPT, approve it the first time, then click **Stake** and confirm.
+
+**Let the app build the position**
+
+The staking transactions accept either PRL or BPT for sPRL2 (the MCP `stake` tool builds "PRL/BPT into sPRL2"). When the app offers a PRL input on the sPRL2 tab, it joins the pool for you and stakes the resulting BPT in one flow. Check the quote: joining a pool with a single asset moves the pool price and can cost more than a balanced deposit.
+
+In both cases the BPT is staked on Aura behind the scenes. The BAL and AURA incentives it earns go to the DAO Treasury, not to you; your reward is the 2.5x ParaBoost weight.
+
+## Rewards
+
+- **What you earn:** a share of the protocol's fees, split between stakers according to their ParaBoost at the end of each epoch. The [fee distribution](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) page describes the mechanism.
+- **When:** once per epoch, after the keeper publishes the Merkle root. Rewards from the epoch you stake in are claimable after that epoch ends.
+- **Where:** on a single distribution chain, regardless of the chain you staked on. The reward distributor contracts for USDp fees are deployed on Base; the app takes you to the right chain when you claim, and claims may span more than one chain if you also hold older PAR-era rewards.
+- **Claim window:** 12 epochs, about one year. Unclaimed rewards return to the DAO Treasury after that.
+
+:::info
+The tokenomics pages still describe the original PAR-era set-up (fees converted to PAR and claimed on Polygon PoS). The live distributor contracts for USDp fees sit on Base. Check the claim screen in the app for the asset and chain you will actually receive.
+:::
+
+To claim in the app, open the **Stake** page, find **Rewards** and click **Claim**. The [`claim_rewards`](/agents/mcp/tools) MCP tool builds the same transactions.
+
+## Unstaking
+
+Unstaking is a two-step process for both sPRL1 and sPRL2:
+
+1. **Start the cooldown.** On the Stake page, click **Unstake**, enter the amount and confirm. This opens a cooldown of 1 epoch (30 days). During the cooldown the tokens stay locked and your ParaBoost is reset.
+2. **Withdraw.** Once the cooldown has matured, come back to the Stake page and withdraw. You receive PRL (sPRL1) or BPT (sPRL2).
+
+**Early exit.** You can skip the remaining cooldown by paying a penalty taken from the amount you unstake. The penalty starts at 50% and decreases linearly as the cooldown progresses; it is sent to the DAO Treasury. The app shows the exact penalty before you confirm, and the MCP server flags it as `EARLY_UNSTAKE_PENALTY`.
+
+:::warning
+An early exit right after you start the cooldown costs up to half of your stake. Unless you need the tokens now, let the cooldown run its 30 days.
+:::
+
+## Voting power and delegation
+
+sPRL1 and sPRL2 carry the voting power in Parallel governance, weighted by your ParaBoost of the previous epoch. sPRL1 counts one vote per PRL; sPRL2 is weighted 2.5 times on its dollar value. Votes happen on Snapshot; proposals need 100,000 sPRL (ParaBoost) to be published, and quorums range from 100,000 sPRL for integration requests to 300,000 sPRL for protocol improvements. See the [proposal framework](/governance/proposal-framework).
+
+You can delegate your voting power without moving your tokens: on the Stake page, open **Your votes**, click **Change delegate**, and enter an address or choose **Delegate to self**. Delegation only affects Snapshot votes; you keep your sPRL, your ParaBoost and your rewards.
+
+:::tip
+Stake before a vote's snapshot is taken. PRL that is not staked at the snapshot block does not count.
+:::
+
+## FAQ
+
+<FAQ items={[
+  {
+    question: "Which should I choose, sPRL1 or sPRL2?",
+    answer: "sPRL1 if you want governance rights and fee rewards without exposure to wETH or impermanent loss. sPRL2 if you want the 2.5x ParaBoost weight and are comfortable holding an 80/20 PRL/wETH liquidity position. Both can be unstaked after a 1 epoch cooldown."
+  },
+  {
+    question: "How long is an epoch?",
+    answer: "30 days. Epochs set the ParaBoost calculation window, the unstaking cooldown and the fee distribution schedule."
+  },
+  {
+    question: "What happens to my ParaBoost if I transfer my sPRL?",
+    answer: "It resets to zero for the transferred tokens, and so does the voting power attached to them. Keep sPRL1 and sPRL2 in the wallet that staked, and use delegation if you want someone else to vote with your weight."
+  },
+  {
+    question: "Can I unstake without waiting 30 days?",
+    answer: "Yes, by paying an early-exit penalty that starts at 50% of the amount and decreases linearly over the cooldown. The penalty goes to the DAO Treasury. The app shows the exact amount before you confirm."
+  },
+  {
+    question: "Do I lose rewards I have not claimed yet?",
+    answer: "Not for 12 epochs, about a year. After that, unclaimed rewards return to the DAO Treasury, so claim at least once a year."
+  }
+]} />
+
+## Next steps
+
+- [How to bridge USDp and PRL](/resources/user-guides/bridge): bring PRL to a staking chain.
+- [Staking mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms): the full description of sPRL1 and sPRL2.
+- [sPRL and voting power](/governance/sprl): how staking translates into governance weight.
+- [Governance process](/governance/governance-process): how to use your votes once you hold sPRL.
+
+<HelpFooter />
