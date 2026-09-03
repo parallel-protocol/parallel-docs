@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { SECURITY_HEADERS, type VercelConfig, withDeliveryRoutes } from "../scripts/delivery-routes";
+import {
+  SECURITY_HEADERS,
+  type VercelConfig,
+  withDeliveryRoutes,
+} from "../scripts/delivery-routes";
 
 /** What the Vocs adapter writes, trimmed to what matters here. */
 const adapterConfig: VercelConfig = {
@@ -33,7 +37,21 @@ describe("withDeliveryRoutes", () => {
     const cache = (route?.headers as Record<string, string>)["cache-control"];
     expect(cache).toContain("max-age=86400");
     expect(cache).not.toContain("immutable");
-    for (const path of ["/logo-b.png", "/hero.jpg", "/og-image.png", "/images/a/b.png"]) {
+    for (const path of [
+      // The WebP set actually served today...
+      "/logo-b.webp",
+      "/logo-w.webp",
+      "/hero-750.webp",
+      "/hero-1125.webp",
+      "/hero.webp",
+      // ...and the originals, still on disk and still reachable by any
+      // external page that hotlinked them before the WebP switch.
+      "/logo-b.png",
+      "/hero.jpg",
+      "/og-image.png",
+      "/favicon.ico",
+      "/images/a/b.png",
+    ]) {
       expect(new RegExp(route?.src as string).test(path)).toBe(true);
     }
     // Hashed assets keep the adapter's immutable rule.
@@ -47,24 +65,41 @@ describe("withDeliveryRoutes", () => {
       expect(new RegExp(redirect?.src as string).test(path)).toBe(true);
     }
     // Must not swallow the pages under it.
-    expect(new RegExp(redirect?.src as string).test("/developers-hub/developers-guide")).toBe(false);
+    expect(new RegExp(redirect?.src as string).test("/developers-hub/developers-guide")).toBe(
+      false,
+    );
   });
 
-
   it("adds no field Vercel does not know — an unknown key fails the whole deployment", () => {
-    const allowed = new Set(["src", "dest", "headers", "status", "continue", "handle", "check", "methods", "has", "missing"]);
+    const allowed = new Set([
+      "src",
+      "dest",
+      "headers",
+      "status",
+      "continue",
+      "handle",
+      "check",
+      "methods",
+      "has",
+      "missing",
+    ]);
     for (const route of withDeliveryRoutes(adapterConfig).routes ?? []) {
       for (const key of Object.keys(route)) expect(allowed).toContain(key);
     }
   });
-
 
   it("sends AI crawlers to llms.txt on the root, and nobody else", () => {
     const route = withDeliveryRoutes(adapterConfig).routes?.find((r) => r.dest === "/llms.txt");
     expect(route?.src).toBe("^/$");
     const ua = (route?.has as { value: string }[])[0].value;
     const re = new RegExp(ua.replace("(?i)", ""), "i");
-    for (const agent of ["ChatGPT-User/1.0", "ClaudeBot/1.0", "PerplexityBot", "GPTBot/1.2", "CCBot/2.0"]) {
+    for (const agent of [
+      "ChatGPT-User/1.0",
+      "ClaudeBot/1.0",
+      "PerplexityBot",
+      "GPTBot/1.2",
+      "CCBot/2.0",
+    ]) {
       expect(re.test(agent)).toBe(true);
     }
     // Search engines keep the HTML, as upstream intends, and so do readers.
