@@ -72,7 +72,7 @@ You also pay the network's gas fee on the chain you mint on.
 
 ## Before you start
 
-- A wallet that supports the chain you want to mint on (MetaMask, Rabby, a Safe, or any WalletConnect wallet).
+- A wallet that supports the chain you want to mint on. The app connects through WalletConnect or Coinbase Wallet, so any wallet that supports WalletConnect works.
 - Enough of the native gas token on that chain (ETH on Ethereum and Base, HYPE on HyperEVM, AVAX on Avalanche).
 - An accepted collateral for that chain, from the table above.
 
@@ -88,7 +88,7 @@ You also pay the network's gas fee on the chain you mint on.
 The USDp lands in the same wallet as soon as the transaction is mined.
 
 :::tip
-The app can route through aggregators to fill a swap. Turn on **Mint Preferred** if you want the trade to go through the Parallelizer contracts only, so you always mint natively at oracle price rather than buying USDp on a DEX.
+The app can route through aggregators (OpenOcean, KyberSwap, LiquidSwap, each one switchable in **Mint Settings**) to fill a swap. Keep **Parallel Mint Preferred** on if you want the trade to go through the Parallelizer contracts only, so you always mint natively at oracle price rather than buying USDp on a DEX. Mint Settings also hold the slippage tolerance, the transaction deadline and an optional recipient address.
 :::
 
 ## When a collateral hits its maximum exposure

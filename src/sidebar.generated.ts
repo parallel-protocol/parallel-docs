@@ -761,7 +761,7 @@ export const sidebar: Sidebar = [
         items: [
           { text: "How to mint USDp", link: "/resources/user-guides/mint-usdp" },
           {
-            text: "How to stake USDp into sUSDp",
+            text: "How to earn yield with sUSDp",
             link: "/resources/user-guides/stake-usdp-into-susdp",
           },
           { text: "How to bridge USDp and PRL", link: "/resources/user-guides/bridge" },

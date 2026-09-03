@@ -76,3 +76,9 @@ To make the protocol more secure in case of a problem, we’ve added the possibi
 **Execute:** Endpoint ensures payload verification aligns with the OApp-configured Security Stack before committing to the channel. An executor invokes the `lzReceive` function to process the received packet with the Receiver OFT’s logic. This step ensures the message is delivered exactly once and without loss. If the system cannot guarantee this, the process is reverted to prevent any possibility of censorship.
 
 **Mint:** If no TKN mint limit (due to OFT configuration) is reached, then the lz-TKN is burned and the TKN equivalent is minted. However, if the mint limit is reached, the user will receive lz-TKN (which can be bridged again to another blockchain), or wait until the mint limits on the destination blockchain are no longer reached to burn its lz-TKN in exchange for TKN.
+
+## Related
+
+- [Fees: bridging](/products/parallel-v3/fees#bridging)
+- [Risks: bridge risk](/security/risks#4-bridge-risk)
+- [Bridge USDp guide](/resources/user-guides/bridge)

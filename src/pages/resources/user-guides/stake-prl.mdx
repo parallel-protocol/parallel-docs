@@ -42,13 +42,13 @@ Two actions reset ParaBoost: transferring your sPRL, and unstaking. The MCP serv
 - PRL in your wallet on Ethereum or Base. PRL trades on DEXs and bridges from Polygon PoS, Sonic, Arbitrum and Optimism.
 - Enough ETH on that chain for gas.
 - For sPRL2: wETH as well, to join the 80/20 PRL/wETH Balancer pool, unless the app builds the pool position for you (see below).
-- A wallet that supports the chain (MetaMask, Rabby, a Safe, or any WalletConnect wallet).
+- A wallet that supports the chain. The app connects through WalletConnect or Coinbase Wallet, so any wallet that supports WalletConnect works.
 
 ## Stake as sPRL1
 
 1. Open [app.parallel.best/stake](https://app.parallel.best/stake).
 2. Connect your wallet and switch it to the chain you want to stake on.
-3. Choose **Stake PRL** (sPRL1).
+3. Choose the **Single Pool** tab (100% PRL, which mints sPRL1) and the **Stake** action.
 4. Enter the amount of PRL.
 5. Approve PRL the first time, and confirm the approval in your wallet.
 6. Click **Stake** and confirm the transaction.
@@ -62,12 +62,12 @@ sPRL2 is minted against the Balancer pool token of the 80/20 PRL/wETH pool. Ther
 **Deposit the pool token yourself**
 
 1. Join the 80/20 PRL/wETH pool on Balancer with PRL and wETH (or a single asset, if the pool allows it). You receive the pool token (BPT).
-2. Open [app.parallel.best/stake](https://app.parallel.best/stake) and choose **Stake PRL/wETH LP** (sPRL2).
+2. Open [app.parallel.best/stake](https://app.parallel.best/stake) and choose the **Multiple Assets Pool** tab (80% PRL and 20% ETH, which mints sPRL2) and the **Stake** action.
 3. Enter the amount of BPT, approve it the first time, then click **Stake** and confirm.
 
 **Let the app build the position**
 
-The staking transactions accept either PRL or BPT for sPRL2 (the MCP `stake` tool builds "PRL/BPT into sPRL2"). When the app offers a PRL input on the sPRL2 tab, it joins the pool for you and stakes the resulting BPT in one flow. Check the quote: joining a pool with a single asset moves the pool price and can cost more than a balanced deposit.
+The staking transactions accept either PRL or BPT for sPRL2 (the MCP `stake` tool builds "PRL/BPT into sPRL2"). When the Multiple Assets Pool tab offers a PRL input, the app joins the pool for you and stakes the resulting BPT in one flow. Check the quote: joining a pool with a single asset moves the pool price and can cost more than a balanced deposit.
 
 In both cases the BPT is staked on Aura behind the scenes. The BAL and AURA incentives it earns go to the DAO Treasury, not to you; your reward is the 2.5x ParaBoost weight.
 
@@ -82,7 +82,7 @@ In both cases the BPT is staked on Aura behind the scenes. The BAL and AURA ince
 The tokenomics pages still describe the original PAR-era set-up (fees converted to PAR and claimed on Polygon PoS). The live distributor contracts for USDp fees sit on Base. Check the claim screen in the app for the asset and chain you will actually receive.
 :::
 
-To claim in the app, open the **Stake** page, find **Rewards** and click **Claim**. The [`claim_rewards`](/agents/mcp/tools) MCP tool builds the same transactions.
+To claim in the app, open the **Stake** page, find **Available Rewards** and click **Claim Rewards**. The [`claim_rewards`](/agents/mcp/tools) MCP tool builds the same transactions.
 
 ## Unstaking
 
@@ -101,7 +101,7 @@ An early exit right after you start the cooldown costs up to half of your stake.
 
 sPRL1 and sPRL2 carry the voting power in Parallel governance, weighted by your ParaBoost of the previous epoch. sPRL1 counts one vote per PRL; sPRL2 is weighted 2.5 times on its dollar value. Votes happen on Snapshot; proposals need 100,000 sPRL (ParaBoost) to be published, and quorums range from 100,000 sPRL for integration requests to 300,000 sPRL for protocol improvements. See the [proposal framework](/governance/proposal-framework).
 
-You can delegate your voting power without moving your tokens: on the Stake page, open **Your votes**, click **Change delegate**, and enter an address or choose **Delegate to self**. Delegation only affects Snapshot votes; you keep your sPRL, your ParaBoost and your rewards.
+You can delegate your voting power without moving your tokens: on the Stake page, the **Your Votes** block shows your votes, your delegated votes and who you are delegating to; click **Set Delegate** and enter an address (your own to keep the votes yourself). Delegation only affects Snapshot votes; you keep your sPRL, your ParaBoost and your rewards.
 
 :::tip
 Stake before a vote's snapshot is taken. PRL that is not staked at the snapshot block does not count.
