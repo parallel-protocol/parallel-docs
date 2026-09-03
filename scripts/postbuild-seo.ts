@@ -40,8 +40,8 @@ import { PAR_ADDRESSES } from "../src/data/par-addresses";
 import { PAUSD_DEPRECATED_ADDRESSES } from "../src/data/pausd-deprecated-addresses";
 import { PRL_ADDRESSES } from "../src/data/prl-addresses";
 import { USDP_ADDRESSES } from "../src/data/usdp-addresses";
-import { type AddressBook, expandComponents } from "./md-components";
 import { type VercelConfig, withDeliveryRoutes } from "./delivery-routes";
+import { type AddressBook, expandComponents } from "./md-components";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PAGES_DIR = join(ROOT, "src/pages");
@@ -168,6 +168,53 @@ const POSTHOG_TAG = new RegExp(
   "gi",
 );
 
+/**
+ * Cross-origin handshakes the page cannot avoid, opened while the HTML is
+ * still parsing rather than when the fetch is finally discovered.
+ *
+ * Three of these hide behind a CSS `@import` in `_root.css`: the browser only
+ * learns it needs fonts.googleapis.com (and, through it, fonts.gstatic.com)
+ * and cdn.jsdelivr.net after a stylesheet has downloaded AND parsed, so the
+ * DNS + TCP + TLS cost lands on the critical path with nothing to overlap it.
+ * Measured cost of that late discovery on mobile (Lighthouse): gstatic 362 ms,
+ * PostHog assets 345 ms, googleapis 243 ms, jsDelivr 242 ms.
+ *
+ * `crossorigin` mirrors how each resource is actually fetched — a hint that
+ * disagrees opens a second connection and wastes the first. Fonts and the
+ * PostHog snippet are CORS requests; a stylesheet pulled in by `@import` is
+ * not. The PostHog ingest host is only contacted after load, so resolving its
+ * name is enough; holding a socket open for it would be waste.
+ */
+const RESOURCE_HINTS = [
+  '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>',
+  '<link rel="preconnect" href="https://fonts.googleapis.com"/>',
+  '<link rel="preconnect" href="https://eu-assets.i.posthog.com" crossorigin="anonymous"/>',
+  '<link rel="preconnect" href="https://cdn.jsdelivr.net"/>',
+  `<link rel="dns-prefetch" href="${POSTHOG_HOST}"/>`,
+].join("");
+
+/** Any resource hint this script previously injected, for a clean re-run. */
+const RESOURCE_HINT_TAG =
+  /[ \t]*<link\b[^>]*\brel=["']?(?:preconnect|dns-prefetch)["']?[^>]*>[ \t]*\n?/gi;
+
+/**
+ * Hints belong as early in `<head>` as possible — their whole value is being
+ * parsed before the resources they describe are discovered. They go after the
+ * charset meta so that declaration stays inside the first 1024 bytes, where
+ * the HTML spec requires it.
+ */
+const CHARSET_META = /<meta\b[^>]*\bcharset=["']?[^"'>]+["']?[^>]*>/i;
+
+function withResourceHints(head: string): string {
+  const cleaned = head.replace(RESOURCE_HINT_TAG, "");
+  const charset = cleaned.match(CHARSET_META);
+  if (charset?.index !== undefined) {
+    const at = charset.index + charset[0].length;
+    return cleaned.slice(0, at) + RESOURCE_HINTS + cleaned.slice(at);
+  }
+  return cleaned.replace(/<head[^>]*>/i, (m) => m + RESOURCE_HINTS);
+}
+
 type HeadStats = { posthog: number; canonical: number; jsonld: number; skipped: string[] };
 
 /**
@@ -223,6 +270,8 @@ function injectHeadTags(
 
     head += POSTHOG_SNIPPET;
     if (!hadPosthog) stats.posthog++;
+
+    head = withResourceHints(head);
 
     if (head !== before) writeFileSync(file, head + rest, "utf-8");
   }
@@ -476,7 +525,6 @@ function expandMarkdownExports(outDir: string): { touched: number; total: number
   }
   return { touched, total: files.length };
 }
-
 
 /**
  * Merges our headers and redirects into the routing config the Vocs Vercel

@@ -35,7 +35,7 @@ export const SECURITY_HEADERS: Record<string, string> = {
  * Hashed assets under `/assets/` keep the adapter's own immutable rule.
  */
 const STATIC_IMAGES =
-  "^/(favicon\\.ico|favicon\\.png|hero\\.jpg|logo\\.png|logo-b\\.png|logo-w\\.png|og-image\\.png|images/.*)$";
+  "^/(favicon\\.(ico|png)|hero(-750|-1125)?\\.(jpg|webp)|logo(-b|-w)?\\.(png|webp)|og-image\\.png|images/.*)$";
 const STATIC_IMAGE_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
 
 /** Bare section roots that would otherwise 404. */
@@ -43,17 +43,32 @@ const REDIRECTS: { from: string; to: string }[] = [
   { from: "/developers-hub", to: "/developers-hub/developers-guide" },
 ];
 
-
 /**
  * The user agents Vocs classifies as AI crawlers, mirrored from its
  * `aiUserAgents` list. Search engines are deliberately absent: upstream serves
  * them the HTML, and so do we.
  */
 const AI_USER_AGENTS = [
-  "GPTBot", "OAI-SearchBot", "ChatGPT-User", "anthropic-ai", "ClaudeBot", "claude-web",
-  "PerplexityBot", "Perplexity-User", "Google-Extended", "FacebookBot", "meta-externalagent",
-  "Bytespider", "cohere-ai", "AI2Bot", "CCBot", "Diffbot", "omgili", "Timpibot",
-  "MistralAI-User", "GoogleAgent-Mariner",
+  "GPTBot",
+  "OAI-SearchBot",
+  "ChatGPT-User",
+  "anthropic-ai",
+  "ClaudeBot",
+  "claude-web",
+  "PerplexityBot",
+  "Perplexity-User",
+  "Google-Extended",
+  "FacebookBot",
+  "meta-externalagent",
+  "Bytespider",
+  "cohere-ai",
+  "AI2Bot",
+  "CCBot",
+  "Diffbot",
+  "omgili",
+  "Timpibot",
+  "MistralAI-User",
+  "GoogleAgent-Mariner",
 ];
 
 /**

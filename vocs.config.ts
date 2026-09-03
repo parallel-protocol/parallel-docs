@@ -30,8 +30,8 @@ export default defineConfig({
   iconUrl: "/favicon.ico",
   // Vocs swaps automatically based on prefers-color-scheme + theme toggle.
   logoUrl: {
-    light: "/logo-b.png", // black wordmark on light backgrounds
-    dark: "/logo-w.png", // white wordmark on dark backgrounds
+    light: "/logo-b.webp", // black wordmark on light backgrounds
+    dark: "/logo-w.webp", // white wordmark on dark backgrounds
   },
   // Static OG image — each protocol's official landing-page OpenGraph
   // image (1200x630). Absolute SITE_URL so og:image is absolute for crawlers.
