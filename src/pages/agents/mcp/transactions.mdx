@@ -40,21 +40,21 @@ sign & submit approvalTx  →  wait for it to confirm on-chain  →  sign & subm
 Submitting the main transaction before the approval confirms makes it revert.
 
 :::tip
-The approval granted is **unlimited** (`maxUint256`) for the specific spender contract — the standard pattern to avoid re-approving on every operation. If you prefer exact approvals, replace `approvalTx.data` with your own approval for `approvalAmount`.
+The approval is **bounded**: the calldata grants exactly `approvalAmount` — the amount this transaction spends — to the specific spender contract. Each operation ships its own approval, so there is no standing unlimited allowance to track or revoke.
 :::
 
 ## Pre-flight simulation
 
 Every write is statically simulated before it reaches you:
 
-- `simulation.success: false` comes with a `revertReason` and a `SIMULATION_FAILED` warning — the transaction would fail on-chain; don't send it.
+- `simulation.success: false` comes with a `revertReason`. When the response bundles an `approvalTx`, a revert on allowance is the expected pre-approval state and is flagged `PENDING_APPROVAL` with severity `info` — submit the approval first, then the transaction. Any other revert is flagged `SIMULATION_FAILED` with severity `error`: the transaction would fail on-chain, don't send it.
 - `warnings[]` also surfaces business risks before you sign: an sPRL1 early-unstake penalty (`EARLY_UNSTAKE_PENALTY`), a ParaBoost about to be lost on unstake (`PARABOOST_LOST`) or locked on stake (`PARABOOST_LOCK`).
 
 Each warning has a `severity` (`info`, `warning`, `error`) and a human-readable `message` — surface them to whoever approves the transaction.
 
 ## When the server refuses
 
-Impossible operations fail with a plain message instead of doomed calldata: a chain without a Parallelizer deployment, a collateral whose minting is paused, a bridge amount above the daily capacity (`EXCEEDS_BRIDGE_LIMIT`, with the remaining capacity and reset time).
+Impossible operations fail with a structured error code instead of doomed calldata: a sunset chain (`CHAIN_SUNSET`), a chain without a Parallelizer deployment (`PARALLELIZER_NOT_DEPLOYED`), a redeem or mint beyond the deposited collateral (`EXCEEDS_CAP`, with the remaining capacity), a bridge route that does not exist (`ROUTE_UNAVAILABLE` — same-chain, or a destination without a bridgeable token), a bridge amount above the daily capacity (`EXCEEDS_BRIDGE_LIMIT`, with the reset time), or an unknown collateral (`COLLATERAL_NOT_SUPPORTED`, with the valid list). Aggregate reads that cannot be answered completely refuse with `PARTIAL_READ` naming the failed chains rather than returning a silently wrong total.
 
 ## Data freshness
 

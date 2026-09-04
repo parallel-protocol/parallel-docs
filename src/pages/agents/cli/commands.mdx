@@ -40,16 +40,16 @@ parallel protocol flashloan      [--chain <chain>]
 
 `backing`, `tvl`, `savings-rate` and `supply` also take `--history [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>]` for daily time series (`supply --history` is available for `usdp` only).
 
-## Swap — mint, burn, redeem
+## Swap — mint and redeem
 
 ```bash
-parallel swap quote  --op <mint|burn|redeem> --amount <n> [--collateral <symbol>]
-parallel swap mint   --collateral USDC --amount 1000 --chain base --dry-run
-parallel swap burn   --collateral USDC --amount 500  --chain base --wallet
-parallel swap redeem --amount 500 --chain base --wallet    # proportional redeem
+parallel swap quote      --op <mint|redeem|redeem-all> --amount <n> [--collateral <symbol>]
+parallel swap mint       --collateral USDC --amount 1000 --chain base --dry-run
+parallel swap redeem     --collateral USDC --amount 500  --chain base --wallet
+parallel swap redeem-all --amount 500 --chain base --wallet    # proportional redeem
 ```
 
-`--collateral` is required for `mint` and `burn`; a proportional `redeem` pays out the whole basket.
+`--collateral` is required for `mint` and `redeem`; `redeem-all` pays out the whole basket proportionally. The names match the MCP tools since 0.2.7 — before that, `swap burn` meant "redeem into one collateral" and `swap redeem` meant "proportional". The old `burn` form still works as a hidden alias, but scripts using `swap redeem` for the proportional operation must switch to `swap redeem-all`.
 
 | Flag | Default | Purpose |
 |---|---|---|
@@ -114,6 +114,8 @@ parallel pay prepare --amount <n> --recipient <address> [--chain <chain>] [--wal
 
 `pay prepare` builds an x402 payment payload: `--token` sets what the merchant receives (`usdp` by default, `usdc`, `susdp`, a collateral symbol or a token address), `--pay-with` forces the paying token (`usdp`, `usdc` or `susdp`). With `--wallet` it auto-selects the route from your balances and signs the payload. This is the engine behind [agent payments](/agents/x402/agent-quickstart) — agents rarely call it directly.
 
+`pay verify` reports `confirmed: true` only for payments the facilitator actually settled — a merely mined transaction returns `confirmed: false` with `txMined: true`, and an unknown hash returns everything `false`.
+
 ## Utilities
 
 ```bash
@@ -124,13 +126,15 @@ parallel config init | get <key> | set <key> <value>
 
 ## Errors
 
-Failures exit 1 and print `Error [CODE]: message` — in JSON mode, `{ "success": false, "error": { "code", "message" } }`.
+Failures exit 1 and print `Error [CODE]: message`. In JSON mode the envelope `{ "success": false, "error": { "code", "message", "hint?" } }` is written to **stderr** — stdout carries data only, so read errors from stderr or branch on the exit code.
 
 | Code | Trigger |
 |---|---|
-| `MISSING_OPTION` | Required flag not provided |
+| `MISSING_OPTION` | Required flag, argument or subcommand not provided |
+| `INVALID_OPTION` | A provided flag or argument has an invalid value |
+| `UNKNOWN_COMMAND` / `UNKNOWN_OPTION` | Typo in a command or flag name |
 | `INVALID_ADDRESS` | Argument is not a valid EVM address |
-| `INVALID_AMOUNT` | Negative, zero or unparseable amount |
+| `INVALID_AMOUNT` | Negative, zero, malformed or sub-decimal amount |
 | `UNKNOWN_CHAIN` | Chain identifier not recognised |
 | `CHAIN_SUNSET` | Operation not available on a sunset chain |
 | `PARALLELIZER_NOT_DEPLOYED` | Mint, redeem and savings need a chain with a Parallelizer |
@@ -138,9 +142,10 @@ Failures exit 1 and print `Error [CODE]: message` — in JSON mode, `{ "success"
 | `INSUFFICIENT_BALANCE` | Wallet balance too low for the requested amount |
 | `WALLET_REQUIRED` | Signing requested but no wallet available |
 | `INVALID_KEYSTORE` | Keystore unreadable, invalid format, or wrong password |
+| `CONFIG_KEY_NOT_FOUND` | `config get` on a key absent from the config file |
 | `RPC_ERROR` | RPC call failed |
 | `UNKNOWN` | Anything else |
 
-Protocol-layer failures (caps, bridge limits, slippage, cooldowns) arrive as `UNKNOWN` with the reason prefixed in the message — e.g. `[EXCEEDS_BRIDGE_LIMIT] Daily bridge limit reached`. Match on the message prefix for these.
+Protocol-layer failures (caps, bridge limits, unavailable routes, partial reads) carry their own code in the `code` field since 0.2.7 — e.g. `EXCEEDS_CAP`, `EXCEEDS_BRIDGE_LIMIT`, `ROUTE_UNAVAILABLE`, `PARTIAL_READ`. Match on `error.code`; the message holds the human detail (remaining capacity, valid values…).
 
 <HelpFooter />
