@@ -1,0 +1,295 @@
+---
+title: Risks
+description: The risks of holding USDp, sUSDp and PRL, from collateral depegs to smart contracts, bridges, governance and the x402 facilitator, and how each is mitigated.
+subtitle: What can go wrong when you hold USDp, sUSDp or PRL, and what Parallel does about it
+---
+
+import { FAQ } from '@/components/FAQ'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Risks
+
+This page lists the main risks of holding USDp, depositing into sUSDp, staking PRL, paying or getting paid through x402, and integrating Parallel: what could happen, how the protocol limits it, and what you can do.
+
+It is written for a user or integrator deciding whether to use Parallel, and it is not exhaustive: a protocol on 24 chains with third-party collateral, oracles and bridges carries risks nobody has listed yet. Every number below is a DAO parameter that governance can change; the linked pages are the source of truth.
+
+:::warning
+Nothing on this page is financial, legal or tax advice. USDp is backed by other assets, not by a bank deposit, and there is no guarantee that it trades at 1 USD at all times.
+:::
+
+## Summary
+
+| Risk | Who is exposed | Mitigation in place | Where to read more |
+| --- | --- | --- | --- |
+| Collateral depeg or oracle failure | USDp and sUSDp holders | Exposure bounds per asset, adaptive mint and burn fees, burn penalty on the worst deviation, 24-hour oracle stale period | [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module), [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
+| Redemption and liquidity | USDp and sUSDp holders, integrators | Redemption available at any time as a proportional basket, dynamic penalty below 100% collateral ratio | [Parallelizer Module, Redeem](/products/parallel-v3/how-it-works/parallelizer-module#redeem) |
+| Smart-contract bug | Everyone | Audits and formal verification, Immunefi bug bounty, Hypernative monitoring, guardian pause, insurance fund | [Audits](/security/audits), [Bug Bounty](/security/bug-bounty-program), [Insurance Fund](/security/insurance-fund) |
+| Bridge failure | Anyone bridging USDp | 2 required plus 1 of 2 optional DVNs, daily and global limits, manual execution fallback, pause | [Bridging Module](/products/parallel-v3/how-it-works/bridging-module) |
+| Savings rate and keeper trust | sUSDp holders | 35.00% hard cap on the rate, DAO-whitelisted keepers, keeper timelock, donation-attack fix | [Savings Module](/products/parallel-v3/how-it-works/savings-module), [Keepers](/security/keepers) |
+| Governance and key holders | Everyone | 5 of 8 multisigs, Snapshot votes, role timelocks, scoped guardian powers | [DAO Multisigs](/governance/dao-multisigs), [Emergency Guardians](/security/parallel-emergency-guardians) |
+| PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait one epoch, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
+| Chain and infrastructure outage | Everyone on that chain | Independent deployments per chain, isolation mode available on the bridge, Sonic wind-down | [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
+| x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
+| Signing a bad transaction from an AI tool | MCP and CLI users | The MCP server never signs; it returns unsigned, simulated transactions with warnings for you to review | [How MCP transactions work](/agents/mcp/transactions) |
+
+## 1. Collateral and backing risk
+
+### What could happen
+
+USDp is backed by a basket of stablecoins and yield-bearing stablecoins held in the Parallelizer Module: frxUSD and sfrxUSD, USDe and sUSDe, USDS and sUSDS, USDC and ygamiUSDC, depending on the chain. If one loses its peg, is hacked, or has withdrawals frozen, the collateral ratio can drop below 100%; the yield-bearing assets also carry the risk of the protocols that issue them: Frax, Ethena, Sky, Yearn and Silo.
+
+Prices come from oracles: each collateral has a Chainlink or RedStone feed, composed with an exchange-rate oracle for the yield-bearing versions. A feed that stops updating, misreports, or is manipulated lets the protocol mint or burn at the wrong value.
+
+### How Parallel mitigates it
+
+- **Exposure bounds.** The yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) are bounded to 20.00%-95.00% exposure today, and every asset has a 100,000,000 mint cap, so the basket cannot concentrate in one issuer without a governance vote.
+- **Adaptive fees.** Mint and burn fees rise as an asset nears its cap (100% effectively pauses minting with it) or go negative to attract an asset the basket lacks; today they are 0.00% on mints and 0.00% to 0.05% on burns.
+- **Depeg-aware burns.** Burning USDp for one asset applies a price penalty equal to the largest deviation of any basket asset from its target price, so rushing into the safest asset during a depeg does not pay, protecting holders who stay.
+- **Stale period.** Every collateral price feed has an 86,400-second stale period; an older price is rejected rather than used.
+- **Target oracles.** Keepers maintain a target price per asset, compared against the market price to detect a depeg.
+
+Feeds per asset and chain: [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation). USDp and sUSDp feeds for integrators (DIA, RedStone): [oracles page](/developers-hub/parallel-v3/onchain-tools/oracles).
+
+### What you can do
+
+- Check the backing composition and collateral ratio on the [proof-of-solvency dashboard](https://app.parallel.best/transparency) before you mint or deposit, and again if a backing asset is in the news.
+- If you integrate USDp as collateral, use a fundamental (backing-based) feed rather than a thin market price, and set liquidation parameters with a depeg in mind.
+
+## 2. Redemption and liquidity risk
+
+### What could happen
+
+Two exits exist: **burn** USDp for one asset of your choice, or **redeem** it for a proportional slice of the whole basket. Burning is subject to adaptive fees and can become expensive or unavailable when that asset is at its exposure limit or another is depegging. Redeeming works at any time, but when the collateral ratio is below 100% a dynamic penalty applies and you receive less than 1 USD of assets per USDp. The example on the Parallelizer page: at a 98.5% collateral ratio with a penalty factor of 0.98, 10 USDp redeem for about 9.65 USD of assets, not 9.85.
+
+Redemption gives you the basket, not a single stablecoin: in a stress event you may receive an asset you did not want. Minting and redemption run on 4 chains (Ethereum, Base, HyperEVM, Avalanche); the other 20 rely on the bridge and DEX liquidity, which Parallel does not guarantee.
+
+### How Parallel mitigates it
+
+- Redemption is designed so there is no advantage in exiting first: everyone gets the same proportional share, and the penalty below 100% recapitalises the protocol instead of rewarding early exits.
+- Reserves sit in permissionless Parallelizer contracts, not a multisig, so redemptions do not depend on anyone signing a transaction. See [Proof of Solvency](/security/proof-of-solvency).
+- Bridging back to a Parallelizer chain carries no protocol fee, only the LayerZero gas fee.
+
+### What you can do
+
+- Before a large exit, get a quote: the [`get_quote`](/agents/mcp/tools) MCP tool returns the exact output and fees for a mint or redeem, and `get_supported_collaterals` shows caps, utilisation and whether minting or redeeming is open for each asset.
+- Keep the USDp you may need to exit quickly on one of the 4 Parallelizer chains, or accept the bridge delay of about 10 minutes; DEX liquidity on the other 20 chains is a convenience, not a guarantee.
+
+## 3. Smart-contract risk
+
+### What could happen
+
+Parallel V3 is a set of upgradeable contracts: the Parallelizer Module is a Diamond Proxy (EIP-2535) with several facets, the Savings Module a UUPS proxy, and the bridge a LayerZero OFT contract whose parameters the DAO controls. A bug in any of them, or in a dependency like an oracle adapter or collateral token, could let an attacker mint unbacked USDp, drain reserves, or block withdrawals, and upgradeability means today's audited code can change after a governance vote.
+
+Flash loans of USDp are possible on every chain, capped at 100,000 USDp per chain with a 0.00% fee, bounding how much can be flash-minted in one transaction.
+
+### How Parallel mitigates it
+
+- **Audits and formal verification.** The V3 core was audited by Bail Security (2025-03) and Certora (2025-04); V3.1 by Cyfrin, with formal verification (2026-03-04), plus a Bail Security review of the fee-claim update; V3.2 (agentic payments) by Cyfrin and Bail Security (2026-05); the bridging module twice by Bail Security (2024-08, 2025-01); and the PRL token and tokenomics by Zenith and Bail Security. Full report links are on the [audits page](/security/audits).
+- **Bug bounty.** An Immunefi programme has been live since 30 June 2025 (PGP-28), paying up to 250,000 USD for the most critical impacts and a minimum of 50,000 USD for other critical bugs. See [Bug Bounty Program](/security/bug-bounty-program).
+- **Real-time monitoring.** Hypernative watches the protocol on every V3 chain and can automatically pause mint and burn on the Parallelizer and Bridging modules, and deposits and withdrawals on the Savings Module, but has no admin rights: it cannot add or remove collateral, change DVNs, or upgrade contracts. See [Hypernative](/security/hypernative).
+- **Emergency guardians.** Any DAO multisig signer can initiate a pause transaction, executed once other signers verify it; Tier 1 incidents (user funds at risk) are paused immediately, then discussed in a 24-hour governance vote. See [Parallel Emergency Guardians](/security/parallel-emergency-guardians).
+- **Insurance fund.** A DAO fund covers smart-contract and oracle-failure shortfalls on the deployments governance has voted to cover (USDp on Ethereum, Base, Sonic, HyperEVM and Avalanche, PRL on six chains), up to 100% of the fund. It is not sized to cover the full USDp supply; see the [insurance fund page](/security/insurance-fund).
+
+### What you can do
+
+- Read the audit scope on the audits page, not just the auditor name, and size your position to what the insurance fund and your own tolerance can absorb.
+- If you build on Parallel, follow the governance forum for upgrade proposals and pin the addresses you integrate from the [contract addresses page](/developers-hub/contract-addresses).
+- Report anything suspicious through Immunefi, not on social media.
+
+## 4. Bridge risk
+
+### What could happen
+
+USDp moves between chains through LayerZero: a bridge transfer burns USDp on the source chain and mints it on the destination once verifiers (DVNs) confirm the message. If the DVNs are compromised, or LayerZero itself fails, USDp could be minted without a matching burn, or a transfer could get stuck; because USDp is bridged to 24 chains, a bridge exploit on one affects the supply everywhere unless isolation mode is on.
+
+Two softer failure modes are more likely than a hack: when the destination chain's **mint limit** is reached you receive lz-USDp (a receipt token) instead of USDp until capacity frees up; when the source chain's **burn limit** is reached the transfer cannot start; and when LayerZero executors are down the message is verified but not delivered until someone executes it.
+
+### How Parallel mitigates it
+
+- **Verifier quorum.** On every chain the configuration is 2 required DVNs (LayerZero Labs and Nethermind) plus 1 of 2 optional DVNs (Horizen and Canary); three independent verifiers must agree before USDp is minted.
+- **Limits.** Mint and burn limits are 2,500,000 USDp per day and 10,000,000 USDp global per chain, bounding a bridge exploit; the DAO can lower them at any time.
+- **Isolation mode.** The DAO can switch on isolation mode so a chain can never burn more USDp than was bridged into it, stopping a compromised chain from draining the others; it is currently off on every chain.
+- **Manual execution.** If executors are unavailable you can call `lzReceive` yourself through [LayerZero Scan](https://layerzeroscan.com/protocol/parallel-protocol) or a block explorer; an offline executor does not lose funds.
+- **Pause.** The guardians and Hypernative automation from section 3, plus the DAO, can also pause bridge mint and burn.
+
+The per-chain configuration is on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation#bridging-module).
+
+### What you can do
+
+- Check remaining capacity before a large transfer with `get_bridge_limits` and track it with `get_bridge_status` ([MCP tools](/agents/mcp/tools)); a bridge above the daily capacity is refused with `EXCEEDS_BRIDGE_LIMIT`.
+- Know what lz-USDp is before you see it in your wallet; the manual-execution steps are on the [bridging module page](/products/parallel-v3/how-it-works/bridging-module).
+- Do not send USDp to a chain where you cannot use it: the 20 bridge-only chains have no mint, redeem or savings.
+
+## 5. Savings and sUSDp risk
+
+### What could happen
+
+sUSDp is an ERC-4626 vault: you deposit USDp and receive shares whose value grows at a rate written into the contract, not computed on-chain from actual yield; a **keeper** updates it, and between updates depositors earn a fixed rate regardless of what the backing assets earned. A keeper that sets the rate too high inflates the USDp supply faster than the backing grows; one that stops updating leaves depositors on a stale rate.
+
+sUSDp inherits every USDp risk above; it adds no composability risk by design, but is a separate, upgradeable contract that can be paused. On Sonic the Savings deployment is being wound down: existing positions can exit, but new deposits should not be made there.
+
+### How Parallel mitigates it
+
+- **Hard cap.** The sUSDp rate cannot exceed 35.00%, whatever a keeper submits.
+- **Whitelisted keepers.** Only addresses approved by the DAO hold the `KEEPER_ROLE`, and a `KEEPER_ROLE_TIMELOCK` delays sensitive operations; approved keepers and their addresses per chain are on the [keepers page](/security/keepers).
+- **Real yield.** 90% of protocol revenue goes to sUSDp holders and 10% to the DAO Treasury ([fee distribution](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/fee-distribution)); the rate should track that income.
+- **Donation-attack fix.** Since July 2026 the vault tracks its principal in an internal `storedAssets` variable instead of its token balance, so USDp sent directly to the contract cannot move the share price. Audited by Cyfrin (with Certora formal verification) and Bail Security; see the [audits page notes](/security/audits#savings-module--donation-attack-fix).
+- **No fees, no lock.** There is no deposit or withdrawal fee and no cooldown; sUSDp is liquid and withdrawable at any time unless the vault is paused.
+
+### What you can do
+
+- Compare the contract's rate (`get_savings_rate`) with what the reserves earn (`get_backing_composition`).
+- If you hold sUSDp on Sonic, withdraw it; the contract stays listed on the [contract addresses page](/developers-hub/contract-addresses) for that purpose only.
+
+## 6. Governance and key-holder risk
+
+### What could happen
+
+Parallel is governed by sPRL holders voting on Snapshot, but the votes are executed by DAO multisigs, which can change every parameter on this page, from the collateral list and fees to bridge limits, keeper addresses and the implementation behind each proxy. A compromised or colluding set of signers, or a vote captured by a large sPRL holder, is a risk to every holder. A wrongful pause (powers in section 3) can also trap funds for the incident's duration.
+
+Reserves are the exception: the Parallelizer holds the backing in permissionless contracts, and neither the DAO nor contributors can withdraw it.
+
+### How Parallel mitigates it
+
+- **Multisig threshold.** Each DAO multisig has 8 elected members and needs 5 signatures to execute, elected by governance; see [DAO Multisigs](/governance/dao-multisigs).
+- **Public process.** Proposals are discussed on the forum for at least 48 hours, then voted on Snapshot; only proposals with more than 50% support and quorum are executed. See [Governance Process](/governance/governance-process).
+- **Scoped roles.** The V3 AccessManager separates `GOVERNOR_ROLE`, `GUARDIAN_ROLE`, `KEEPER_ROLE` and per-stablecoin minter roles, each with a timelocked variant; guardians can pause, not reconfigure. Roles are listed on the [Parallel V3 developers page](/developers-hub/parallel-v3); timelock durations are in the contracts and governance proposals.
+- **Insurance fund separation.** The insurance fund lives in its own 5 of 8 multisig, distinct from the Protocol and DAO Treasury multisig.
+
+### What you can do
+
+- Follow the [governance forum](https://gov.parallel.best/) and the [Snapshot space](https://vote.parallel.best/#/): parameter changes are announced there before they execute.
+- Integrators: poll `get_protocol_parameters` for changes to fees, limits, roles and addresses.
+- Stake PRL and vote, or delegate to someone who does: governance risk falls as participation rises.
+
+## 7. PRL-specific risk
+
+### What could happen
+
+PRL is a governance token whose price is set by the market and can fall to zero; staking it adds mechanisms you should understand before you commit:
+
+- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a one-epoch (30-day) cooldown, skippable by paying a penalty, sent to the DAO Treasury, that starts at 50% of the amount and decreases linearly over time.
+- **ParaBoost loss.** Your ParaBoost score, computed off-chain by a keeper at the end of each epoch, determines your share of fee distribution; transferring or unstaking sPRL resets it.
+- **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, itself staked on Aura, adding impermanent loss between PRL and wETH plus Balancer and Aura smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl).
+- **Claim window.** Fee rewards for stakers can be claimed during 12 epochs (about one year); unclaimed rewards return to the DAO Treasury.
+- **Fee share.** The percentage and the payout token are governance decisions that change between tokenomics versions; read the [PRL fee distribution page](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) before relying on a number.
+
+### How Parallel mitigates it
+
+- The penalty is avoidable: wait the full cooldown and you pay nothing.
+- Every write tool of the [MCP server](/agents/mcp/transactions) returns warnings before you sign: `EARLY_UNSTAKE_PENALTY`, `PARABOOST_LOST` on unstake and `PARABOOST_LOCK` on stake.
+- The PRL contracts are covered by the audits in section 3.
+
+### What you can do
+
+- Call `get_cooldown_status` before unstaking to see the remaining time and the estimated penalty, and `get_staking_info` to see the ParaBoost you would forfeit.
+- Choose sPRL1 if you do not want wETH exposure or third-party pool risk.
+- Claim rewards well inside the 12-epoch window.
+
+## 8. Chain and operational risk
+
+### What could happen
+
+USDp exists on 24 chains, each with its own validators, sequencer, RPC providers and block explorer; a chain halt, sequencer outage, reorg or explorer outage can make USDp there unusable for a while, and the protocol cannot fix a chain. Smaller chains also have thinner liquidity, and deployments can be retired: the Sonic Parallelizer and Savings deployments are wound down and exit-only.
+
+Off-chain services (the app, the MCP server, subgraphs, the proof-of-solvency dashboard) can be down or stale while the contracts keep working.
+
+### How Parallel mitigates it
+
+- Deployments are independent per chain: a problem on one does not stop mint, redeem or savings on the others, and bridge limits plus isolation mode bound the contagion through the bridge.
+- The contracts are usable without Parallel's front end: every address is public, and an MCP outage costs you convenience, not funds (see section 9 for why the MCP server itself cannot lose or move funds).
+- `parallel_health_check` reports RPC latency for all 24 chains, and the MCP server serves the last known value for up to 2 minutes when an RPC degrades.
+
+### What you can do
+
+- Keep the USDp you rely on for payments or collateral on a chain whose liquidity and uptime you trust.
+- Do not open new positions on wound-down deployments.
+- If a front end is down, interact with the contracts from a block explorer using the addresses on the [contract addresses page](/developers-hub/contract-addresses).
+
+## 9. Agent payments: x402 facilitator and MCP server
+
+### What could happen
+
+Parallel runs an **x402 facilitator**: an off-chain service that verifies an agent's signed payment, then settles it on-chain, so any API can charge AI agents per request. Two facts matter before you depend on it:
+
+- **The facilitator is not audited and not open source.** The audits on the [audits page](/security/audits) (Bail Security, Cyfrin, Certora) cover the protocol smart contracts the settlement goes through, not the hosted service itself. The middleware and agent SDKs are MIT-licensed on npm; the facilitator is a closed service operated by Parallel.
+- **It is a single dependency.** If it is down, slow (the SDK times out after 10 seconds on `verify`, 60 on `settle`) or misbehaving, agents cannot pay and merchants cannot get paid until it recovers.
+
+An agent can pay in USDp, USDC or sUSDp only, with gas sponsored on Base, HyperEVM and Avalanche (1,000 transactions per agent per month); on Ethereum it pays its own gas. A leaked agent key drains whatever that wallet holds, and a token-swapping settlement fails when the Parallelizer is paused (`PARALLELIZER_PAUSED`).
+
+The **MCP server** and **CLI** are a different dependency: the MCP server never signs, broadcasts or custodies anything, returning unsigned transactions for your wallet to sign, so the risk is signing something you did not read. The CLI with `--wallet` broadcasts immediately after signing, with no extra confirmation step.
+
+### How Parallel mitigates it
+
+- **Verify, then settle.** The facilitator checks the signature off-chain before the merchant's handler runs, and submits the on-chain transfer only after a success response; a failed request is never charged, and a settle without a prior verify (or after the 120-second verify window) is rejected. See [verify vs settle](/agents/x402/verify-vs-settle).
+- **Non-custodial.** Funds settle straight to the merchant's `payTo` wallet: the facilitator never holds them, so there is nothing to withdraw or lose if it disappears; an unsettled authorization simply expires.
+- **Bounded authorizations.** Every payment carries an amount, a chain, an expiry and a nonce; replays, expired signatures and chain mismatches are rejected and each signer is rate-limited hourly. See the [error codes page](/agents/x402/error-codes).
+- **Audited settlement path.** The contracts that move tokens are the audited protocol contracts; gas sponsoring alone cannot move funds.
+- **Unsigned by design.** Every MCP write tool simulates the transaction and returns `simulation.success`, a revert reason on failure, and business warnings before you sign, such as the staking warnings in section 7. See [how MCP transactions work](/agents/mcp/transactions).
+
+### What you can do
+
+- **Keep agent wallets small.** Fund an agent with only what it needs next and top it up, rather than holding a treasury behind a server-side key; use a dedicated wallet for the CLI, never your main one.
+- **Confirm settlement yourself.** Merchant [webhooks](/agents/x402/webhooks) are on the roadmap, not live: read the `payment-response` header (it carries the on-chain `txHash`) or watch your `payTo` wallet before treating a request as paid.
+- **Handle the facilitator being down.** Catch `FACILITATOR_UNAVAILABLE` and `FACILITATOR_INVALID_RESPONSE` and decide whether to fail closed or serve unpaid.
+- **Treat the facilitator as a vendor.** If your business cannot tolerate an unaudited hosted service, settle against the audited contracts yourself.
+- **Read before you sign.** Inspect the `to`, `chainId`, `value` and warnings of every transaction an MCP client shows you, and replace the default unlimited approval with an exact one if you prefer.
+
+## 10. Regulatory note
+
+Stablecoins and governance tokens are treated differently across jurisdictions, rules are changing, and how they apply depends on where you are and what you do with them; Parallel gives no legal or tax advice, so check your own obligations before using the protocol.
+
+## Monitoring the protocol yourself
+
+You do not have to trust this page. Everything it describes can be checked live.
+
+| What to check | Where |
+| --- | --- |
+| Collateral ratio, backing composition, reserves per chain | [Proof-of-solvency dashboard](https://app.parallel.best/transparency) and the [reserve addresses](/security/proof-of-solvency) |
+| One snapshot of TVL, supply, savings APY, solvency and backing | `get_protocol_overview` and `get_proof_of_solvency` ([MCP tools](/agents/mcp/tools)) |
+| Per-asset caps, utilisation, mint and redeem status, adaptive fees | `get_supported_collaterals` and `get_fee_rates` |
+| Bridge capacity remaining and reset time | `get_bridge_limits` |
+| sUSDp rate history and total deposits | `get_savings_rate` |
+| Contract addresses, governance roles, fees, bridge limits in one summary | `get_protocol_parameters` |
+| RPC health on all 24 chains | `parallel_health_check` |
+| Payment routes and gas sponsoring per chain | `get_payment_capabilities` |
+| Raw on-chain events across 16 chains | [GoldSky subgraphs](/developers-hub/parallel-v3/offchain-tools/subgraphs) |
+| Dashboards | A [Dune](/developers-hub/parallel-v3/offchain-tools/dune) page is planned |
+| Parameter changes before they execute | [Governance forum](https://gov.parallel.best/) and [Snapshot](https://vote.parallel.best/#/) |
+| Pauses and emergency actions | Hypernative wallet and guardian multisig activity on each chain's explorer ([Hypernative](/security/hypernative), [DAO Multisigs](/governance/dao-multisigs)) |
+
+MCP read tools cache for 30 to 120 seconds; for a transaction that depends on an exact number, read the contract.
+
+## FAQ
+
+<FAQ items={[
+  {
+    question: "Is USDp guaranteed to be worth 1 USD?",
+    answer: "No. USDp is backed by a basket of stablecoins held in permissionless contracts and redeemable for a proportional share of it at any time. If the basket is worth less than the supply, redemptions carry a penalty (section 2). The collateral ratio is public on the proof-of-solvency dashboard."
+  },
+  {
+    question: "Can the Parallel team or the DAO take the reserves?",
+    answer: "No. The backing sits in the Parallelizer Module, a permissionless contract that neither the DAO multisigs nor contributors can withdraw from. The DAO can change parameters and upgrade contracts through governance, which is the key-holder risk to watch."
+  },
+  {
+    question: "Who can pause the protocol, and what does a pause block?",
+    answer: "DAO multisig signers acting as emergency guardians, Hypernative's automated monitoring, and the DAO by vote, as detailed in section 3. A pause stops mint and burn on the Parallelizer and Bridging modules, plus deposits and withdrawals on the Savings Module."
+  },
+  {
+    question: "Is sUSDp riskier than USDp?",
+    answer: "sUSDp carries every USDp risk plus two of its own: the savings rate is set by DAO-approved keepers rather than computed on-chain, capped at 35.00%, and the vault is a separate upgradeable contract that can be paused. On Sonic the vault is being wound down and should only be used to exit."
+  },
+  {
+    question: "What happens to my PRL if I unstake early?",
+    answer: "Unstaking sPRL normally takes a one-epoch (30-day) cooldown with no cost. Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero, paid to the DAO Treasury. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
+  }
+]} />
+
+## Related
+
+- [Proof of Solvency](/security/proof-of-solvency)
+- [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module)
+- [USDp and sUSDp implementation parameters](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation)
+- [Audits](/security/audits)
+
+<HelpFooter />

@@ -82,6 +82,10 @@ export const sidebar: Sidebar = [
             collapsed: true,
           },
           {
+            text: "Fees",
+            link: "/products/parallel-v3/fees",
+          },
+          {
             text: "Governance",
             link: "/products/parallel-v3/governance",
           },
@@ -146,17 +150,6 @@ export const sidebar: Sidebar = [
                   {
                     text: "Borrowing",
                     link: "/products/parallel-v2/how-it-works/vaults/borrowing",
-                  },
-                  {
-                    text: "Fees",
-                    items: [
-                      {
-                        text: "Fees Generation",
-                        link: "/products/parallel-v2/how-it-works/vaults/fees/fees-generation",
-                      },
-                    ],
-                    link: "/products/parallel-v2/how-it-works/vaults/fees",
-                    collapsed: true,
                   },
                   {
                     text: "Withdrawing",
@@ -252,6 +245,10 @@ export const sidebar: Sidebar = [
       {
         text: "Proof of Solvency",
         link: "/security/proof-of-solvency",
+      },
+      {
+        text: "Risks",
+        link: "/security/risks",
       },
       {
         text: "Parallel Emergency Guardians",
@@ -762,26 +759,27 @@ export const sidebar: Sidebar = [
         link: "/resources/user-guides",
         collapsed: true,
         items: [
+          { text: "How to mint USDp", link: "/resources/user-guides/mint-usdp" },
           {
-            text: "How to Mint USDp?",
-            link: "https://blog.parallel.best/how-to-mint-usdp",
+            text: "How to earn yield with sUSDp",
+            link: "/resources/user-guides/stake-usdp-into-susdp",
           },
+          { text: "How to bridge USDp and PRL", link: "/resources/user-guides/bridge" },
+          { text: "How to stake PRL", link: "/resources/user-guides/stake-prl" },
           {
-            text: "How to Stake USDp into sUSDp?",
-            link: "https://blog.parallel.best/how-to-stake-usdp-into-susdp",
-          },
-          {
-            text: "How to Bridge Parallel Tokens?",
-            link: "https://blog.parallel.best/how-to-bridge-parallel-tokens",
-          },
-          {
-            text: "How to Stake PRL?",
-            link: "https://blog.parallel.best/how-to-stake-prl",
-          },
-          {
-            text: "How to Migrate to PRL?",
+            text: "How to Migrate to PRL? (closed)",
             link: "https://blog.parallel.best/how-to-migrate-to-prl",
           },
+        ],
+      },
+      {
+        text: "Factsheets",
+        link: "/resources/factsheets",
+        collapsed: true,
+        items: [
+          { text: "USDp Factsheet", link: "/resources/factsheets/usdp" },
+          { text: "sUSDp Factsheet", link: "/resources/factsheets/susdp" },
+          { text: "PRL Factsheet", link: "/resources/factsheets/prl" },
         ],
       },
     ],

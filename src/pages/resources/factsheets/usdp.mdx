@@ -1,0 +1,76 @@
+---
+title: USDp Factsheet
+description: >-
+  Key facts about USDp, Parallel's overcollateralized USD stablecoin: standard,
+  chains, canonical contract, fees, backing, where to get it and how to
+  integrate.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# USDp Factsheet
+
+USDp is the USD stablecoin of Parallel V3. This sheet gives the facts a listing or integration team needs first; each row links to the page it comes from.
+
+## Key facts
+
+| Field | Value |
+| --- | --- |
+| Name | USDp |
+| Ticker | USDp |
+| Type | Decentralized, overcollateralized USD stablecoin |
+| Standard | ERC-20; bridged as a LayerZero OFT (`BridgeableUSDp`) |
+| Peg | 1 USD |
+| Backing | A basket of stablecoins and yield-bearing stablecoins (frxUSD, sfrxUSD, USDe, sUSDe, USDS, sUSDS, USDC, ygamiUSDC), held on-chain in the Parallelizer contracts. See [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
+| Issuer | Parallel V3, a DAO-governed protocol built by Cooper Labs |
+| Chains | 24 chains, see [USDp contract addresses](/developers-hub/contract-addresses/parallel-v3/usdp). Minting, burning and redeeming run on 4 of them: Ethereum, Base, HyperEVM, Avalanche |
+| Canonical contract (Ethereum) | [0x9B3a8f7CEC208e247d97dEE13313690977e24459](https://etherscan.io/address/0x9B3a8f7CEC208e247d97dEE13313690977e24459#code) |
+| Yield | None on USDp itself. Deposit it into [sUSDp](/resources/factsheets/susdp) to earn the savings rate |
+| Fees | Mint fee currently 0.00% on every accepted asset; burn fee currently 0.00% on base stables and 0.05% on yield-bearing assets; bridging 0.00% protocol fee plus LayerZero gas. Fees are adaptive DAO parameters. See [Fees](/products/parallel-v3/fees) |
+| Redemption | Available at any time for a proportional share of the backing, with a dynamic penalty tied to the collateral ratio. See [Redeem](/products/parallel-v3/how-it-works/parallelizer-module#redeem) |
+| Governance role | None. USDp carries no voting power; its parameters are set by sPRL holders through the [DAO](/products/parallel-v3/governance) |
+| Licensing | Token, bridging and flashloan contracts: MIT (`parallel-tokens`). Parallelizer Module: BUSL 1.1, a licensed friendly fork of Angle. See [Licensing](/products/parallel-v3/licensing) |
+
+:::info
+Decimals are not documented in these docs yet. Read `decimals()` on the contract before integrating.
+:::
+
+## How it works
+
+USDp is minted and burned at oracle value through the [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module), a basket of DAO-approved assets each held within a target exposure range. Adaptive fees push exposures back toward their targets, so the fee on a given asset can rise, fall or turn negative depending on the state of the basket. The [Bridging Module](/products/parallel-v3/how-it-works/bridging-module) moves USDp across all 24 chains over LayerZero, with DAO-configured DVNs and mint and burn limits per chain. Arbitrageurs keep the secondary-market price at peg because they can always mint, burn or redeem against the reserves. See the [How it works](/products/parallel-v3/how-it-works) overview for the full module map.
+
+## Backing and risk
+
+The reserves backing USDp sit in permissionless Parallelizer contracts on Ethereum, Base, HyperEVM and Avalanche, not in multisigs, and neither the DAO nor contributors can access them. Anyone can verify the collateral ratio live on the [Proof of Solvency](/security/proof-of-solvency) page and the [transparency dashboard](https://app.parallel.best/transparency). The main risks are a depeg of a backing asset, an oracle failure and a bridge failure; the protocol answers them with exposure limits, burn-price penalties, isolation mode, [Hypernative monitoring](/security/hypernative), the [insurance fund](/security/insurance-fund) and the [Parallel Emergency Guardians](/security/parallel-emergency-guardians). Read [Risks](/security/risks) before listing or integrating USDp.
+
+## Where to get it
+
+- **Mint** with an accepted stablecoin on Ethereum, Base, HyperEVM or Avalanche: [app.parallel.best/mint](https://app.parallel.best/mint)
+- **Bridge** to any of the 24 supported chains: [app.parallel.best/bridge](https://app.parallel.best/bridge), see [How to bridge USDp and PRL](/resources/user-guides/bridge)
+- **Redeem or burn** back to the backing assets from the same [mint page](https://app.parallel.best/mint)
+- **Step-by-step**: [How to mint USDp](/resources/user-guides/mint-usdp)
+
+## Integrate it
+
+- [Parallelizer Module integration](/developers-hub/parallel-v3/build-on-parallel/parallelizer-module-integration): quote, mint, burn and redeem from a contract or a script
+- [USDp contract addresses](/developers-hub/contract-addresses/parallel-v3/usdp): token, Parallelizer, bridge and flashloan contracts on every chain
+- [Flashloan Module integration](/developers-hub/parallel-v3/build-on-parallel/flashloan-module-integration): 0.00% fee, up to 100,000 USDp per chain
+- [Subgraphs](/developers-hub/parallel-v3/offchain-tools/subgraphs) for indexed data; [Dune](/developers-hub/parallel-v3/offchain-tools/dune) dashboards are planned
+- [MCP server](/agents/mcp): live on 5 chains with 36 tools, giving any AI client live data and ready-to-sign mint, redeem and bridge transactions
+- [x402](/agents/x402): USDp is accepted by Parallel's x402 facilitator (gas sponsored on Base, HyperEVM, Avalanche; Ethereum supported but not sponsored). Agents can pay in USDp, USDC or sUSDp
+
+## Resources
+
+- [Brand assets](https://brand.parallel.best/)
+- [Parallel app](https://app.parallel.best/)
+- [Proof of Solvency dashboard](https://app.parallel.best/transparency)
+- [Audits](/security/audits)
+- [USDp & sUSDp product page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp)
+
+## Related
+
+- [sUSDp Factsheet](/resources/factsheets/susdp)
+- [PRL Factsheet](/resources/factsheets/prl)
+- [Fees](/products/parallel-v3/fees)
+
+<HelpFooter />

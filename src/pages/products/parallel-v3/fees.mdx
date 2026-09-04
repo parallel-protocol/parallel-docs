@@ -1,0 +1,159 @@
+---
+title: Parallel Protocol Fees
+description: "Every fee Parallel charges today: minting, burning and redeeming USDp, bridging, flashloans, PRL staking, where the revenue goes, and the legacy V2 fees."
+---
+
+import { FAQ } from '@/components/FAQ'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# Fees
+
+Parallel charges very little today, but none of its fees are hard-coded. Mint and burn fees are set per asset by the DAO on top of an adaptive mechanism that can raise them, lower them or even turn them negative to keep the backing balanced. Redemptions carry a dynamic penalty tied to the collateral ratio, and bridging and flashloans are free at the protocol level under the current parameters. This page is the single reference for what you pay and where it goes. The figures reflect the DAO parameters at the time of writing and can change by governance vote.
+
+## Summary
+
+| Operation | Fee today | Notes | Where it goes |
+| --- | --- | --- | --- |
+| Mint USDp | 0.00% on every accepted asset | Adaptive: depends on the asset's exposure after the mint and on its deviation from target price. Can rise, or go negative as an incentive. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
+| Burn USDp | 0.00% on base stablecoins, 0.05% on yield-bearing assets | Same adaptive mechanism. Burns are paused while any backing asset deviates too far from its target price. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
+| Redeem USDp | No fixed fee, dynamic penalty | A proportional share of every backing asset. Fair value at or above a 100% collateral ratio, less below it. | The shortfall stays in the backing and re-collateralises the protocol |
+| Bridge USDp | 0.00% protocol fee | You pay the LayerZero native gas fee on the source chain. Delivery takes around 10 minutes. | The LayerZero network (verifiers and executors), not Parallel |
+| Flashloan | 0.00% | Up to 100,000 per transaction on each chain. | Fee collector, when a fee is set |
+| sUSDp deposit or withdraw | None | ERC-4626 vault, no slippage, yield accrues from the first block. | Not applicable |
+| PRL staking | No fee to stake, or to unstake after the cooldown | Skipping the one-epoch cooldown costs a penalty that starts at 50% and decreases linearly. See [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms). | DAO Treasury (penalty only) |
+| x402 facilitator | No platform fee | Gas is sponsored on Base, HyperEVM and Avalanche only; Ethereum is supported but the agent pays its own gas. Agents pay in USDp, USDC or sUSDp, and funds settle straight to the merchant's wallet. See [x402 concepts](/agents/x402/concepts). | Not applicable |
+
+## Minting and burning
+
+Mint and burn go through the [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module). Both happen at oracle value, and the fee is not a flat rate: it is computed per asset, per operation, from two inputs.
+
+**Exposure bands.** Every asset in the backing has a minimum and a maximum exposure set by the DAO. The fee for a mint or a burn depends on the exposure to that asset *after* the operation. When an asset sits inside its target band, the DAO parameters below apply as they are. When a mint would push an asset above its maximum, the mint fee climbs, up to 100%, which effectively closes minting with that asset until exposure comes back down. When an asset is below its minimum, burn fees for it rise and mint fees fall, so that users are paid to bring the backing back into balance.
+
+**Target price deviation.** Each asset also has a target price. A mint is only accepted if the asset used has not deviated too far from its target. A burn looks at every asset in the backing and applies to the burn price a penalty equal to the largest deviation found, so that nobody can rush out through the safest asset during a depeg. In normal conditions this penalty is zero and burns happen at fair value.
+
+**Negative fees.** The mechanism can set a negative fee to reward users who bring in an asset the backing is short of. The contract checks that this never opens an arbitrage loop: a negative mint fee cannot be larger, in absolute value, than the positive burn fees of every other asset.
+
+:::info
+The 0.00% mint fee you see today is a DAO parameter, not a property of the protocol. It is currently 0%, not always 0%: the same mechanism can charge more, or pay you, depending on the state of the backing.
+:::
+
+### Current parameters per asset
+
+These are the DAO-approved parameters on the four chains where the Parallelizer Module runs. Mint caps are per asset. The full list, including price feeds and stale periods, is on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
+
+| Chain | Asset | Mint fee | Burn fee | Min exposure | Max exposure | Mint cap |
+| --- | --- | --- | --- | --- | --- | --- |
+| Ethereum | frxUSD | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
+| Ethereum | sfrxUSD | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| Ethereum | USDe | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
+| Ethereum | sUSDe | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| Base | USDS | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
+| Base | sUSDS | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| HyperEVM | USDe | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
+| HyperEVM | sUSDe | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| Avalanche | USDC | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
+| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+
+The pattern is deliberate: base stablecoins (frxUSD, USDe, USDS, USDC) can be burnt for free, while the yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) that generate the protocol's income carry a small 0.05% burn fee and must stay between 20% and 95% of the backing.
+
+## Redeeming
+
+Redeeming is the third way out of USDp, and the only one that is available in every market condition. Instead of choosing one asset, you receive a proportional slice of every asset in the backing, adjusted by a penalty factor.
+
+**Proportional distribution.** Your share of the backing is your USDp divided by the total supply. Nobody can drain a single asset, and early redeemers cannot leave later ones with the weakest collateral. Together with the burn price penalty above, this is what removes the incentive for a bank run.
+
+**Penalty factor.** When the collateral ratio is at or above 100%, you receive fair value. When it drops below 100%, a dynamic penalty applies on top of the lower ratio. Redeeming during a downturn returns less than fair value, which deters mass exits and gives the system time to recover.
+
+Worked example from the [Parallelizer Module page](/products/parallel-v3/how-it-works/parallelizer-module#redeem): the collateral ratio drops to 98.5% because one backing asset depegged, and the penalty factor is 0.98. Redeeming 10 USDp returns assets worth about \$9.65 (10 × 0.985 × 0.98) instead of the \$9.85 a plain pro-rata share would give. The difference stays in the backing and contributes to re-collateralising the protocol.
+
+**Burn or redeem?** Burning swaps USDp for one asset of your choice at oracle value, minus the burn fee, and can be paused during a depeg. Redeeming gives you a mix of every backing asset, is always available, and only costs you something when the collateral ratio is below 100%. For a normal exit, a burn or a DEX swap is simpler; redeem is mostly used by market makers and arbitrageurs. The [mint USDp guide](/resources/user-guides/mint-usdp) walks through both.
+
+## Bridging
+
+USDp moves between its 24 chains through the [Bridging Module](/products/parallel-v3/how-it-works/bridging-module), built on the LayerZero OFT standard. The protocol can charge a fee when USDp is bridged, taken on the destination chain when the lz-USDp is burnt for USDp. That fee is currently set to 0.00% on every chain. What you pay is the LayerZero native gas fee quoted on the source chain, which covers verification and execution on the destination chain, and delivery takes around 10 minutes.
+
+The DAO parameters are the same on every chain:
+
+| Parameter | Value |
+| --- | --- |
+| Protocol fee | 0.00% |
+| Verification (DVNs) | 2 required (LayerZero Labs, Nethermind) plus 1 of 2 optional (Horizen, Canary) |
+| Daily mint and burn limits | 2,500,000 each |
+| Global mint and burn limits | 10,000,000 each |
+| Isolate mode | Off |
+
+If a limit is reached you receive lz-USDp instead of USDp on the destination chain, which you can burn for USDp once the limit resets or bridge on to another chain. Limits, DVNs and the fee are all set by the DAO.
+
+## Flashloans
+
+The [Flashloan Module](/products/parallel-v3/how-it-works/flashloan-module) mints USDp for the duration of one transaction and burns it at the end, so a flash loan is capped by a governance parameter rather than by pool liquidity. It runs on every chain where the core protocol is deployed, with the same DAO parameters everywhere:
+
+| Parameter | Value |
+| --- | --- |
+| Fee | 0.00% |
+| Maximum amount per flash loan | 100,000 |
+
+Any fee collected is sent to the fee collector contract for redistribution. Governance can raise the fee or the cap at any time.
+
+## Where the fees go
+
+Every fee collected by the USDp codebase is split two ways:
+
+| Recipient | Share |
+| --- | --- |
+| sUSDp holders | 90.00% |
+| DAO Treasury | 10.00% |
+
+The sUSDp share is paid out through the savings rate, which keepers update from the protocol's income. The DAO Treasury share funds the protocol's treasury strategy. The [fee distribution page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/fee-distribution) explains both flows and where the revenue comes from in the first place. PRL stakers also receive a share of protocol fees each epoch; that mechanism is described on the [PRL tokenomics fee distribution page](/governance/parallel-governance-token-prl/tokenomics/fee-distribution).
+
+## Legacy: Parallel V2 fees (PAR and paUSD)
+
+:::warning
+This section describes the legacy **v2** Classic Vaults (PAR and paUSD). For current Parallel features, see [v3](/products/parallel-v3).
+:::
+
+Parallel V2 generated revenue by taking fees on PAR and paUSD minted against collateral in [Classic Vaults](/products/parallel-v2/how-it-works/vaults):
+
+- **Origination fee.** Charged once, at the moment new PAR or paUSD is minted, and quoted as a percentage of the newly minted amount (0.2% of the minted amount).
+- **Borrowing fee.** Accrues over time on the PAR or paUSD debt of every active vault and is added to the borrower's debt at each block. It has to be repaid in full before the collateral can be withdrawn.
+- **Liquidation fee.** Charged to the borrower when a vault is liquidated, and added to the outstanding debt.
+
+Fee parameters were set per collateral type by governance. These fees no longer apply to USDp: the V3 Parallelizer Module has no debt, so there is nothing to originate or borrow against.
+
+## FAQ
+
+<FAQ items={[
+  {
+    question: "Is minting USDp free?",
+    answer: "Under the current DAO parameters the mint fee is 0.00% on every accepted asset, so you only pay gas. The fee is adaptive, not fixed: it rises when an asset is above its maximum exposure in the backing and can even turn negative to reward you for bringing in an asset the backing is short of. Check the quote in the app before you confirm."
+  },
+  {
+    question: "Why did my redeem return less than $1 per USDp?",
+    answer: "Redeeming gives you a proportional share of every asset in the backing, adjusted by a penalty factor. When the collateral ratio is at or above 100% you receive fair value. When it drops below 100%, for example after a backing asset depegs, you receive less than your share so that the remaining backing is not drained by the fastest exiters. If you want one specific asset at oracle value, burn instead."
+  },
+  {
+    question: "What is the difference between burning and redeeming?",
+    answer: "Burning swaps USDp for one collateral of your choice at oracle value, minus the burn fee (0.00% on base stablecoins, 0.05% on yield-bearing assets today), and can be paused during a depeg. Redeeming returns a slice of every backing asset, is always available, and applies a dynamic penalty when the collateral ratio is below 100%."
+  },
+  {
+    question: "Does bridging USDp cost anything?",
+    answer: "Parallel charges no protocol fee on bridging under the current parameters. You pay the LayerZero native gas fee on the source chain, which covers verification and execution on the destination chain. Delivery takes around 10 minutes."
+  },
+  {
+    question: "Is there a fee to deposit into or withdraw from sUSDp?",
+    answer: "No. The Savings Module is a plain ERC-4626 vault with no deposit or withdrawal fee and no slippage. You start earning from the first block after your deposit."
+  },
+  {
+    question: "Who sets the fees?",
+    answer: "The Parallel DAO. Mint and burn fees, exposure bands, mint caps, bridging limits and the flashloan fee and cap are all governance parameters, and the adaptive mechanism that moves mint and burn fees within those parameters is coded in the Parallelizer Module. Any figure on this page can change by governance vote."
+  },
+]} />
+
+## Related
+
+- [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module)
+- [USDp & sUSDp implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation)
+- [Fee distribution](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/fee-distribution)
+- [Mint USDp guide](/resources/user-guides/mint-usdp)
+
+<HelpFooter />
