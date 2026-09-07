@@ -48,7 +48,7 @@ Force it anywhere with `--json` (or `PARALLEL_JSON=true`). Every command uses th
 { "success": false, "error": { "code": "MISSING_OPTION", "message": "..." } }
 ```
 
-Failures set exit code 1 — safe to chain in CI and cron jobs.
+Success envelopes print to stdout; error envelopes print to stderr, so stdout stays clean for pipes. Failures set exit code 1 — safe to chain in CI and cron jobs.
 
 ## The wallet model
 
