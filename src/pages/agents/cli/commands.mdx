@@ -49,7 +49,7 @@ parallel swap redeem     --collateral USDC --amount 500  --chain base --wallet
 parallel swap redeem-all --amount 500 --chain base --wallet    # proportional redeem
 ```
 
-`--collateral` is required for `mint` and `redeem`; `redeem-all` pays out the whole basket proportionally. The names match the MCP tools since 0.2.7 — before that, `swap burn` meant "redeem into one collateral" and `swap redeem` meant "proportional". The old `burn` form still works as a hidden alias, but scripts using `swap redeem` for the proportional operation must switch to `swap redeem-all`.
+`--collateral` is required for `mint` and `redeem`; `redeem-all` pays out the whole basket proportionally. The names match the MCP tools. Earlier releases named these `swap burn` (one collateral) and `swap redeem` (proportional) — `burn` still works as a hidden alias, but scripts that used `swap redeem` for the proportional operation must switch to `swap redeem-all`.
 
 | Flag | Default | Purpose |
 |---|---|---|
@@ -139,6 +139,10 @@ Failures exit 1 and print `Error [CODE]: message`. In JSON mode the envelope `{ 
 | `CHAIN_SUNSET` | Operation not available on a sunset chain |
 | `PARALLELIZER_NOT_DEPLOYED` | Mint, redeem and savings need a chain with a Parallelizer |
 | `COLLATERAL_NOT_SUPPORTED` | Collateral (or bridge token) not accepted on this chain |
+| `EXCEEDS_CAP` | Mint or redeem beyond the collateral's deposited capacity — the message carries the remaining capacity |
+| `EXCEEDS_BRIDGE_LIMIT` | Daily or global bridge limit reached — the message carries the reset time |
+| `ROUTE_UNAVAILABLE` | The bridge route does not exist (same chain, or no bridgeable token on the destination) |
+| `PARTIAL_READ` | Some chain reads failed and the aggregate would be wrong — retry shortly |
 | `INSUFFICIENT_BALANCE` | Wallet balance too low for the requested amount |
 | `WALLET_REQUIRED` | Signing requested but no wallet available |
 | `INVALID_KEYSTORE` | Keystore unreadable, invalid format, or wrong password |
@@ -146,6 +150,6 @@ Failures exit 1 and print `Error [CODE]: message`. In JSON mode the envelope `{ 
 | `RPC_ERROR` | RPC call failed |
 | `UNKNOWN` | Anything else |
 
-Protocol-layer failures (caps, bridge limits, unavailable routes, partial reads) carry their own code in the `code` field since 0.2.7 — e.g. `EXCEEDS_CAP`, `EXCEEDS_BRIDGE_LIMIT`, `ROUTE_UNAVAILABLE`, `PARTIAL_READ`. Match on `error.code`; the message holds the human detail (remaining capacity, valid values…).
+Match on `error.code` — the message holds the human detail (remaining capacity, valid values…).
 
 <HelpFooter />
