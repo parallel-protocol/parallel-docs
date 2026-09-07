@@ -54,7 +54,15 @@ Each warning has a `severity` (`info`, `warning`, `error`) and a human-readable 
 
 ## When the server refuses
 
-Impossible operations fail with a structured error code instead of doomed calldata: a sunset chain (`CHAIN_SUNSET`), a chain without a Parallelizer deployment (`PARALLELIZER_NOT_DEPLOYED`), a redeem or mint beyond the deposited collateral (`EXCEEDS_CAP`, with the remaining capacity), a bridge route that does not exist (`ROUTE_UNAVAILABLE` — same-chain, or a destination without a bridgeable token), a bridge amount above the daily capacity (`EXCEEDS_BRIDGE_LIMIT`, with the reset time), or an unknown collateral (`COLLATERAL_NOT_SUPPORTED`, with the valid list). Aggregate reads that cannot be answered completely refuse with `PARTIAL_READ` naming the failed chains rather than returning a silently wrong total.
+Impossible operations fail with a structured error code instead of doomed calldata: a sunset chain (`CHAIN_SUNSET`), a chain without a Parallelizer deployment (`PARALLELIZER_NOT_DEPLOYED`), a redeem or mint beyond the deposited collateral (`EXCEEDS_CAP`, with the remaining capacity), a bridge route that does not exist (`ROUTE_UNAVAILABLE` — same-chain, or a destination without a bridgeable token), a bridge amount above the daily capacity (`EXCEEDS_BRIDGE_LIMIT`, with the reset time), or an unknown collateral (`COLLATERAL_NOT_SUPPORTED`, with the valid list).
+
+## Partial reads
+
+Multi-chain aggregates never fake completeness. When a chain read fails, the response carries `partial: true` and a `failedChains` list, and the totals exclude those chains — a lower bound, never a silently amputated number. Partial results are also never cached, so the next call retries the failed chains.
+
+Two tools go further and refuse to answer at all rather than mislead: `get_proof_of_solvency` (a ratio computed on incomplete data could declare the protocol insolvent when it is not) and any read whose partial answer would be structurally wrong. These fail with a `PARTIAL_READ` error naming the chains that could not be read.
+
+**How to handle it:** `PARTIAL_READ` is transient — a retry a few seconds later usually succeeds. If it persists, `parallel_health_check` tells you which chain's RPCs are down.
 
 ## Data freshness
 
