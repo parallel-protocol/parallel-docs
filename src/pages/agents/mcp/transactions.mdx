@@ -60,13 +60,13 @@ Impossible operations fail with a structured error code instead of doomed callda
 
 Multi-chain aggregates never fake completeness. When a chain read fails, the response carries `partial: true` and a `failedChains` list, and the totals exclude those chains — a lower bound, never a silently amputated number. Partial results are also never cached, so the next call retries the failed chains.
 
-Two tools go further and refuse to answer at all rather than mislead: `get_proof_of_solvency` (a ratio computed on incomplete data could declare the protocol insolvent when it is not) and any read whose partial answer would be structurally wrong. These fail with a `PARTIAL_READ` error naming the chains that could not be read.
+Some reads go further and refuse to answer at all rather than mislead — `get_proof_of_solvency` (a ratio computed on incomplete data could declare the protocol insolvent when it is not) and the savings rate reads, whose partial answer would be structurally wrong. These fail with a `PARTIAL_READ` error naming the chains that could not be read.
 
 **How to handle it:** `PARTIAL_READ` is transient — a retry a few seconds later usually succeeds. If it persists, `parallel_health_check` tells you which chain's RPCs are down.
 
 ## Data freshness
 
-Read tools cache briefly: savings and exchange rates 30 s, TVL/supply/staking 60 s, collaterals and fees 120 s, chain list 5 min. Bridge status and history are always live. If an RPC degrades, the server serves the last known value for up to 2 minutes rather than failing.
+Read tools cache briefly: savings and exchange rates 30 s, TVL/supply/staking 60 s, collaterals and fees 120 s, chain list 5 min. Bridge status and history are always live. If an RPC degrades, the server serves the last known value for up to 10 minutes rather than failing.
 
 ## Next steps
 
