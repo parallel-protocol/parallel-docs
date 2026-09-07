@@ -24,7 +24,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 | `get_supply` | Total and circulating supply of `usdp`, `susdp`, `prl`, `sprl1` or `sprl2`, with a per-chain breakdown |
 | `get_tvl` | TVL, per chain and per collateral |
 | `get_backing_composition` | Every collateral backing USDp: amounts, USD values, oracle prices, share of the basket |
-| `get_supported_chains` | All 25 chains with status and contract addresses (Sonic shows as sunset) |
+| `get_supported_chains` | The 25 supported chains with status and contract addresses (Sonic shows as sunset, so 24 are live) |
 | `get_supported_collaterals` | Collaterals accepted on a chain, with caps, utilization and mint/redeem status |
 | `get_fee_rates` | Adaptive mint/redeem fees per collateral — can be negative (incentives) |
 | `get_savings_rate` | The protocol-wide sUSDp APY (7d/30d/90d), exchange rate and total deposits |
@@ -53,7 +53,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 | Tool | What it does |
 |---|---|
 | `get_bridge_quote` | Cost of bridging USDp between two chains — no bridge fee, only the LayerZero native fee (~10 min delivery) |
-| `bridge` | Builds a USDp bridge transfer (`fromChain`, `toChain`, `amount`, `recipientAddress` — your own address, which sends and receives) |
+| `bridge` | Builds a USDp bridge transfer (`token` — only `usdp` — `fromChain`, `toChain`, `amount`, `recipientAddress`, your own address which sends and receives) |
 | `get_bridge_status` | Track a bridge transfer by transaction hash |
 | `get_bridge_limits` | Daily and global mint/burn capacity on a chain |
 | `get_bridge_history` | Past transfers for an address |
@@ -62,7 +62,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 | Tool | What it does |
 |---|---|
-| `get_staking_overview` | Epochs, totals staked in sPRL1/sPRL2, APRs, voting power |
+| `get_staking_overview` | Epochs, totals staked in sPRL1/sPRL2, voting power, and APRs (when an epoch has settled — otherwise null, with the reason in `unavailableFields`) |
 | `get_staking_info` | One address's full staking position: balances, rewards, cooldowns, ParaBoost |
 | `get_cooldown_status` | Pending unstake requests, remaining time and estimated penalties |
 | `stake` | Builds staking transactions — PRL into sPRL1, or PRL/BPT into sPRL2 |

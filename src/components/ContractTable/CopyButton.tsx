@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "./IconSprite";
 
 const COPIED_RESET_MS = 1500;
 
@@ -46,11 +46,7 @@ export function CopyButton({ address }: { address: `0x${string}` }) {
         onClick={handleCopy}
         aria-label={`Copy address ${address}`}
       >
-        {copied ? (
-          <Check size={14} aria-hidden="true" focusable="false" />
-        ) : (
-          <Copy size={14} aria-hidden="true" focusable="false" />
-        )}
+        <Icon name={copied ? "check" : "copy"} size={14} />
       </button>
       <span className="cooper-sr-only" aria-live="polite">
         {copied ? "Copied" : ""}

@@ -90,6 +90,30 @@ describe("ContractAddressesPage", () => {
     expect(within(base).queryByText("Stabilizer")).not.toBeInTheDocument();
   });
 
+  // The page lists a few hundred contracts; inlining two full SVGs per row was
+  // most of the HTML. The geometry is defined once and referenced with `<use>`.
+  it("defines each icon symbol exactly once for the whole page", () => {
+    const { container } = render(<ContractAddressesPage stablecoin="USDP" chains={MOCK_CHAINS} />);
+
+    expect(container.querySelectorAll("symbol#cooper-icon-copy")).toHaveLength(1);
+    expect(container.querySelectorAll("symbol#cooper-icon-check")).toHaveLength(1);
+    expect(container.querySelectorAll("symbol#cooper-icon-external-link")).toHaveLength(1);
+  });
+
+  it("points every row icon at the page sprite", () => {
+    const { container } = render(<ContractAddressesPage stablecoin="USDP" chains={MOCK_CHAINS} />);
+
+    // 4 contracts on Ethereum, none on Base → one copy + one external link each.
+    expect(container.querySelectorAll('use[href="#cooper-icon-copy"]')).toHaveLength(4);
+    expect(container.querySelectorAll('use[href="#cooper-icon-external-link"]')).toHaveLength(4);
+
+    // No `<use>` may dangle: every referenced id must exist in the sprite.
+    for (const use of container.querySelectorAll("use")) {
+      const id = use.getAttribute("href") ?? "";
+      expect(container.querySelector(id)).not.toBeNull();
+    }
+  });
+
   it("has no detectable accessibility violations", async () => {
     const { container } = render(<ContractAddressesPage stablecoin="USDP" chains={MOCK_CHAINS} />);
     expect(await axe(container)).toHaveNoViolations();

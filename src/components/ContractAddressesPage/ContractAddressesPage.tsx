@@ -1,4 +1,4 @@
-import { type Contract, ContractTable } from "@/components/ContractTable";
+import { type Contract, ContractTable, IconSprite } from "@/components/ContractTable";
 import { CHAIN_LABELS, type ChainSlug } from "@/lib/chains";
 import { ChainDeepLink } from "./ChainDeepLink";
 import "./ContractAddressesPage.css";
@@ -66,6 +66,9 @@ export function ContractAddressesPage({ stablecoin, chains }: ContractAddressesP
 
   return (
     <div className="cooper-contract-addresses-page" aria-label={`${stablecoin} Contracts`}>
+      {/* Defines the copy / check / external-link geometry once for every table below. */}
+      <IconSprite />
+
       <ChainDeepLink chains={slugs} />
 
       <nav className="cooper-contract-addresses-chain-picker" aria-label="Jump to chain">

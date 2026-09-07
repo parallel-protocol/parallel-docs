@@ -76,6 +76,28 @@ describe("withDeliveryRoutes", () => {
     );
   });
 
+  it("redirects the removed v2 fee pages to the consolidated v3 fee page", () => {
+    const sources = (withDeliveryRoutes(adapterConfig).routes ?? [])
+      .filter(
+        (r) =>
+          r.status === 308 &&
+          (r.headers as Record<string, string>)?.Location === "/products/parallel-v3/fees",
+      )
+      .map((r) => new RegExp(r.src as string));
+    expect(sources).toHaveLength(2);
+    for (const path of [
+      "/products/parallel-v2/how-it-works/vaults/fees",
+      "/products/parallel-v2/how-it-works/vaults/fees/",
+      "/products/parallel-v2/how-it-works/vaults/fees/fees-generation",
+    ]) {
+      expect(sources.some((re) => re.test(path))).toBe(true);
+    }
+    // The sibling vault pages still exist and must not be swallowed.
+    expect(
+      sources.some((re) => re.test("/products/parallel-v2/how-it-works/vaults/borrowing")),
+    ).toBe(false);
+  });
+
   it("adds no field Vercel does not know — an unknown key fails the whole deployment", () => {
     const allowed = new Set([
       "src",
@@ -123,11 +145,11 @@ describe("withDeliveryRoutes", () => {
 
   it("copes with a config that has no routes yet", () => {
     const routes = withDeliveryRoutes({ version: 3 }).routes ?? [];
-    // Security headers, the static-image cache, the AI root rewrite, and one
-    // redirect per section root — counted rather than hard-coded, so adding a
-    // section does not make this assertion a chore.
+    // Security headers, the static-image cache, the AI root rewrite, one
+    // redirect per section root and one per removed page — counted rather than
+    // hard-coded, so adding a section does not make this assertion a chore.
     expect(routes.length).toBeGreaterThan(0);
-    expect(routes.filter((r) => r.status === 308)).toHaveLength(7);
+    expect(routes.filter((r) => r.status === 308)).toHaveLength(9);
     expect(routes.some((r) => r.dest === "/llms.txt")).toBe(true);
   });
 
@@ -144,6 +166,8 @@ describe("withDeliveryRoutes", () => {
       "/developers-hub/developers-guide",
       "/agents/overview",
       "/resources/user-guides",
+      "/products/parallel-v3/fees",
+      "/products/parallel-v3/fees",
     ]);
     // A redirect that points at another redirect would loop.
     for (const t of targets) expect(t === "/" || t.split("/").length).toBeTruthy();

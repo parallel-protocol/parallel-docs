@@ -1,7 +1,7 @@
-import { ExternalLink } from "lucide-react";
 import { CHAIN_LABELS, type ChainSlug, EXPLORERS } from "../../lib/chains";
 import { truncateAddress } from "../../lib/utils";
 import { CopyButton } from "./CopyButton";
+import { Icon } from "./IconSprite";
 import "./ContractTable.css";
 
 /** A single smart-contract entry rendered by `<ContractTable>`. */
@@ -123,7 +123,7 @@ function ContractRow({ contract, chainLabel, explorerUrl }: ContractRowProps) {
             rel="noopener noreferrer"
             aria-label={`View ${name} on ${chainLabel} explorer`}
           >
-            <ExternalLink size={14} aria-hidden="true" focusable="false" />
+            <Icon name="external-link" size={14} />
           </a>
         </span>
       </td>

@@ -1,0 +1,149 @@
+---
+title: How to mint USDp
+description: Mint USDp from accepted stablecoins in the Parallel app, step by step. Which collateral each chain accepts, current fees, and how to burn or redeem USDp back.
+subtitle: Swap an accepted stablecoin for USDp through the Parallelizer Module
+---
+
+import { FAQ } from '@/components/FAQ'
+import { HelpFooter } from '@/components/HelpFooter'
+
+# How to mint USDp
+
+Minting is how new USDp enters circulation. You hand an accepted stablecoin to the [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module) and receive USDp at oracle value, one for one. This guide walks through the accepted collateral, the fees you pay today, the steps in the app, and the two ways to turn USDp back into collateral.
+
+## What minting is
+
+The Parallelizer Module is the minting engine of Parallel V3. It holds a basket of stablecoins, some yield-bearing, and lets anyone swap one of them for USDp at the price reported by the asset's oracle. There is no vault to open, no debt position, and no liquidation: you deposit 1,000 USDe, you get roughly 1,000 USDp.
+
+The module supports three operations:
+
+| Operation | What you give | What you get | When it is available |
+| --------- | ------------- | ------------ | -------------------- |
+| Mint | One accepted collateral | USDp at oracle value, minus the mint fee | While the collateral is below its maximum exposure and close to its target price |
+| Burn | USDp | One collateral of your choice at oracle value, minus the burn fee | While every asset in the backing is close to its target price and the reserve holds enough of the asset you pick |
+| Redeem | USDp | A proportional slice of every asset in the backing | At any time, with a dynamic penalty tied to the collateral ratio |
+
+Fees and exposure limits are DAO parameters. Governance can change them at any time to manage risk.
+
+## Where you can mint
+
+The Parallelizer Module runs on four chains:
+
+- Ethereum
+- Base
+- HyperEVM
+- Avalanche
+
+:::info
+A legacy deployment exists on Sonic. It is being wound down and should only be used to exit existing positions, not to mint new USDp.
+:::
+
+USDp itself is deployed on 24 chains. If you hold USDp on a chain without a Parallelizer deployment, you can [bridge](https://app.parallel.best/bridge) it to one of the four chains above before burning or redeeming.
+
+## Accepted collateral and current parameters
+
+Each collateral has its own oracle, exposure window and fees. The table below reflects the parameters documented on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation). Check that page or the app for the latest values.
+
+| Chain | Collateral | Mint fee | Burn fee | Max exposure |
+| --------- | ----------------------- | -------- | -------- | ------------ |
+| Ethereum | frxUSD | 0.00% | 0.00% | 100.00% |
+| Ethereum | sfrxUSD | 0.00% | 0.05% | 95.00% |
+| Ethereum | USDe | 0.00% | 0.00% | 100.00% |
+| Ethereum | sUSDe | 0.00% | 0.05% | 95.00% |
+| Base | USDS | 0.00% | 0.00% | 100.00% |
+| Base | sUSDS | 0.00% | 0.05% | 95.00% |
+| HyperEVM | USDe | 0.00% | 0.00% | 100.00% |
+| HyperEVM | sUSDe | 0.00% | 0.05% | 95.00% |
+| Avalanche | USDC | 0.00% | 0.00% | 100.00% |
+| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.05% | 95.00% |
+
+Every collateral currently has a mint cap of 100,000,000 and a 86,400 second oracle stale period. Yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) also carry a 20.00% minimum exposure, so the reserve always keeps a share of them.
+
+## Fees today
+
+- **Mint fee: 0.00%** on every accepted collateral.
+- **Burn fee: 0.00%** on base stablecoins (frxUSD, USDe, USDS, USDC) and **0.05%** on yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC).
+
+:::warning
+These are the values set by the DAO today, not a guarantee. The fee mechanism is adaptive: the fee charged on a mint or burn depends on the exposure to that asset after the operation and on how far the asset sits from its target price. Fees can rise when an asset approaches its maximum exposure, and they can even go negative to attract an asset the reserve is short of. Always read the quote in the app before confirming.
+:::
+
+You also pay the network's gas fee on the chain you mint on.
+
+## Before you start
+
+- A wallet that supports the chain you want to mint on. The app connects through WalletConnect or Coinbase Wallet, so any wallet that supports WalletConnect works.
+- Enough of the native gas token on that chain (ETH on Ethereum and Base, HYPE on HyperEVM, AVAX on Avalanche).
+- An accepted collateral for that chain, from the table above.
+
+## Mint USDp in the app
+
+1. Open [app.parallel.best/mint](https://app.parallel.best/mint).
+2. Connect your wallet and switch it to the chain you want to mint on.
+3. Under **You Sell**, pick the collateral you hold on that chain.
+4. Enter the amount. The app quotes the USDp you will receive, fee included.
+5. If this is the first time you use this collateral, approve the token so the Parallelizer contract can pull it. Confirm the approval in your wallet.
+6. Click **Mint** and confirm the transaction in your wallet.
+
+The USDp lands in the same wallet as soon as the transaction is mined.
+
+:::tip
+The app can route through aggregators (OpenOcean, KyberSwap, LiquidSwap, each one switchable in **Mint Settings**) to fill a swap. Keep **Parallel Mint Preferred** on if you want the trade to go through the Parallelizer contracts only, so you always mint natively at oracle price rather than buying USDp on a DEX. Mint Settings also hold the slippage tolerance, the transaction deadline and an optional recipient address.
+:::
+
+## When a collateral hits its maximum exposure
+
+Each asset has a maximum share of the backing. Once that share is reached, minting with that asset is paused until burns or redemptions bring the exposure back under the limit. The other collaterals on the same chain stay open, so you can either switch asset or wait. Yield-bearing assets also have a minimum exposure, which is why burning for them can be paused when their share is already low.
+
+## Getting collateral back: burn or redeem
+
+There are two ways to exit USDp through the protocol. They behave differently under stress.
+
+### Burn
+
+Burning returns USDp to the Parallelizer and gives you one collateral of your choice at oracle value, minus the burn fee. In the app, go to [app.parallel.best/mint](https://app.parallel.best/mint), enter the amount of USDp under **You Sell**, choose the asset you want under **You Buy**, and confirm. Burning is available while all assets in the backing trade close to their target price and the reserve holds enough of the asset you pick.
+
+### Redeem
+
+Redeeming gives you a proportional slice of every asset in the backing, not one asset of your choice. It is always available, even when burns are paused, so there is always a way out. It carries a dynamic penalty tied to the collateral ratio: when the ratio is at or above 100% you get fair value, and when it drops below 100% you receive slightly less than your share so that the remaining backing is not drained by the fastest exiters. Redeem is mostly used by market makers and arbitrageurs; for a normal exit, a burn or a DEX swap is simpler.
+
+## Getting USDp without minting
+
+You do not have to mint to hold USDp:
+
+- **Bridge** USDp you already own to any of its 24 chains at [app.parallel.best/bridge](https://app.parallel.best/bridge). The protocol charges no bridging fee, only the LayerZero native gas fee, and delivery takes about 10 minutes.
+- **Buy it on a DEX** on the chain you are using. The mint and burn functions keep the market price close to $1, because anyone can arbitrage a deviation against the Parallelizer.
+
+## FAQ
+
+<FAQ items={[
+  {
+    question: "Is there a minimum amount to mint?",
+    answer: "The protocol does not enforce a minimum. On Ethereum, gas is usually the only reason to avoid very small mints; on Base, HyperEVM and Avalanche gas is low enough for small amounts."
+  },
+  {
+    question: "Why is the collateral I want to use greyed out or paused?",
+    answer: "Either that asset has reached its maximum exposure in the backing, or its oracle price has drifted too far from its target. Minting reopens on its own once exposure comes back under the limit or the price normalises. Try another accepted collateral on the same chain in the meantime."
+  },
+  {
+    question: "Do I pay a fee to mint?",
+    answer: "The mint fee is currently 0.00% on every accepted collateral. The mechanism is adaptive, so the DAO parameters and the exposure of each asset can change it. The app shows the exact fee in the quote before you confirm."
+  },
+  {
+    question: "What is the difference between burning and redeeming?",
+    answer: "Burning swaps USDp for one collateral of your choice at oracle value, minus the burn fee, and can be paused during a depeg. Redeeming gives you a proportional share of every asset in the backing, is always available, and applies a dynamic penalty when the collateral ratio is below 100%."
+  },
+  {
+    question: "Can I mint USDp on a chain that is not listed?",
+    answer: "No. Minting, burning and redeeming only run where the Parallelizer Module is deployed: Ethereum, Base, HyperEVM and Avalanche. On the other 20 chains, bridge USDp in or buy it on a DEX."
+  }
+]} />
+
+## Next steps
+
+- [Stake USDp into sUSDp](/resources/user-guides/stake-usdp-into-susdp) to earn the protocol's yield.
+- [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module): the mechanism behind mint, burn and redeem.
+- [USDp implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation): the full parameter list per collateral.
+- [Proof of solvency](/security/proof-of-solvency): check the backing behind USDp at any time.
+
+<HelpFooter />

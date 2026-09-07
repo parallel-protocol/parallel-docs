@@ -27,7 +27,7 @@ Every write tool returns the same shape — raw calldata, no signature anywhere 
 
 - `to`, `data`, `value`, `chainId` — pass them to your wallet as-is.
 - `gas` is a best-effort estimate; it can be absent (for `bridge` the field is named `gasEstimate`). Never block on it — your wallet estimates anyway.
-- Staking tools return **arrays** (`txs`, `approvalTxs`) with a `description` per transaction, and `claim_rewards` can span several chains — check each transaction's `chainId` before sending.
+- Most tools return a single `tx` (plus an `approvalTx` when needed). Some staking flows return more: `stake` for sPRL2 returns an `approvalTxs` array and a `txs` array, and `claim_rewards` returns a `txs` array that can span several chains. Check whether you got `tx` or `txs`, and check each transaction's `chainId` before sending.
 
 ## Approvals
 

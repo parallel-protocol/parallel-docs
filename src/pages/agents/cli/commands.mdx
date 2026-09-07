@@ -17,6 +17,9 @@ Global flags, available across commands:
 | `--json` | `-j` | Force JSON output |
 | `--dry-run` | | Build the transaction without signing or broadcasting |
 | `--wallet [path\|env]` | `-w` | Sign and broadcast — see [the wallet model](/agents/cli#the-wallet-model) |
+| `--address <0x…>` | | Simulate a write for a real account without a wallet — works on swap, savings, staking and bridge write commands |
+| `--no-cache` | | Bypass the read cache and force a fresh RPC call |
+| `--verbose` | `-v` | Verbose logs |
 
 ## Protocol data
 
@@ -54,7 +57,6 @@ parallel swap redeem-all --amount 500 --chain base --wallet    # proportional re
 | Flag | Default | Purpose |
 |---|---|---|
 | `--slippage <pct>` | `0.5` | Slippage tolerance in percent |
-| `--address <0x…>` | | Simulate for a real account without a wallet |
 
 ## Savings (sUSDp)
 

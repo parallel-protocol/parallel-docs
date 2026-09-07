@@ -38,7 +38,7 @@ const STATIC_IMAGES =
   "^/(favicon\\.(ico|png)|hero(-750|-1125)?\\.(jpg|webp)|logo(-b|-w)?\\.(png|webp)|og-image\\.png|images/.*)$";
 const STATIC_IMAGE_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
 
-/** Bare section roots that would otherwise 404. */
+/** Bare section roots, and removed pages, that would otherwise 404. */
 const REDIRECTS: { from: string; to: string }[] = [
   // Every section root a reader can reach by truncating a URL. Targets are the
   // first entry the sidebar shows for that section, not the alphabetically
@@ -53,6 +53,13 @@ const REDIRECTS: { from: string; to: string }[] = [
   // Not in the sidebar — it hangs off the "Build" item in the top nav.
   { from: "/agents", to: "/agents/overview" },
   { from: "/resources", to: "/resources/user-guides" },
+  // Pages removed when their content moved. The v2 fee pages were folded into
+  // the consolidated v3 fee reference, which keeps a legacy section for them.
+  { from: "/products/parallel-v2/how-it-works/vaults/fees", to: "/products/parallel-v3/fees" },
+  {
+    from: "/products/parallel-v2/how-it-works/vaults/fees/fees-generation",
+    to: "/products/parallel-v3/fees",
+  },
 ];
 
 /**

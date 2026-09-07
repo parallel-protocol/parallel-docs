@@ -1,24 +1,32 @@
 ---
 title: Proof of Solvency
 description: >-
-  How Parallel V3 proves its backing on-chain: reserves sit in permissionless
-  Parallelizer contracts rather than multisigs, and are auditable live.
+  How to check that USDp is fully backed: where the reserves sit, how to read
+  the collateral ratio on-chain, what backs USDp, and what happens below 100%.
 subtitle: Parallel V3 Proof of Solvency
 ---
 
+import { Tabs, Tab } from '@/components/Tabs';
+import { LinkCard } from '@/components/LinkCard'
+import { FAQ } from '@/components/FAQ'
+import { HelpFooter } from '@/components/HelpFooter'
+
 # Proof of Solvency
 
-import { Tabs, Tab } from '@/components/Tabs';
+Every USDp in circulation is backed by assets that sit in public smart contracts. You do not have to trust an attestation or a monthly report: the reserves, the prices and the supply are all on-chain, and this page shows you how to read them.
 
-import { LinkCard } from '@/components/LinkCard'
+## What proof of solvency means here
 
-## Introduction
+Most stablecoin issuers hold their reserves in bank accounts, custodians or multisigs, and publish attestations after the fact. Parallel V3 works differently:
 
-Unlike the majority of stablecoins protocols, Parallel V3 doesn't rely on multisigs or MCP vaults for its backing management but on onchain & permissionless smart contracts called [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module). The [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module) is handling mint, burn & redeem operations within DAO approved [parameters](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation), you can learn more about it [here](/products/parallel-v3/how-it-works/parallelizer-module). Users, keepers and anyone can freely interact with the backing of Parallel V3 Stablecoins without any cooldown.
+- **Reserves sit in permissionless contracts.** The backing of USDp is held by the [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module) on each chain where it is deployed. There is no multisig or custodian in between.
+- **Anyone can verify at any time.** The contract addresses are public (see below), and the balances they hold are readable from any block explorer, subgraph or RPC.
+- **No cooldown.** Users, keepers and arbitrageurs can mint, burn or redeem against the backing at any moment, within the [parameters](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) approved by the DAO. Redemption for a proportional share of the reserves is always available.
+- **The DAO and contributors cannot touch the backing.** Governance sets parameters (which assets are accepted, exposure bands, fees, oracles) but has no function to withdraw reserves. Neither the DAO nor protocol contributors have access to the assets backing USDp.
 
-The DAO, nor protocol contributors have access to Parallel V3 stablecoins backing. Moreover the backing is held entirely onchain.
+## Reserve addresses
 
-## Reserves Addresses
+The USDp backing is held by the `ParallelizerUSDp` contract on each of the four chains where the Parallelizer Module runs. sUSDp vaults are listed for reference: they hold USDp deposited into the Savings Module, not collateral, and are not part of the USDp backing.
 
 <Tabs>
   <Tab label="USDp">
@@ -31,4 +39,96 @@ The DAO, nor protocol contributors have access to Parallel V3 stablecoins backin
 
 <LinkCard href="https://app.parallel.best/transparency" title="Parallel | Proof of Solvency Dashboard" favicon="https://app.parallel.best/logo/parallel_icon_w.svg" hostname="app.parallel" />
   </Tab>
+  <Tab label="sUSDp vaults">
+| Blockchain | Contract Name | Contract Address                                                                                                              |
+| ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Ethereum   | sUSDp         | [0xd3a452b305c8285c0dd7b8537665c734d3d279ef](https://etherscan.io/address/0xd3a452b305c8285c0dd7b8537665c734d3d279ef#code)    |
+| Base       | sUSDp         | [0x472ed57b376fe400259fb28e5c46eb53f0e3e7e7](https://basescan.org/address/0x472ed57b376fe400259fb28e5c46eb53f0e3e7e7#code)    |
+| HyperEVM   | sUSDp         | [0x9b3a8f7cec208e247d97dee13313690977e24459](https://hyperevmscan.io/address/0x9b3a8f7cec208e247d97dee13313690977e24459#code) |
+| Avalanche  | sUSDp         | [0x9d92c21205383651610f90722131655a5b8ed3e0](https://snowscan.xyz/address/0x9d92c21205383651610f90722131655a5b8ed3e0#code)    |
+  </Tab>
 </Tabs>
+
+## How to verify it yourself
+
+The collateral ratio is the USD value of everything held by the Parallelizer contracts divided by the USDp supply. At or above 100%, every USDp is covered.
+
+1. **Open the dashboard.** Go to [app.parallel.best/transparency](https://app.parallel.best/transparency). It shows the total backing, the USDp supply, the resulting collateral ratio and the composition of the basket per chain.
+2. **Read the reserves on-chain.** For each `ParallelizerUSDp` contract in the table above, open its explorer page and look at its token holdings. The tokens to read are the assets accepted on that chain:
+   - Ethereum: frxUSD, sfrxUSD, USDe, sUSDe
+   - Base: USDS, sUSDS
+   - HyperEVM: USDe, sUSDe
+   - Avalanche: USDC, ygamiUSDC
+3. **Value them.** Base stablecoins are valued at their Chainlink or Redstone USD feed. Yield-bearing assets are valued at their vault exchange rate multiplied by the underlying's USD feed. The exact feed for each asset is linked on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
+4. **Compare with the USDp supply.** Call `totalSupply()` on the USDp token contract of each chain and add them up. On Ethereum the token is [0x9B3a8f7CEC208e247d97dEE13313690977e24459](https://etherscan.io/address/0x9B3a8f7CEC208e247d97dEE13313690977e24459#readContract); the other 23 addresses are on the [USDp & sUSDp page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp). Bridging burns USDp on the source chain and mints it on the destination, so the sum across chains is the circulating supply while the backing stays on the four Parallelizer chains.
+5. **Divide.** Backing value divided by total supply is the collateral ratio. It should match the dashboard.
+
+### Shortcuts
+
+If you would rather not read contracts by hand, the same data is exposed through:
+
+- **The [Parallel MCP server](/agents/mcp)**: `get_proof_of_solvency` returns total backing versus USDp supply per chain, `get_backing_composition` lists every collateral with amounts, oracle prices and basket share, `get_supply` gives the per-chain USDp supply, and `get_protocol_overview` bundles all of it in one snapshot. See the [tools reference](/agents/mcp/tools).
+- **[Subgraphs](/developers-hub/parallel-v3/offchain-tools/subgraphs)**: GoldSky endpoints indexing Parallelizer events per chain.
+- **[Dune](/developers-hub/parallel-v3/offchain-tools/dune)**: dashboards built on the indexed data are planned, the page is not live yet.
+
+## What backs USDp
+
+USDp is backed by a basket of USD stablecoins, some of them yield-bearing. The DAO reviews each asset for stability, robustness and sustainable yield before allowing it, and can change the list and its parameters at any time.
+
+| Chain | Base stablecoins (0% to 100% exposure) | Yield-bearing assets (20% to 95% exposure) | Price feeds |
+| ----- | -------------------------------------- | ------------------------------------------ | ----------- |
+| Ethereum | frxUSD, USDe | sfrxUSD, sUSDe | Chainlink USD feeds; sfrxUSD through its exchange rate and Chainlink frxUSD/USD |
+| Base | USDS | sUSDS | Chainlink USDS/USD; sUSDS through its exchange rate and Chainlink |
+| HyperEVM | USDe | sUSDe | Redstone USDe/USD and sUSDe/USD |
+| Avalanche | USDC | ygamiUSDC (Silo vault wrapped as a Yearn vault) | Chainlink USDC/USD; ygamiUSDC through its vault share exchange rate and Chainlink |
+
+Every feed has a stale period of 86,400 seconds (24 hours): if a price has not been updated within that window, the Parallelizer treats it as stale. Each asset also carries a mint cap of 100,000,000 and a target price maintained by [keepers](/security/keepers), used to detect a depeg. The full parameter list, with links to each oracle contract, is on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
+
+The exposure bands are what keeps the basket diversified: the Parallelizer raises mint fees on an asset that is above its target share and lowers burn fees on it, and does the opposite for an under-represented asset. Fees can even turn negative to attract a needed asset.
+
+## What happens below 100%
+
+The collateral ratio can fall below 100% if one of the backing assets loses its peg. The Parallelizer is designed to absorb that without governance intervention, in two ways.
+
+**Burn prices protect the remaining basket.** When you burn USDp for a specific asset, the price applies a penalty equal to the largest deviation from target among all assets in the backing, not only the one you are taking. Nobody can exit into the strongest asset at the expense of everyone else, and adaptive fees keep pushing exposures back toward their targets.
+
+**Redemptions carry a dynamic penalty.** Redeeming gives you a proportional slice of every asset in the backing, adjusted by a penalty factor when the collateral ratio is below 100%. The documented example: with a collateral ratio of 98.5% and a penalty factor of 0.98, redeeming 10 USDp returns about \$9.65 of assets instead of \$9.85. The difference stays in the reserves, so each redemption during a downturn re-collateralises the protocol a little, and early redeemers gain no advantage over later ones. Read the [Redeem section](/products/parallel-v3/how-it-works/parallelizer-module#redeem) of the Parallelizer page for the full mechanism, and [Risks](/security/risks) for the scenarios the protocol plans for.
+
+## Related safeguards
+
+- [Hypernative](/security/hypernative): real-time monitoring that can pause mint, burn, stake and unstake automatically when it detects a threat.
+- [Keepers](/security/keepers): DAO-whitelisted actors who update target oracles and the savings rate.
+- [Parallel Emergency Guardians](/security/parallel-emergency-guardians): multisig signers who can halt the protocol in an emergency.
+- [Insurance Fund](/security/insurance-fund): DAO-ratified fund covering shortfall events from smart contract or oracle failure.
+- [Audits](/security/audits): the security reviews covering deployed contracts.
+- [Bug Bounty Program](/security/bug-bounty-program): Immunefi program paying up to 250,000 USD for the most critical findings.
+
+## FAQ
+
+<FAQ items={[
+  {
+    question: "Is USDp backed by dollars in a bank?",
+    answer: "No. USDp is backed by a basket of on-chain USD stablecoins, some of them yield-bearing, held in the Parallelizer contracts on Ethereum, Base, HyperEVM and Avalanche. There is no bank account, custodian or multisig holding the reserves."
+  },
+  {
+    question: "Can the DAO or the team withdraw the reserves?",
+    answer: "No. Governance decides which assets are accepted, their exposure bands, fees and oracles, but there is no function to withdraw the backing. Reserves only leave the contracts through burns and redemptions by USDp holders."
+  },
+  {
+    question: "Does bridging USDp change the backing?",
+    answer: "No. Bridging burns USDp on the source chain and mints the same amount on the destination chain, so the total supply is unchanged. The backing stays in the Parallelizer contracts on the four minting chains and the sum of USDp across all 24 chains is what it covers."
+  },
+  {
+    question: "Is sUSDp part of the proof of solvency?",
+    answer: "sUSDp vaults hold USDp deposited into the Savings Module and are not part of the USDp backing. Their value in USDp can be checked through the vault exchange rate, exposed by the get_susdp_exchange_rate MCP tool. The yield they pay comes from returns the protocol earns on the assets backing USDp."
+  }
+]} />
+
+## Related
+
+- [Parallelizer Module](/products/parallel-v3/how-it-works/parallelizer-module)
+- [USDp & sUSDp implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation)
+- [Risks](/security/risks)
+- [Contract addresses](/developers-hub/contract-addresses)
+
+<HelpFooter />

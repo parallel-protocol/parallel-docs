@@ -46,10 +46,13 @@ describe("ContractTable", () => {
     // user-event installs its own clipboard stub on `navigator.clipboard` during setup;
     // spy on its writeText to assert what the component writes.
     const writeText = vi.spyOn(navigator.clipboard, "writeText");
-    render(<ContractTable chain="ethereum" contracts={[{ name: "eUSD", address: ADDR_1 }]} />);
+    const { container } = render(
+      <ContractTable chain="ethereum" contracts={[{ name: "eUSD", address: ADDR_1 }]} />,
+    );
 
     const copyButton = screen.getByRole("button", { name: `Copy address ${ADDR_1}` });
     expect(copyButton).toHaveAttribute("data-copied", "false");
+    expect(container.querySelector('use[href="#cooper-icon-copy"]')).not.toBeNull();
 
     await user.click(copyButton);
 
@@ -58,6 +61,34 @@ describe("ContractTable", () => {
 
     expect(await screen.findByText("Copied")).toBeInTheDocument();
     expect(copyButton).toHaveAttribute("data-copied", "true");
+    expect(container.querySelector('use[href="#cooper-icon-check"]')).not.toBeNull();
+    expect(container.querySelector('use[href="#cooper-icon-copy"]')).toBeNull();
+  });
+
+  // Rows reference the page-level sprite instead of inlining the icon geometry;
+  // see `IconSprite`. The table itself never defines the symbols — that is
+  // `ContractAddressesPage`'s job, once per page.
+  it("references the shared sprite for its row icons", () => {
+    const { container } = render(
+      <ContractTable chain="ethereum" contracts={[{ name: "eUSD", address: ADDR_1 }]} />,
+    );
+
+    expect(container.querySelectorAll('use[href="#cooper-icon-copy"]')).toHaveLength(1);
+    expect(container.querySelectorAll('use[href="#cooper-icon-external-link"]')).toHaveLength(1);
+    expect(container.querySelector("symbol")).toBeNull();
+  });
+
+  it("keeps the row icons decorative", () => {
+    const { container } = render(
+      <ContractTable chain="ethereum" contracts={[{ name: "eUSD", address: ADDR_1 }]} />,
+    );
+
+    const icons = container.querySelectorAll("svg.cooper-ct-icon");
+    expect(icons).toHaveLength(2);
+    for (const icon of icons) {
+      expect(icon).toHaveAttribute("aria-hidden", "true");
+      expect(icon).toHaveAttribute("focusable", "false");
+    }
   });
 
   it("renders the empty-state message when no contracts are provided", () => {
@@ -80,9 +111,7 @@ describe("ContractTable", () => {
   });
 
   it("renders no TESTNET badge when the network prop is omitted", () => {
-    render(
-      <ContractTable chain="ethereum" contracts={[{ name: "USDMO", address: ADDR_1 }]} />,
-    );
+    render(<ContractTable chain="ethereum" contracts={[{ name: "USDMO", address: ADDR_1 }]} />);
     expect(screen.queryByText("TESTNET")).not.toBeInTheDocument();
   });
 
