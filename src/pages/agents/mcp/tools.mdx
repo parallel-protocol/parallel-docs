@@ -24,7 +24,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 | `get_supply` | Total and circulating supply of `usdp`, `susdp`, `prl`, `sprl1` or `sprl2`, with a per-chain breakdown |
 | `get_tvl` | TVL, per chain and per collateral |
 | `get_backing_composition` | Every collateral backing USDp: amounts, USD values, oracle prices, share of the basket |
-| `get_supported_chains` | The 24 supported chains with status and contract addresses (Sonic shows as sunset, so 23 are live) |
+| `get_supported_chains` | The 24 chains USDp is deployed on, with status and contract addresses (Sonic is flagged sunset — mint, redeem and savings were wound down there under PIP-64, while USDp, bridging and balance reads stay live) |
 | `get_supported_collaterals` | Collaterals accepted on a chain, with caps, utilization and mint/redeem status |
 | `get_fee_rates` | Adaptive mint/redeem fees per collateral — can be negative (incentives) |
 | `get_savings_rate` | The protocol-wide sUSDp APY (7d/30d/90d), exchange rate and total deposits |
