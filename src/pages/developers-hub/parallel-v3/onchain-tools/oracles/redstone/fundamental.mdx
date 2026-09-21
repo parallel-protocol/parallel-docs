@@ -8,6 +8,10 @@ subtitle: More details on Fundamental RedStone Oracles
 
 import { Tabs, Tab } from '@/components/Tabs';
 
+:::danger[RedStone price feeds shut down on 31 October 2026]
+The RedStone fundamental price feeds listed on this page (USDp/USD and sUSDp/USD on Avalanche, HyperEVM, Base and Sonic) will stop being updated on **31 October 2026**. Integrations reading these adapters must migrate to another feed before that date; after it, the contracts will return stale data and any consumer checking the `updatedAt` timestamp will reject it. See the [DIA price feeds](/developers-hub/parallel-v3/onchain-tools/oracles/dia) for the alternative Parallel maintains.
+:::
+
 ## Oracles Implementation
 
 ### Gas Wallets
