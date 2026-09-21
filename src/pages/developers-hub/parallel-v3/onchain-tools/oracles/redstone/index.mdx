@@ -11,7 +11,7 @@ subtitle: Parallel related RedStone Price Feeds Details
 import { Tabs, Tab } from '@/components/Tabs';
 
 :::danger[RedStone price feeds shut down on 31 October 2026]
-The RedStone fundamental price feeds listed on this page (USDp/USD and sUSDp/USD on Avalanche, HyperEVM, Base and Sonic) will stop being updated on **31 October 2026**. Integrations reading these adapters must migrate to another feed before that date; after it, the contracts will return stale data and any consumer checking the `updatedAt` timestamp will reject it. See the [DIA price feeds](/developers-hub/parallel-v3/onchain-tools/oracles/dia) for the alternative Parallel maintains.
+The RedStone USDp/USD and sUSDp/USD feeds on this page stop updating on **31 October 2026**. Migrate your integration before that date.
 :::
 
 Following the approval of [PGP-33 l Launch Parallel Stablecoins Price Feeds using Redstone](https://gov.parallel.best/t/pgp-33-l-launch-parallel-stablecoins-price-feeds-using-redstone/487), RedStone has deployed fundamental price feeds across several chains. All deployed price feeds are ChainlinkAggregatorV3Interface compatible adapter contracts.
