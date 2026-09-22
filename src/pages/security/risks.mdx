@@ -43,7 +43,7 @@ Prices come from oracles: each collateral has a Chainlink or RedStone feed, comp
 ### How Parallel mitigates it
 
 - **Exposure bounds.** The yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) are bounded to 20.00%-95.00% exposure today, and every asset has a 100,000,000 mint cap, so the basket cannot concentrate in one issuer without a governance vote.
-- **Adaptive fees.** Mint and burn fees rise as an asset nears its cap (100% effectively pauses minting with it) or go negative to attract an asset the basket lacks; today they are 0.00% on mints and 0.00% to 0.05% on burns.
+- **Adaptive fees.** Mint and burn fees rise as an asset nears its cap (100% effectively pauses minting with it) or go negative to attract an asset the basket lacks; today they are 0.00% on mints and 0.00% to 0.10% on burns.
 - **Depeg-aware burns.** Burning USDp for one asset applies a price penalty equal to the largest deviation of any basket asset from its target price, so rushing into the safest asset during a depeg does not pay, protecting holders who stay.
 - **Stale period.** Every collateral price feed has an 86,400-second stale period; an older price is rejected rather than used.
 - **Target oracles.** Keepers maintain a target price per asset, compared against the market price to detect a depeg.

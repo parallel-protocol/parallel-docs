@@ -47,22 +47,22 @@ Each collateral has its own oracle, exposure window and fees. The table below re
 | Chain | Collateral | Mint fee | Burn fee | Max exposure |
 | --------- | ----------------------- | -------- | -------- | ------------ |
 | Ethereum | frxUSD | 0.00% | 0.00% | 100.00% |
-| Ethereum | sfrxUSD | 0.00% | 0.05% | 95.00% |
+| Ethereum | sfrxUSD | 0.00% | 0.10% | 95.00% |
 | Ethereum | USDe | 0.00% | 0.00% | 100.00% |
-| Ethereum | sUSDe | 0.00% | 0.05% | 95.00% |
+| Ethereum | sUSDe | 0.00% | 0.10% | 95.00% |
 | Base | USDS | 0.00% | 0.00% | 100.00% |
-| Base | sUSDS | 0.00% | 0.05% | 95.00% |
+| Base | sUSDS | 0.00% | 0.10% | 95.00% |
 | HyperEVM | USDe | 0.00% | 0.00% | 100.00% |
-| HyperEVM | sUSDe | 0.00% | 0.05% | 95.00% |
+| HyperEVM | sUSDe | 0.00% | 0.10% | 95.00% |
 | Avalanche | USDC | 0.00% | 0.00% | 100.00% |
-| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.05% | 95.00% |
+| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.10% | 95.00% |
 
 Every collateral currently has a mint cap of 100,000,000 and a 86,400 second oracle stale period. Yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) also carry a 20.00% minimum exposure, so the reserve always keeps a share of them.
 
 ## Fees today
 
 - **Mint fee: 0.00%** on every accepted collateral.
-- **Burn fee: 0.00%** on base stablecoins (frxUSD, USDe, USDS, USDC) and **0.05%** on yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC).
+- **Burn fee: 0.00%** on base stablecoins (frxUSD, USDe, USDS, USDC) and **0.10%** on yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC).
 
 :::warning
 These are the values set by the DAO today, not a guarantee. The fee mechanism is adaptive: the fee charged on a mint or burn depends on the exposure to that asset after the operation and on how far the asset sits from its target price. Fees can rise when an asset approaches its maximum exposure, and they can even go negative to attract an asset the reserve is short of. Always read the quote in the app before confirming.

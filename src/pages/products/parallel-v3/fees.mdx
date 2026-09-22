@@ -15,7 +15,7 @@ Parallel charges very little today, but none of its fees are hard-coded. Mint an
 | Operation | Fee today | Notes | Where it goes |
 | --- | --- | --- | --- |
 | Mint USDp | 0.00% on every accepted asset | Adaptive: depends on the asset's exposure after the mint and on its deviation from target price. Can rise, or go negative as an incentive. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
-| Burn USDp | 0.00% on base stablecoins, 0.05% on yield-bearing assets | Same adaptive mechanism. Burns are paused while any backing asset deviates too far from its target price. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
+| Burn USDp | 0.00% on base stablecoins, 0.10% on yield-bearing assets | Same adaptive mechanism. Burns are paused while any backing asset deviates too far from its target price. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
 | Redeem USDp | No fixed fee, dynamic penalty | A proportional share of every backing asset. Fair value at or above a 100% collateral ratio, less below it. | The shortfall stays in the backing and re-collateralises the protocol |
 | Bridge USDp | 0.00% protocol fee | You pay the LayerZero native gas fee on the source chain. Delivery takes around 10 minutes. | The LayerZero network (verifiers and executors), not Parallel |
 | Flashloan | 0.00% | Up to 100,000 per transaction on each chain. | Fee collector, when a fee is set |
@@ -44,17 +44,17 @@ These are the DAO-approved parameters on the four chains where the Parallelizer 
 | Chain | Asset | Mint fee | Burn fee | Min exposure | Max exposure | Mint cap |
 | --- | --- | --- | --- | --- | --- | --- |
 | Ethereum | frxUSD | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Ethereum | sfrxUSD | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| Ethereum | sfrxUSD | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
 | Ethereum | USDe | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Ethereum | sUSDe | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| Ethereum | sUSDe | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
 | Base | USDS | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Base | sUSDS | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| Base | sUSDS | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
 | HyperEVM | USDe | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| HyperEVM | sUSDe | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| HyperEVM | sUSDe | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
 | Avalanche | USDC | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.05% | 20.00% | 95.00% | 100,000,000 |
+| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
 
-The pattern is deliberate: base stablecoins (frxUSD, USDe, USDS, USDC) can be burnt for free, while the yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) that generate the protocol's income carry a small 0.05% burn fee and must stay between 20% and 95% of the backing.
+The pattern is deliberate: base stablecoins (frxUSD, USDe, USDS, USDC) can be burnt for free, while the yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) that generate the protocol's income carry a small 0.10% burn fee and must stay between 20% and 95% of the backing.
 
 ## Redeeming
 
@@ -133,7 +133,7 @@ Fee parameters were set per collateral type by governance. These fees no longer 
   },
   {
     question: "What is the difference between burning and redeeming?",
-    answer: "Burning swaps USDp for one collateral of your choice at oracle value, minus the burn fee (0.00% on base stablecoins, 0.05% on yield-bearing assets today), and can be paused during a depeg. Redeeming returns a slice of every backing asset, is always available, and applies a dynamic penalty when the collateral ratio is below 100%."
+    answer: "Burning swaps USDp for one collateral of your choice at oracle value, minus the burn fee (0.00% on base stablecoins, 0.10% on yield-bearing assets today), and can be paused during a depeg. Redeeming returns a slice of every backing asset, is always available, and applies a dynamic penalty when the collateral ratio is below 100%."
   },
   {
     question: "Does bridging USDp cost anything?",
