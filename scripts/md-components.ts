@@ -32,14 +32,44 @@ function markdownTable(header: string[], rows: string[][]): string {
   ].join("\n");
 }
 
+/**
+ * The chains that carry the token itself, which is not the same as the chains
+ * the address book lists. PRL's book covers nine, but Avalanche and HyperEVM
+ * hold only tokenomics contracts and Fantom only a deprecated migration
+ * contract, so "PRL is deployed on 9 chains" reads as false to anyone
+ * checking. A chain counts when it holds the canonical token or its
+ * `Peripheral<TOKEN>` OFT; every USDp chain does, so USDp is unaffected.
+ */
+function tokenChains(stablecoin: string, book: AddressBook): string[] {
+  const tokenNames = new Set([stablecoin.toLowerCase(), `peripheral${stablecoin.toLowerCase()}`]);
+  return Object.keys(book)
+    .filter((chain) =>
+      book[chain].some((entry) => {
+        const name = entry.name.toLowerCase();
+        return tokenNames.has(name) && !name.includes("deprecated");
+      }),
+    )
+    .sort();
+}
+
 /** Renders one address book as a section per chain, module headings preserved. */
 export function renderAddressBook(stablecoin: string, book: AddressBook): string {
   const chains = Object.keys(book).sort();
-  const out: string[] = [
-    `${stablecoin} is deployed on ${chains.length} chain${chains.length > 1 ? "s" : ""}: ` +
-      `${chains.map(chainLabel).join(", ")}.`,
-    "",
-  ];
+  // A book whose token entries we cannot recognise falls back to listing every
+  // chain, so an unknown naming convention degrades to the old sentence rather
+  // than claiming the token is deployed nowhere.
+  const carrying = tokenChains(stablecoin, book);
+  const listed = carrying.length > 0 ? carrying : chains;
+  const others = chains.filter((chain) => !listed.includes(chain));
+  let lead =
+    `${stablecoin} is deployed on ${listed.length} chain${listed.length > 1 ? "s" : ""}: ` +
+    `${listed.map(chainLabel).join(", ")}.`;
+  if (others.length > 0) {
+    lead +=
+      ` This page also lists ${stablecoin}-related contracts on ` +
+      `${others.map(chainLabel).join(", ")}, which do not carry the token.`;
+  }
+  const out: string[] = [lead, ""];
   for (const chain of chains) {
     out.push(`### ${chainLabel(chain)}`, "");
     out.push(

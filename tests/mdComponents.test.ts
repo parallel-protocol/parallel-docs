@@ -15,6 +15,15 @@ const BOOKS: Record<string, AddressBook> = {
   },
 };
 
+// Shaped like the real PRL book: the token on some chains, and chains that
+// carry only tokenomics or deprecated migration contracts.
+const PRL_BOOK: AddressBook = {
+  ethereum: [{ name: "PRL", address: "0xaaa", description: "Parallel Governance Token" }],
+  base: [{ name: "PeripheralPRL", address: "0xbbb", description: "PRL Bridging Module" }],
+  avalanche: [{ name: "SideChainFeeDistributor (USDp)", address: "0xccc", description: "PRL Tokenomics" }],
+  fantom: [{ name: "PeripheralMigrationContract (deprecated)", address: "0xddd" }],
+};
+
 const expand = (md: string) => expandComponents(md, BOOKS);
 
 describe("expandComponents", () => {
@@ -111,6 +120,25 @@ describe("renderAddressBook", () => {
     const out = renderAddressBook("USDp", BOOKS.USDP_ADDRESSES);
     expect(out.indexOf("### Base")).toBeLessThan(out.indexOf("### X Layer"));
     expect(out).toContain("| Contract | Address | Module |");
+  });
+
+  it("counts only the chains that carry the token", () => {
+    // PRL's address book lists chains that hold tokenomics or deprecated
+    // migration contracts and no PRL at all; counting them said the token was
+    // on nine chains when it is on six.
+    const out = renderAddressBook("PRL", PRL_BOOK);
+    expect(out).toContain("PRL is deployed on 2 chains: Base, Ethereum.");
+    expect(out).toContain(
+      "This page also lists PRL-related contracts on Avalanche, Fantom, which do not carry the token.",
+    );
+    // The chains that hold no token still get their section.
+    expect(out).toContain("### Avalanche");
+  });
+
+  it("falls back to every chain when no entry looks like the token", () => {
+    const out = renderAddressBook("XYZ", { base: [{ name: "Vault", address: "0xaaa" }] });
+    expect(out).toContain("XYZ is deployed on 1 chain: Base.");
+    expect(out).not.toContain("do not carry the token");
   });
 });
 

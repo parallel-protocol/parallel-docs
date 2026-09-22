@@ -27,7 +27,7 @@ Nothing on this page is financial, legal or tax advice. USDp is backed by other 
 | Bridge failure | Anyone bridging USDp | 2 required plus 1 of 2 optional DVNs, daily and global limits, manual execution fallback, pause | [Bridging Module](/products/parallel-v3/how-it-works/bridging-module) |
 | Savings rate and keeper trust | sUSDp holders | 35.00% hard cap on the rate, DAO-whitelisted keepers, keeper timelock, donation-attack fix | [Savings Module](/products/parallel-v3/how-it-works/savings-module), [Keepers](/security/keepers) |
 | Governance and key holders | Everyone | 5 of 8 multisigs, Snapshot votes, role timelocks, scoped guardian powers | [DAO Multisigs](/governance/dao-multisigs), [Emergency Guardians](/security/parallel-emergency-guardians) |
-| PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait one epoch, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
+| PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait the full 28 days, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
 | Chain and infrastructure outage | Everyone on that chain | Independent deployments per chain, isolation mode available on the bridge, Sonic wind-down | [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
 | x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
 | Signing a bad transaction from an AI tool | MCP and CLI users | The MCP server never signs; it returns unsigned, simulated transactions with warnings for you to review | [How MCP transactions work](/agents/mcp/transactions) |
@@ -168,7 +168,7 @@ Reserves are the exception: the Parallelizer holds the backing in permissionless
 
 PRL is a governance token whose price is set by the market and can fall to zero; staking it adds mechanisms you should understand before you commit:
 
-- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a one-epoch (30-day) cooldown, skippable by paying a penalty, sent to the DAO Treasury, that starts at 50% of the amount and decreases linearly over time.
+- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown, skippable by paying a penalty, sent to the DAO Treasury, that starts at 50% of the amount and decreases linearly over time.
 - **ParaBoost loss.** Your ParaBoost score, computed off-chain by a keeper at the end of each epoch, determines your share of fee distribution; transferring or unstaking sPRL resets it.
 - **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, itself staked on Aura, adding impermanent loss between PRL and wETH plus Balancer and Aura smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl).
 - **Claim window.** Fee rewards for stakers can be claimed during 12 epochs (about one year); unclaimed rewards return to the DAO Treasury.
@@ -281,7 +281,7 @@ MCP read tools cache for 30 to 120 seconds; for a transaction that depends on an
   },
   {
     question: "What happens to my PRL if I unstake early?",
-    answer: "Unstaking sPRL normally takes a one-epoch (30-day) cooldown with no cost. Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero, paid to the DAO Treasury. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
+    answer: "Unstaking sPRL normally takes a fixed 28-day cooldown with no cost. Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero, paid to the DAO Treasury. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
   }
 ]} />
 
