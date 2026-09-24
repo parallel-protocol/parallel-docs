@@ -45,7 +45,9 @@ public/             # static assets (images, treasury reports, favicon, logos)
 scripts/
 ├── crawl-and-convert.ts   # one-shot GitBook → Vocs MDX migration tool
 ├── generate-redirects.ts
-└── check-image-refs.ts
+├── check-image-refs.ts
+├── postbuild-seo.ts       # sitemap, llms.txt, canonical, JSON-LD, analytics
+└── og-images.ts           # one share card per page (og/<route>.jpg), see below
 
 patches/            # pnpm patch for vocs (sidebar toggle, tsconfig paths in dev)
 vocs.config.ts      # Vocs config (title, sidebar, topNav, theming, OG image)
@@ -66,6 +68,19 @@ The protocol has two live versions. Pages are organized under separate folders:
 
 - **v3 (current)** — `/products/parallel-v3/...`, `/developers-hub/parallel-v3/...`
 - **v2 (legacy)** — `/products/parallel-v2/...`, `/developers-hub/parallel-v2/...`
+
+## Share images
+
+`pnpm build` ends with `scripts/og-images.ts`, which renders one 1200×630 card
+per page (the dApp's layout: the scene, the page title, its URL, its
+description, the Parallel symbol) into `og/<route>.jpg` and points the page's
+`og:image` / `twitter:image` at it. Title and description come from the page's
+own frontmatter, through the tags Vocs writes. The scene and the symbol live in
+`scripts/og/`.
+
+The title face, PP Editorial New, is a commercial font: **never commit it to
+this public repository.** The build fetches it from brand.parallel.best. If that
+fails, the build still passes and pages keep the static `public/og-image.png`.
 
 ## Deployment
 

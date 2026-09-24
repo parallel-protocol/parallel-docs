@@ -49,6 +49,9 @@ describe("withDeliveryRoutes", () => {
       "/logo-b.png",
       "/hero.jpg",
       "/og-image.png",
+      // The per-page share cards og-images.ts writes.
+      "/og/index.jpg",
+      "/og/agents/x402.jpg",
       "/favicon.ico",
       "/images/a/b.png",
     ]) {
