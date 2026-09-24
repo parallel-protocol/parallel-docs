@@ -29,13 +29,14 @@ export const SECURITY_HEADERS: Record<string, string> = {
 };
 
 /**
- * Static images served straight from `public/`. They are not fingerprinted, so
+ * Static images served straight from `public/`, plus the per-page share cards
+ * `og-images.ts` writes to `og/`. They are not fingerprinted, so
  * they cannot be `immutable`: a day of caching removes a revalidation request
  * per page view while keeping a bounded staleness if the logo ever changes.
  * Hashed assets under `/assets/` keep the adapter's own immutable rule.
  */
 const STATIC_IMAGES =
-  "^/(favicon\\.(ico|png)|hero(-750|-1125)?\\.(jpg|webp)|logo(-b|-w)?\\.(png|webp)|og-image\\.png|images/.*)$";
+  "^/(favicon\\.(ico|png)|hero(-750|-1125)?\\.(jpg|webp)|logo(-b|-w)?\\.(png|webp)|og-image\\.png|og/.*\\.jpg|images/.*)$";
 const STATIC_IMAGE_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
 
 /** Bare section roots, and removed pages, that would otherwise 404. */

@@ -35,6 +35,8 @@ export default defineConfig({
   },
   // Static OG image — each protocol's official landing-page OpenGraph
   // image (1200x630). Absolute SITE_URL so og:image is absolute for crawlers.
+  // The fallback only: `scripts/og-images.ts` gives every page its own card
+  // after the build and repoints its og:image / twitter:image at it.
   ogImageUrl: `${SITE_URL}/og-image.png`,
   // v2: `theme.accentColor` is replaced by a top-level `accentColor` string
   // using the CSS `light-dark()` function. Parallel brand: purple.
