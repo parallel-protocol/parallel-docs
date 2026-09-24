@@ -201,6 +201,10 @@ function card(fullTitle: string, description: string, label: string, symbol: str
       justifyContent: "space-between",
       padding: "56px 64px",
       color: "#ffffff",
+      // The dApp's veil: black, heaviest behind the text on the left, gone by
+      // the right-hand pillar. Measured off its cards against the bare scene.
+      backgroundImage:
+        "linear-gradient(90deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0) 85%)",
     },
     [
       node("div", { display: "flex", justifyContent: "space-between", alignItems: "flex-start" }, [
@@ -212,7 +216,8 @@ function card(fullTitle: string, description: string, label: string, symbol: str
               fontWeight: 200,
               fontSize: titleSize(title),
               lineHeight: 1.02,
-              letterSpacing: "-0.03em",
+              // The dApp's cards and the landing's display type both set it at -9%.
+              letterSpacing: "-0.09em",
             },
             truncate(title, 60),
           ),
