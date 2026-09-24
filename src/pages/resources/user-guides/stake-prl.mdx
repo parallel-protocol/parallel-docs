@@ -1,6 +1,6 @@
 ---
 title: How to stake PRL
-description: Stake PRL as sPRL1 or sPRL2 in the Parallel app, step by step. How 30-day epochs, ParaBoost, fee rewards, the unstaking cooldown and early-exit penalty work.
+description: Stake PRL as sPRL1 or sPRL2 in the Parallel app, step by step. How monthly epochs, ParaBoost, fee rewards, the 28-day unstaking cooldown and early-exit penalty work.
 subtitle: Earn a share of protocol fees and voting power with sPRL1 or sPRL2
 ---
 
@@ -20,7 +20,7 @@ Staking PRL gives you two things: a share of the fees the protocol generates, an
 | ParaBoost weight | 1x on the dollar value staked | 2.5x on the dollar value staked |
 | Voting power | 1 PRL = 1 vote | Boosted, through the 2.5x ParaBoost weight |
 | Under the hood | PRL held in the sPRL1 contract | BPT staked on Aura; BAL and AURA rewards go to the DAO Treasury |
-| Unstaking | 1 epoch cooldown, or early exit with a penalty | 1 epoch cooldown, or early exit with a penalty |
+| Unstaking | 28-day cooldown, or early exit with a penalty | 28-day cooldown, or early exit with a penalty |
 | Best for | Holders who want governance rights without liquidity risk | Holders who want the maximum weight and are willing to provide PRL liquidity |
 
 Both sPRL1 and sPRL2 are transferable ERC-20 tokens. Transferring them resets the ParaBoost attached to them, so keep them in the wallet that staked.
@@ -31,7 +31,7 @@ sPRL1 and sPRL2 contracts are deployed on Ethereum and Base. The [PRL contract a
 
 ## Epochs and ParaBoost
 
-An **epoch** is the 30-day unit of time in the PRL tokenomics. It sets three things: the window over which ParaBoost is computed, the length of the unstaking cooldown, and the schedule on which fees are shared with stakers. See the [epoch concept](/governance/parallel-governance-token-prl/tokenomics/epoch-concept).
+An **epoch** is one calendar month in the PRL tokenomics, so it runs 28 to 31 days depending on the month. It sets two things: the window over which ParaBoost is computed, and the schedule on which fees are shared with stakers. The unstaking cooldown is not an epoch; it is a separate, fixed 28 days. See the [epoch concept](/governance/parallel-governance-token-prl/tokenomics/epoch-concept).
 
 **ParaBoost** is the score that decides how much of the fee distribution you receive and how much voting power you hold. It is based on the dollar value of your sPRL1 and sPRL2, with sPRL2 counted 2.5 times, and it accumulates while you stay staked. At the end of each epoch a keeper (Cooper Labs) computes every staker's ParaBoost off-chain and publishes a Merkle root to the reward distributor contract, which is what you claim against. The current version is deliberately simple; a fuller ParaBoost is planned for tokenomics v2.1. Read [ParaBoost](/governance/parallel-governance-token-prl/tokenomics/paraboost) for the design.
 
@@ -88,13 +88,13 @@ To claim in the app, open the **Stake** page, find **Available Rewards** and cli
 
 Unstaking is a two-step process for both sPRL1 and sPRL2:
 
-1. **Start the cooldown.** On the Stake page, click **Unstake**, enter the amount and confirm. This opens a cooldown of 1 epoch (30 days). During the cooldown the tokens stay locked and your ParaBoost is reset.
+1. **Start the cooldown.** On the Stake page, click **Unstake**, enter the amount and confirm. This opens a fixed 28-day cooldown. During the cooldown the tokens stay locked and your ParaBoost is reset.
 2. **Withdraw.** Once the cooldown has matured, come back to the Stake page and withdraw. You receive PRL (sPRL1) or BPT (sPRL2).
 
 **Early exit.** You can skip the remaining cooldown by paying a penalty taken from the amount you unstake. The penalty starts at 50% and decreases linearly as the cooldown progresses; it is sent to the DAO Treasury. The app shows the exact penalty before you confirm, and the MCP server flags it as `EARLY_UNSTAKE_PENALTY`.
 
 :::warning
-An early exit right after you start the cooldown costs up to half of your stake. Unless you need the tokens now, let the cooldown run its 30 days.
+An early exit right after you start the cooldown costs up to half of your stake. Unless you need the tokens now, let the cooldown run its 28 days.
 :::
 
 ## Voting power and delegation
@@ -112,18 +112,18 @@ Stake before a vote's snapshot is taken. PRL that is not staked at the snapshot 
 <FAQ items={[
   {
     question: "Which should I choose, sPRL1 or sPRL2?",
-    answer: "sPRL1 if you want governance rights and fee rewards without exposure to wETH or impermanent loss. sPRL2 if you want the 2.5x ParaBoost weight and are comfortable holding an 80/20 PRL/wETH liquidity position. Both can be unstaked after a 1 epoch cooldown."
+    answer: "sPRL1 if you want governance rights and fee rewards without exposure to wETH or impermanent loss. sPRL2 if you want the 2.5x ParaBoost weight and are comfortable holding an 80/20 PRL/wETH liquidity position. Both can be unstaked after a 28-day cooldown."
   },
   {
-    question: "How long is an epoch?",
-    answer: "30 days. Epochs set the ParaBoost calculation window, the unstaking cooldown and the fee distribution schedule."
+    question: "How long is an epoch, and is the unstaking cooldown the same thing?",
+    answer: "An epoch is one calendar month, so 28 to 31 days depending on the month. Epochs set the ParaBoost calculation window and the fee distribution schedule. The unstaking cooldown is separate and fixed at 28 days."
   },
   {
     question: "What happens to my ParaBoost if I transfer my sPRL?",
     answer: "It resets to zero for the transferred tokens, and so does the voting power attached to them. Keep sPRL1 and sPRL2 in the wallet that staked, and use delegation if you want someone else to vote with your weight."
   },
   {
-    question: "Can I unstake without waiting 30 days?",
+    question: "Can I unstake without waiting the 28 days?",
     answer: "Yes, by paying an early-exit penalty that starts at 50% of the amount and decreases linearly over the cooldown. The penalty goes to the DAO Treasury. The app shows the exact amount before you confirm."
   },
   {

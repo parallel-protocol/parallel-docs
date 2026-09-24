@@ -1,12 +1,18 @@
 ---
 title: Epoch Concept
 description: >-
-  An epoch is the 30-day unit of time in Parallel tokenomics, setting the
-  ParaBoost calculation window, the sPRL unstaking cooldown and the fee sharing
-  schedule.
+  An epoch is one calendar month in Parallel tokenomics, setting the ParaBoost
+  calculation window and the fee sharing schedule. The sPRL unstaking cooldown
+  is a separate, fixed 28 days.
 subtitle: Understanding the Epoch Concept
 ---
 
 # Epoch Concept
 
-The epoch will serve as the central unit of time in the new tokenomics. An epoch consists of a number of 30 days. It will be used to determine the [ParaBoost](/governance/parallel-governance-token-prl/tokenomics/paraboost) calculation period, the duration of the cooldown during unstaking sPRL1 and sPRL2 and to manage the [fee sharing](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) distribution to sPRL1 and sPRL2 holders.
+The epoch is the central unit of time in the tokenomics. An epoch is one calendar month, so it lasts 28, 29, 30 or 31 days depending on the month. It is used to determine the [ParaBoost](/governance/parallel-governance-token-prl/tokenomics/paraboost) calculation period and to manage the [fee sharing](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) distribution to sPRL1 and sPRL2 holders.
+
+On-chain, the `RewardMerkleDistributor` enforces an `EPOCH_LENGTH` of 28 days as the minimum window between two epochs, which every calendar month satisfies.
+
+:::info
+The cooldown applied when unstaking sPRL1 and sPRL2 is **not** one epoch. It is a separate, fixed period of 28 days, held per staking contract as `timeLockDuration` and changeable by governance within a 1 to 365 day range. See [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms).
+:::

@@ -25,9 +25,9 @@ PRL is the governance token of the Parallel Protocol. It replaced MIMO, and stak
 | Total supply | 1,000,000,000 PRL, fixed. No mint, pause or admin function on the token |
 | Decimals | 18 |
 | Canonical contract (Ethereum) | [0x6c0aeceeDc55c9d55d8B99216a670D85330941c3](https://etherscan.io/address/0x6c0aeceeDc55c9d55d8B99216a670D85330941c3) |
-| Chains | 9 chain deployments in the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl): Ethereum, Base, Arbitrum, Optimism, Polygon, Sonic (token contract), plus Avalanche, HyperEVM (fee distributors only) and Fantom (deprecated migration contract) |
-| Staking | sPRL1 (single-sided PRL) and sPRL2 (80/20 PRL/wETH Balancer pool staked on Aura). See [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
-| Epochs | 30 days. Unstaking has a 1-epoch cooldown; leaving early costs a penalty that starts at 50% and decays linearly. See [Epoch Concept](/governance/parallel-governance-token-prl/tokenomics/epoch-concept) |
+| Chains | The token is on 6 chains: Ethereum, Base, Arbitrum, Optimism, Polygon and Sonic. The [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl) page also lists PRL tokenomics contracts on Avalanche and HyperEVM, and a deprecated migration contract on Fantom, none of which carry the token |
+| Staking | sPRL1 (single-sided PRL) and sPRL2 (80/20 PRL/wETH Balancer pool staked on Aura). Unstaking has a separate, fixed 28-day cooldown; leaving early costs a penalty that starts at 50% and decays linearly. See [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
+| Epochs | One calendar month (28 to 31 days). Epochs set the ParaBoost window and the fee distribution schedule. See [Epoch Concept](/governance/parallel-governance-token-prl/tokenomics/epoch-concept) |
 | Fee share | sPRL1 and sPRL2 holders receive a share of protocol fees each epoch, weighted by ParaBoost, claimable for 12 epochs. See [Fee Distribution](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) and [Fees](/products/parallel-v3/fees) |
 | Governance role | sPRL1 and sPRL2 carry voting power, weighted by the previous epoch's [ParaBoost](/governance/parallel-governance-token-prl/tokenomics/paraboost). See [sPRL and Voting Power](/governance/sprl) |
 | Issuance | Under PIP-46, 100% of PRL issuance goes to the DAO PRL Inflation Multisig on Ethereum. See [Issuance](/governance/parallel-governance-token-prl/issuance) |
@@ -36,7 +36,7 @@ PRL is the governance token of the Parallel Protocol. It replaced MIMO, and stak
 
 ## How it works
 
-PRL itself is a plain, immutable ERC-20 on Ethereum; every other chain holds a `PeripheralPRL` OFT that mints and burns against PRL locked in the Ethereum `LockBox`, over LayerZero with DAO-configured DVNs. See the [PRL Bridging Module](/governance/parallel-governance-token-prl/bridging-module). To take part in governance you stake PRL as sPRL1, or provide 80/20 PRL/wETH liquidity and stake the pool token as sPRL2, which counts x2.5 in ParaBoost. A keeper (Cooper Labs) computes ParaBoost off-chain at the end of each 30-day epoch and publishes a merkle root to the `RewardMerkleDistributor`, from which stakers claim their fee share. Transferring sPRL resets the accumulated ParaBoost, so voting power and rewards stay with long-term stakers. The full model is in [Tokenomics](/governance/parallel-governance-token-prl/tokenomics).
+PRL itself is a plain, immutable ERC-20 on Ethereum; every other chain holds a `PeripheralPRL` OFT that mints and burns against PRL locked in the Ethereum `LockBox`, over LayerZero with DAO-configured DVNs. See the [PRL Bridging Module](/governance/parallel-governance-token-prl/bridging-module). To take part in governance you stake PRL as sPRL1, or provide 80/20 PRL/wETH liquidity and stake the pool token as sPRL2, which counts x2.5 in ParaBoost. A keeper (Cooper Labs) computes ParaBoost off-chain at the end of each monthly epoch and publishes a merkle root to the `RewardMerkleDistributor`, from which stakers claim their fee share. Transferring sPRL resets the accumulated ParaBoost, so voting power and rewards stay with long-term stakers. The full model is in [Tokenomics](/governance/parallel-governance-token-prl/tokenomics).
 
 ## Backing and risk
 
