@@ -23,11 +23,12 @@ Agent                        Merchant (the SDK)            Facilitator
   |                                |                             |
   |── GET /api/data ──────────────>|                             |
   |   payment-signature: <base64>  |── POST /x402/verify ───────>|
-  |                                |<─ { isValid: true } ────────|
+  |                                |<─ { isValid, settleToken } ─|
   |                                |                             |
   |                                | [your handler runs]         |
   |                                |                             |
   |                                |── POST /x402/settle ───────>|
+  |                                |   (+ settleToken)           |
   |                                |<─ { txHash, route, ... } ───|
   |                                |                             |
   |<─ 200 + payment-response ──────|                             |
@@ -38,7 +39,9 @@ Agent                        Merchant (the SDK)            Facilitator
 
 - **The handler only runs after the signature is verified.** A request with a missing or invalid payment never reaches your code — it gets a `402`.
 - **Settlement happens after a 2xx.** The on-chain transfer is submitted only once your handler returns a success response. If your handler errors, nothing is charged.
-- **A failed settlement discards the response.** If the on-chain transfer reverts or the facilitator times out, the middleware returns `402` instead of your handler's output, so the agent can retry.
+- **The settle is bound to the merchant that verified.** `POST /x402/verify` hands the middleware a settle token that `POST /x402/settle` must present. The token stays in memory for the life of the request and never reaches the agent. It arrived in `@parallel-protocol/x402` 0.8.0: keep the middleware at 0.8.0 or later.
+- **One payment, one settlement.** The facilitator claims the payment before it submits anything, so two settles of the same payment never both reach the chain. A settle repeated after a lost answer gets the recorded outcome, marked `alreadySettled`.
+- **A failed settlement discards the response and says why.** The middleware returns `402` instead of your handler's output, with a `reason` that tells the agent whether to sign a new payment or to check with you first. See [settlement failures](/agents/x402/error-codes#settlement-failures).
 - **CORS preflight passes through.** `OPTIONS` requests are never challenged.
 
 ## Headers involved

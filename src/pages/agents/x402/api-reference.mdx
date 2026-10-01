@@ -60,26 +60,36 @@ import { FacilitatorClient } from "@parallel-protocol/x402";
 
 const client = new FacilitatorClient({ url: "https://agents.parallel.best" });
 
-// Phase 1: verify signature + reserve nonce (no on-chain tx)
-await client.verify(paymentHeader, paymentRequirements);
+// Phase 1: verify signature + reserve nonce (no on-chain tx). The facilitator
+// hands back the settle token this payment must be settled with.
+const { settleToken } = await client.verify(paymentHeader, paymentRequirements);
 
-// Phase 2: submit on-chain, return the settlement result
-const result = await client.settle(paymentHeader, paymentRequirements);
+// Phase 2: submit on-chain with the token, return the settlement result
+const result = await client.settle(paymentHeader, paymentRequirements, { settleToken });
 if (result.success) {
   console.log(result.txHash, result.route, result.gasSponsored);
+  console.log(result.alreadySettled); // true when an earlier settle already did it
 } else {
-  console.error(result.error.code);
+  console.error(result.error.code);    // e.g. "INSUFFICIENT_BALANCE"
+  console.error(result.error.message); // the facilitator's text
+  console.error(result.error.status);  // its HTTP status, result.error.retryAfter when it sent one
 }
 ```
 
-`verify` uses a 10-second timeout; `settle` uses a 60-second timeout (it waits for on-chain inclusion). `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure; `settle` returns a result union on facilitator errors and throws only on connectivity issues.
+`verify` uses a 10-second timeout and `settle` a 60-second one, since it waits for on-chain inclusion. `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure, with the facilitator's text in `.detail` and its status in `.status`, and a verify that issues no settle token is an invalid response. `settle` returns a result union on facilitator errors and throws on connectivity issues, with `SETTLE_TIMEOUT` when the 60 seconds ran out: the payment may then still settle.
+
+The settle token is a secret for the life of the request. Keep it in memory, never log it, never send it to the payer. It requires `@parallel-protocol/x402` 0.8.0 or later.
 
 ## `createPaymentGate`
 
 For frameworks not covered by an adapter, the lower-level `createPaymentGate` exposes the verify step without running your handler:
 
 ```ts
-import { createPaymentGate } from "@parallel-protocol/x402";
+import {
+  createPaymentGate,
+  settleVerified,
+  settlementFailureResponse,
+} from "@parallel-protocol/x402";
 
 const gate = createPaymentGate(config);
 
@@ -98,10 +108,16 @@ if (result.type === "pass") {
   // result.type === "verified" — run your handler, then:
   const handlerStatus = await runHandler();
   if (handlerStatus >= 200 && handlerStatus < 300) {
-    const settlement = await result.settle();
+    const outcome = await settleVerified(result);
+    if (!outcome.settled) {
+      // discard the handler's response and send this 402 instead:
+      // settlementFailureResponse(outcome).status / headers / body
+    }
   }
 }
 ```
+
+The gate keeps the settle token the facilitator issued at verify and presents it at settle, so a custom integration has nothing to carry. `settleVerified` runs the same settlement as the framework adapters, with one retry when the outcome is unknown, and `settlementFailureResponse` builds the `402` that tells the agent why.
 
 Use `createPaymentMiddleware` instead if you want the full verify → run → settle flow managed for you.
 

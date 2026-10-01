@@ -17,6 +17,7 @@ Returned when no valid payment is present. The `payment-required` header holds a
 interface PaymentRequired {
   x402Version: 2;
   error?: string;            // present on re-challenge, e.g. "INVALID_SIGNATURE"
+  message?: string;          // the facilitator's text for `error`, when it sent one
   resource: {
     url: string;
     description?: string;
@@ -73,9 +74,24 @@ interface PaymentConfirmation {
   chain: string;        // "base"
   gasSponsored: boolean;
   networkId: string;    // "eip155:8453"
+  alreadySettled?: true;  // answered from an earlier settle's recorded outcome, nothing broadcast this time
 }
 ```
 
 The middleware sets `access-control-expose-headers` automatically so browser clients can read `payment-response`.
+
+## `402` after a failed settlement
+
+When the settlement fails after your handler answered, the response is discarded and replaced by a `402` with a plain JSON body. It carries no `payment-required` header, so an x402 client does not take it for a new invoice:
+
+```ts
+interface SettlementFailureBody {
+  error: "PAYMENT_SETTLEMENT_FAILED";
+  reason: string;   // why, e.g. "INSUFFICIENT_BALANCE" (see the error codes)
+  message: string;  // one line, cut at 300 characters
+}
+```
+
+The facilitator's `Retry-After` header is copied when it sent one. The reasons and what the agent should do with each are listed in [settlement failures](/agents/x402/error-codes#settlement-failures).
 
 <HelpFooter />
