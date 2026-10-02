@@ -15,6 +15,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 - **Slippage is in basis points** — `50` = 0.5%. Default 50, maximum 500. Applies to `mint`, `redeem` and `redeem_proportional`.
 - **Chains are lowercase slugs** (`base`, `ethereum`, `hyperevm`, …). Minting, redeeming and savings run on the chains with a Parallelizer deployment — Ethereum, Base, Avalanche and HyperEVM; on Sonic those operations return `CHAIN_SUNSET` (PIP-64 wind-down) while bridging and balance reads stay active. Bridging covers every supported chain.
 - **Multi-chain aggregates are honest about failures**: when a chain read fails, the response carries `partial: true` and a `failedChains` list, and the totals exclude those chains — never a silently wrong number. `get_proof_of_solvency` goes further and refuses to conclude on incomplete data (`PARTIAL_READ`).
+- **Every tool carries MCP annotations**: reads are marked `readOnlyHint: true`, transaction builders `readOnlyHint: false`, and no tool is marked destructive. Every tool returns its data as JSON, `get_protocol_parameters` included.
 
 ## Protocol data
 
@@ -27,7 +28,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 | `get_supported_chains` | The 24 chains USDp is deployed on, with status and contract addresses (Sonic is flagged sunset — mint, redeem and savings were wound down there under PIP-64, while USDp, bridging and balance reads stay live) |
 | `get_supported_collaterals` | Collaterals accepted on a chain, with caps, utilization and mint/redeem status |
 | `get_fee_rates` | Adaptive mint/redeem fees per collateral — can be negative (incentives) |
-| `get_savings_rate` | The protocol-wide sUSDp APY (7d/30d/90d), exchange rate and total deposits |
+| `get_savings_rate` | The protocol-wide sUSDp APY (7d/30d/90d), exchange rate and total deposits, with `feeShare`: the share of the protocol surplus not kept by the DAO Treasury, read on-chain (90% today), or `null` when that read fails |
 | `get_proof_of_solvency` | Total backing vs USDp supply — the canonical solvency ratio, per chain |
 
 ## Savings (sUSDp)
@@ -62,14 +63,14 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 | Tool | What it does |
 |---|---|
-| `get_staking_overview` | Epochs, totals staked in sPRL1/sPRL2, voting power, and APRs (when an epoch has settled — otherwise null, with the reason in `unavailableFields`) |
-| `get_staking_info` | One address's full staking position: balances, rewards, cooldowns, ParaBoost |
-| `get_cooldown_status` | Pending unstake requests, remaining time and estimated penalties |
-| `stake` | Builds staking transactions — PRL into sPRL1, or PRL/BPT into sPRL2 |
-| `unstake` | With `amount`: builds the cooldown start. Without: builds the withdrawal of matured requests |
-| `claim_rewards` | Builds reward claims for sPRL1/sPRL2 — may return transactions on several chains |
+| `get_staking_overview` | Epochs, totals staked in sPRL1/sPRL2 in all and per chain, voting power, and APRs with an `aprNote` (when an epoch has settled — otherwise null, with the reason in `unavailableFields`) |
+| `get_staking_info` | One address's full staking position on every chain: balances, rewards (including the legacy ones on Polygon), cooldowns, ParaBoost, and any sPRL2 left in the paused v1 vault |
+| `get_cooldown_status` | Pending unstake requests on every chain, remaining time and estimated penalties |
+| `stake` | Builds staking transactions on Ethereum or Base (`chain`) — PRL into sPRL1, or BPT or PRL + WETH into sPRL2 |
+| `unstake` | On the `chain` that holds the position. With `amount`: builds the cooldown start. Without: builds the withdrawal of matured requests |
+| `claim_rewards` | Builds reward claims for sPRL1/sPRL2 on Base, plus one on Polygon for the epochs published before the move to Base while any remain |
 
-sPRL1 is deployed on Ethereum, Polygon, Base and Sonic; sPRL2 on Ethereum only.
+New stakes go to Ethereum or Base: sPRL1, and the sPRL2 v2 vault, which replaced the paused v1 vault on Ethereum. sPRL1 on Polygon and Sonic is being sunset: a stake there is refused with `CHAIN_SUNSET`, while unstaking and withdrawing stay open and carry a `STAKING_SUNSET` warning. Every staking APR comes with an `aprNote`: a 0.00% means the last epoch distributed no rewards, not that a vault pays none.
 
 ## Governance
 
@@ -77,7 +78,7 @@ sPRL1 is deployed on Ethereum, Polygon, Base and Sonic; sPRL2 on Ethereum only.
 |---|---|
 | `get_proposals` | Snapshot proposals (PIP/PGP/PIR), filterable by type and status |
 | `get_proposal_details` | One proposal in full, votes and result included |
-| `get_protocol_parameters` | Contract addresses, governance roles, fees and bridge limits — one formatted summary |
+| `get_protocol_parameters` | Contract addresses, governance roles, fees, collateral caps, bridge limits and `savingsFeeShare` (90% today, read on-chain, `null` when that read fails), in one JSON answer |
 
 ## Agent payments (x402)
 
@@ -85,7 +86,7 @@ sPRL1 is deployed on Ethereum, Polygon, Base and Sonic; sPRL2 on Ethereum only.
 |---|---|
 | `get_payment_capabilities` | Payment routes available on a chain and whether gas is sponsored |
 | `prepare_x402_payment` | Builds a gasless x402 payment — returns typed data for your wallet to sign; the facilitator settles on-chain only after that |
-| `prepare_convert_and_pay` | Builds a two-step payment — redeem USDp to a collateral, then pay it, for recipients wanting a specific token |
+| `prepare_convert_and_pay` | Builds a two-step payment — redeem USDp to a collateral, then pay it, for recipients wanting a specific token. The collateral must support EIP-3009 (USDC by default); any other target is refused before anything is built |
 
 Gas is sponsored on every Parallelizer chain except Ethereum. See [x402](/agents/x402) for the full payment protocol.
 
