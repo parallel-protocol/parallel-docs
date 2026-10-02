@@ -53,7 +53,8 @@ export const CHAIN_LABELS: Record<ChainSlug, string> = {
   fantom: "Fantom",
 };
 
-export const EXPLORERS: Record<ChainSlug, (addr: string) => string> = {
+/** Explorer URL per chain; `null` when no explorer reliably shows the listed contracts. */
+export const EXPLORERS: Record<ChainSlug, ((addr: string) => string) | null> = {
   ethereum: (a) => `https://etherscan.io/address/${a}`,
   base: (a) => `https://basescan.org/address/${a}`,
   sonic: (a) => `https://sonicscan.org/address/${a}`,
@@ -80,5 +81,7 @@ export const EXPLORERS: Record<ChainSlug, (addr: string) => string> = {
   fraxtal: (a) => `https://fraxscan.com/address/${a}`,
   world: (a) => `https://worldscan.org/address/${a}`,
   hemi: (a) => `https://explorer.hemi.xyz/address/${a}`,
-  fantom: (a) => `https://ftmscan.com/address/${a}`,
+  // ftmscan.com no longer resolves, and no other Fantom explorer shows the listed
+  // contracts reliably: the addresses stay, without a link.
+  fantom: null,
 };

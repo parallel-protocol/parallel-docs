@@ -35,9 +35,9 @@ This contract is deployed on the chain that distributes the fees to users and fe
 * `updateBridgeableToken(address _newBridgeableToken)`| **Restricted** : Allow to update the bridgeable token contract (parallel tunnel).
 * `updateFeeReceivers(address[] memory _feeReceivers, uint256[] memory _shares)` | **Restricted** : Allow to update the list of the fee receivers and their shares.
 
-#### &#x31;**.1.3** [**SideChainFeeDistributor**](https://github.com/parallel-protocol/parallel-tokenomics/blob/main/contracts/fees/SideChainFeeDistributor.sol)
+#### &#x31;**.1.3** [**SideChainFeeDistributor**](https://github.com/parallel-protocol/parallel-tokenomics/blob/main/contracts/fees/SideChainFeeCollector.sol)
 
-This contract is deployed on side chains and is used to distribute the fees to the MainFeeDistributor by bridging them using Parallel Tunnel. Inherits from FeeCollectorCore.
+This contract is deployed on side chains and is used to distribute the fees to the MainFeeDistributor by bridging them using Parallel Tunnel. Inherits from FeeCollectorCore. In the code, the contract is named `SideChainFeeCollector`.
 
 **function details**:
 
