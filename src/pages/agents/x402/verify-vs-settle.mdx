@@ -23,11 +23,12 @@ Agent                        Merchant (the SDK)            Facilitator
   |                                |                             |
   |── GET /api/data ──────────────>|                             |
   |   payment-signature: <base64>  |── POST /x402/verify ───────>|
-  |                                |<─ { isValid: true } ────────|
+  |                                |<─ { isValid, settleToken } ─|
   |                                |                             |
   |                                | [your handler runs]         |
   |                                |                             |
   |                                |── POST /x402/settle ───────>|
+  |                                |   (+ settleToken)           |
   |                                |<─ { txHash, route, ... } ───|
   |                                |                             |
   |<─ 200 + payment-response ──────|                             |
@@ -38,8 +39,42 @@ Agent                        Merchant (the SDK)            Facilitator
 
 - **The handler only runs after the signature is verified.** A request with a missing or invalid payment never reaches your code — it gets a `402`.
 - **Settlement happens after a 2xx.** The on-chain transfer is submitted only once your handler returns a success response. If your handler errors, nothing is charged.
-- **A failed settlement discards the response.** If the on-chain transfer reverts or the facilitator times out, the middleware returns `402` instead of your handler's output, so the agent can retry.
+- **The settle is bound to the merchant that verified.** `POST /x402/verify` hands the middleware a settle token that `POST /x402/settle` must present. The token stays in memory for the life of the request and never reaches the agent. The facilitator has required it since 1 October 2026, and `@parallel-protocol/x402` sends it from 0.8.0: a merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`, and is never paid.
+- **The SDK talks to the facilitator only.** From 0.8.1 it calls the facilitator at its configured https address and never follows a redirect, so the payment, the settle token and the API key never reach another address.
+- **One payment, one settlement.** The facilitator claims the payment before it submits anything, so two settles of the same payment never both reach the chain. A settle repeated after a lost answer gets the recorded outcome, marked `alreadySettled`.
+- **Concurrent payments do not collide.** On each chain, the facilitator sends its settlement transactions one at a time, so payments settled together each get their own transaction.
+- **A failed settlement discards the response and says why.** The middleware returns `402` instead of your handler's output, with a `reason` that tells the agent whether to sign a new payment or to check with you first. See [settlement failures](/agents/x402/error-codes#settlement-failures).
 - **CORS preflight passes through.** `OPTIONS` requests are never challenged.
+
+## Settlement routes
+
+The facilitator settles each payment through one of 13 routes, chosen from the signed payload. The settlement receipt names it in `route`.
+
+| Route | Method signed | Agent pays | Merchant receives | Gas (approx.) | How it settles |
+|---|---|---|---|---|---|
+| **A** | `transferWithAuthorization` | USDp | USDp | 65K | Direct USDp transfer. |
+| **B** | `swapExactOutputWithAuthorization` | USDp | USDC (exact) | 120K | The Parallelizer swaps the agent's USDp for the exact USDC amount. |
+| **C** | `depositWithAuthorization` | USDp | sUSDp | 110K | The agent's USDp is deposited into the savings vault, and the merchant receives the sUSDp shares. |
+| **D** | `swapExactOutputWithAuthorization` | USDp | Another backing collateral (exact) | 120K | Same as B, for the other collaterals of the Parallelizer. |
+| **E** | `swapExactInputWithAuthorization` | USDC or a collateral (exact) | USDp (minimum) | 120K | The agent pays an exact amount, and the Parallelizer delivers at least the minimum USDp. |
+| **F** | `transferWithAuthorization` | USDC or a collateral | The same token | 65K | Direct transfer of the token. |
+| **G** | `swapExactInputWithAuthorization` | USDC or a collateral (exact) | sUSDp | 200K | The token is swapped to USDp, which is deposited as sUSDp for the merchant, in one transaction. |
+| **H** | `redeemWithAuthorization` | sUSDp | USDp | 130K | The agent redeems sUSDp shares, and the merchant receives the USDp. |
+| **I** | `redeemWithAuthorization` and `swapExactOutputWithAuthorization` | sUSDp | USDC (exact) | 180K | sUSDp is redeemed to USDp, then swapped for the exact USDC amount, in one transaction. |
+| **J** | `transferWithAuthorization` | sUSDp | sUSDp | 65K | Direct transfer of sUSDp shares. |
+| **K** | `redeemWithAuthorization` and `swapExactOutputWithAuthorization` | sUSDp | Another backing collateral (exact) | 180K | Same as I, for the other collaterals of the Parallelizer. |
+| **L** | `partialRedeemWithAuthorization` | sUSDp and USDp | USDp or a backing collateral | 180K | A partial sUSDp redemption combined with the agent's USDp, in one transaction. |
+| **U** | `uptoWithAuthorization` | USDp (the cap) | USDp (the amount charged) | 130K | A [metered payment](/agents/x402/api-reference#metered-routes-upto): Parallel's escrow contract pulls the signed cap, pays the merchant the amount the handler charged, and refunds the rest to the agent, in one transaction. |
+
+What each route needs on the chain:
+
+- Routes B, D, E, G, I, K and L need the Parallelizer, deployed on Ethereum, Base, Avalanche and HyperEVM.
+- Routes B and I swap to USDC, so they need USDC among the chain's collaterals, which is the case on Base and Avalanche.
+- Routes C, G, H, I, J, K and L need sUSDp on the chain.
+- Routes E, F and G take as payment the chain's USDC or one of its collaterals, and the token must support EIP-3009.
+- Route U needs the escrow contract, deployed on Base. On route U, verify also checks that the payer holds the cap. A metered payment on another chain is refused at verify with `PAYMENT_METHOD_NOT_SUPPORTED`.
+
+The facilitator's `GET /capabilities?chain=<slug>` lists the routes available on a chain right now, with their gas estimates and fees, and the settlement receipt says in `gasSponsored` whether the facilitator paid the gas.
 
 ## Headers involved
 
