@@ -9,6 +9,10 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 Reference for the `@parallel-protocol/x402` package: configuration, framework adapters, and the lower-level facilitator client.
 
+:::warning
+Use version 0.8.1 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, which the SDK sends from 0.8.0: with 0.7.x or earlier, every settlement is refused with `SETTLE_TOKEN_REQUIRED`.
+:::
+
 ## Configuration
 
 ### `PaymentMiddlewareConfig`
@@ -24,21 +28,52 @@ interface PaymentMiddlewareConfig {
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `url` | `string` | Yes | Base URL of the Parallel facilitator. The SDK appends `/x402/verify` and `/x402/settle` to this value. |
+| `url` | `string` | Yes | Base URL of the Parallel facilitator, `https://agents.parallel.best`. The SDK appends `/x402/verify` and `/x402/settle` to this value. It must use https: plain http is accepted only for `localhost`, `127.0.0.1` and `[::1]`. A trailing slash is ignored. The SDK calls this address only and never follows a redirect, which fails the call with `FACILITATOR_UNAVAILABLE`. |
 | `apiKey` | `string` | No | Reserved for future use. Sent as an `X-API-Key` header when provided; not currently enforced. |
 
 ### `RouteConfig`
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `price` | `string \| bigint` | Yes | Amount required. A string like `"0.01"` is parsed at `decimals` precision. Pass a `bigint` to skip parsing. |
+| `price` | `string \| bigint \| (ctx) => string \| bigint` | Yes | Amount required. A string like `"0.01"` is parsed with each accepted token's own decimals. Pass a `bigint` to skip parsing, or a function to price each request from its content. On a metered route, `price` is the cap. |
 | `decimals` | `number` | No | Override for custom tokens only. Each accepted token's decimals are resolved automatically from Parallel's on-chain token catalog; an unknown token without `decimals` throws `X402ConfigError` at startup. |
 | `network` | `string` | Yes | Chain slug: `"ethereum"`, `"base"`, `"avalanche"`, or `"hyperevm"`. |
 | `payTo` | `Address` | Yes | The merchant's receiving address. |
-| `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to USDp, USDC, and sUSDp for the network; required on networks without defaults. |
+| `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to USDp, USDC, and sUSDp for the network, and required on networks without defaults. A metered route accepts USDp only. |
 | `description` | `string` | No | Human-readable description of the resource, included in the `402` body. |
+| `scheme` | `"exact" \| "upto"` | No | `exact` (default) charges `price` as invoiced. `upto` invoices `price` as a cap: the handler names the amount it actually charges, and the rest is refunded on-chain. See [metered routes](#metered-routes-upto). |
+| `maxTimeoutSeconds` | `number` | No | Settlement window announced to the payer, 300 by default. On a metered route it is 3,600 at most: a larger value throws `X402ConfigError` at startup. On metered routes, Express, Hono and Next.js give the handler this window minus two minutes, kept for the settlement and its retry, and 30 seconds at least. Fastify does not time handlers out. |
+| `meter` | `(ctx) => string \| bigint \| undefined` | No | Metered routes only: reads the amount to charge from the handler's response. See [metered routes](#metered-routes-upto). |
 
 Route matching is **longest-prefix-wins**: `/api/v1/users` matches a `/api/v1` config before a `/api` one.
+
+### Metered routes (`upto`)
+
+On a route with `scheme: "upto"`, `price` is a cap: the handler names the amount it charges, and the facilitator settles that amount through [route U](/agents/x402/verify-vs-settle#settlement-routes), refunding the rest to the agent. Metered payments are made in USDp, on Base.
+
+```ts
+import { SETTLE_AMOUNT_HEADER } from "@parallel-protocol/x402";
+
+// routes: { "/v1/chat/completions": { scheme: "upto", price: "2", maxTimeoutSeconds: 600, network: "base", payTo } }
+fastify.post("/v1/chat/completions", async (request, reply) => {
+  const completion = await runInference(request.body);
+  reply.header(SETTLE_AMOUNT_HEADER, completion.costInUsdp); // e.g. "0.0137"
+  return completion;
+});
+```
+
+The handler names the amount in the `payment-settle-amount` header, in whole token units like `price`. The middleware removes the header before the response leaves. On a `2xx` response:
+
+| Header | What happens |
+|---|---|
+| absent | The cap is charged. |
+| `"0"` | The request is served for free: nothing is settled, no `payment-response`. |
+| an amount up to `price` | That amount is settled, and the receipt's `amountSettled` carries it. |
+| malformed, more decimals than the token, or above `price` | The response is discarded and the agent gets `402 INVALID_SETTLE_AMOUNT`. |
+
+Instead of the header, a `meter` function on the route can read the amount from the response: it receives `{ status, header(name), body, request }` and returns an amount, or nothing to let the header decide. An amount above the cap settles the cap, and a `meter` that throws makes the agent get `402 INVALID_SETTLE_AMOUNT`.
+
+A handler that finishes after the window has done the work, but the payment can no longer settle: the agent gets `402 PAYMENT_SETTLEMENT_FAILED` with reason `PAYMENT_EXPIRED`, and the merchant is not paid. Keep a margin.
 
 ## Framework adapters
 
@@ -64,10 +99,12 @@ const client = new FacilitatorClient({ url: "https://agents.parallel.best" });
 // hands back the settle token this payment must be settled with.
 const { settleToken } = await client.verify(paymentHeader, paymentRequirements);
 
-// Phase 2: submit on-chain with the token, return the settlement result
+// Phase 2: submit on-chain with the token, return the settlement result.
+// On a metered route, also pass the amount to charge in the token's smallest unit: { settleToken, amount }
 const result = await client.settle(paymentHeader, paymentRequirements, { settleToken });
 if (result.success) {
   console.log(result.txHash, result.route, result.gasSponsored);
+  console.log(result.amountSettled);  // metered routes: the amount charged
   console.log(result.alreadySettled); // true when an earlier settle already did it
 } else {
   console.error(result.error.code);    // e.g. "INSUFFICIENT_BALANCE"
@@ -76,9 +113,9 @@ if (result.success) {
 }
 ```
 
-`verify` uses a 10-second timeout and `settle` a 60-second one, since it waits for on-chain inclusion. `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure, with the facilitator's text in `.detail` and its status in `.status`, and a verify that issues no settle token is an invalid response. `settle` returns a result union on facilitator errors and throws on connectivity issues, with `SETTLE_TIMEOUT` when the 60 seconds ran out: the payment may then still settle.
+The constructor throws `X402ConfigError` when the URL is neither https nor plain http on `localhost`, `127.0.0.1` or `[::1]`. `verify` uses a 10-second timeout and `settle` a 60-second one, since it waits for on-chain inclusion. `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure, with the facilitator's text in `.detail` and its status in `.status`, and a verify that issues no settle token is an invalid response. `settle` returns a result union on facilitator errors and throws on connectivity issues, with `SETTLE_TIMEOUT` when the 60 seconds ran out: the payment may then still settle.
 
-The settle token is a secret for the life of the request. Keep it in memory, never log it, never send it to the payer. It requires `@parallel-protocol/x402` 0.8.0 or later.
+The settle token is a secret for the life of the request. Keep it in memory, never log it, never send it to the payer.
 
 ## `createPaymentGate`
 
@@ -101,13 +138,14 @@ const result = await gate({
 });
 
 if (result.type === "pass") {
-  // route not configured for payment — proceed normally
+  // route not configured for payment, proceed normally
 } else if (result.type === "error") {
-  // send 402: result.result.status / headers / body
+  // send result.result.status / headers / body (a 402, or a price refusal)
 } else {
-  // result.type === "verified" — run your handler, then:
+  // result.type === "verified": run your handler, then
   const handlerStatus = await runHandler();
   if (handlerStatus >= 200 && handlerStatus < 300) {
+    // a metered route passes the amount to charge: settleVerified(result, { amount })
     const outcome = await settleVerified(result);
     if (!outcome.settled) {
       // discard the handler's response and send this 402 instead:
@@ -117,9 +155,9 @@ if (result.type === "pass") {
 }
 ```
 
-The gate keeps the settle token the facilitator issued at verify and presents it at settle, so a custom integration has nothing to carry. `settleVerified` runs the same settlement as the framework adapters, with one retry when the outcome is unknown, and `settlementFailureResponse` builds the `402` that tells the agent why.
+The gate keeps the settle token the facilitator issued at verify and presents it at settle, so a custom integration has nothing to carry. `settleVerified` runs the same settlement as the framework adapters, with one retry when the outcome is unknown, and `settlementFailureResponse` builds the `402` that tells the agent why. On a metered route, `settleVerified(result, { amount })` takes the amount to charge in the token's smallest unit, which `resolveCharge` computes from the handler's response as the adapters do, and refuses a confirmation for another amount with `AMOUNT_MISMATCH`.
 
-Use `createPaymentMiddleware` instead if you want the full verify → run → settle flow managed for you.
+Use `createPaymentMiddleware` instead if you want the whole flow (verify, run the handler, settle) managed for you.
 
 ## Utilities
 

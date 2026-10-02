@@ -24,12 +24,12 @@ interface PaymentRequired {
     mimeType: "application/json";
   };
   accepts: Array<{
-    scheme: "exact";
+    scheme: "exact" | "upto";  // "upto": `amount` is a cap, see metered payments below
     network: string;         // EIP-155, e.g. "eip155:8453"
     asset: string;           // token address
-    amount: string;          // wei string (18 decimals for USDp)
+    amount: string;          // in the token's smallest unit (18 decimals for USDp)
     payTo: string;
-    maxTimeoutSeconds: 300;
+    maxTimeoutSeconds: number;  // the settlement window, 300 by default, 3,600 at most on "upto"
     extra: { decimals: number };  // the payer must scale the amount with THESE decimals
   }>;
 }
@@ -62,6 +62,10 @@ const header = Buffer.from(JSON.stringify(signedPayload)).toString("base64");
 
 Agent-side signing helpers (EIP-3009 authorizations, EIP-712 signing) live in the `@parallel-protocol/payment-core` package.
 
+### Metered payments (`upto`)
+
+On a metered invoice, the agent signs a `ReceiveWithAuthorization` of the cap to Parallel's escrow contract, on the USDp domain, instead of a transfer to the merchant. The payload has `scheme: "upto"` and the method `uptoWithAuthorization`, carries the merchant in `uptoParams.payTo`, and puts the payer's random salt in `authorization.nonce`: the signed nonce is derived from the salt and the payment's terms, so the signature only holds for those exact values. `@parallel-protocol/payment-core` exports `deriveUptoNonce` for this. The escrow address comes from Parallel's chain catalog (`@parallel-protocol/chains`), never from the invoice.
+
 ## `200` response — `payment-response`
 
 On success, the middleware sets a `payment-response` header with a base64-encoded settlement confirmation:
@@ -70,15 +74,16 @@ On success, the middleware sets a `payment-response` header with a base64-encode
 interface PaymentConfirmation {
   success: true;
   txHash: string;
-  route: string;        // internal settlement route id
+  route: string;        // the settlement route, "A" to "L", or "U" for a metered payment
   chain: string;        // "base"
   gasSponsored: boolean;
   networkId: string;    // "eip155:8453"
+  amountSettled?: string;  // metered routes: the amount charged, in the token's smallest unit
   alreadySettled?: true;  // answered from an earlier settle's recorded outcome, nothing broadcast this time
 }
 ```
 
-The middleware sets `access-control-expose-headers` automatically so browser clients can read `payment-response`.
+`route` is one of the [settlement routes](/agents/x402/verify-vs-settle#settlement-routes). The middleware sets `access-control-expose-headers` automatically so browser clients can read `payment-response`.
 
 ## `402` after a failed settlement
 
@@ -87,7 +92,7 @@ When the settlement fails after your handler answered, the response is discarded
 ```ts
 interface SettlementFailureBody {
   error: "PAYMENT_SETTLEMENT_FAILED";
-  reason: string;   // why, e.g. "INSUFFICIENT_BALANCE" (see the error codes)
+  reason: string;   // why, e.g. "INSUFFICIENT_BALANCE" or "AMOUNT_MISMATCH" (see the error codes)
   message: string;  // one line, cut at 300 characters
 }
 ```
