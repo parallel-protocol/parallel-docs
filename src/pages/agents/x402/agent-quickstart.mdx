@@ -99,6 +99,7 @@ Read `reason` before signing anything else:
 - `INSUFFICIENT_BALANCE` (fund the wallet first) and `PAYMENT_EXPIRED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later.
 - For these, check with the merchant before you pay again:
   - `SETTLE_TIMEOUT`, `FACILITATOR_UNAVAILABLE`, `FACILITATOR_INVALID_RESPONSE`, `SETTLE_IN_PROGRESS` and `RECEIPT_UNAVAILABLE`: the first payment may have settled, or may still settle.
+  - `SUBMISSION_FAILED`: the settlement may have been interrupted after a transaction went out, so the payment may still settle.
   - `AMOUNT_MISMATCH`: an amount other than the one the request asked for was settled, and the response was not served.
   - `SETTLE_TOKEN_REQUIRED` and `SETTLE_TOKEN_INVALID`: the merchant could not complete the settlement, and the payment was not taken.
   - `AUTHORIZATION_USED`: the authorization was consumed or cancelled on-chain, and not by this facilitator. If someone else settled it, the merchant was paid.
