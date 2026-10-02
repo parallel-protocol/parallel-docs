@@ -29,7 +29,7 @@ A route is priced in one of two schemes:
 - **`exact`**, the default: the agent signs the price, and you receive it.
 - **`upto`**, for a resource whose cost is only known once it is served, such as an LLM completion: the agent signs the price as a cap, valid for the route's `maxTimeoutSeconds` (3,600 at most). Your handler names the amount it actually charges, and the escrow refunds the rest on-chain in the same settlement. Metered routes are paid in USDp only.
 
-On a metered route the SDK keeps the last two minutes of that window for the settlement and its retry: on Express, Hono and Next.js the handler gets `maxTimeoutSeconds` minus 120 seconds. A settlement the facilitator confirms for another amount than the one your handler asked for is refused with `AMOUNT_MISMATCH` and the response is discarded. Alert on it: money moved, and the agent was not served. The configuration, with the `payment-settle-amount` header and the `meter` function, is in the [package README](https://www.npmjs.com/package/@parallel-protocol/x402).
+On a metered route the SDK keeps up to the last two minutes of that window for the settlement and its retry: on Express, Hono and Next.js the handler gets `maxTimeoutSeconds` minus 120 seconds, and 30 seconds at least. A settlement the facilitator confirms for another amount than the one your handler asked for is refused with `AMOUNT_MISMATCH` and the response is discarded. Alert on it: money moved, and the agent was not served. The configuration, with the `payment-settle-amount` header and the `meter` function, is in the [package README](https://www.npmjs.com/package/@parallel-protocol/x402).
 
 ## Supported stablecoins
 

@@ -60,17 +60,18 @@ app.listen(3000);
 
 ```ts
 // app/api/data/route.ts
+import { NextResponse } from "next/server";
 import { withPayment } from "@parallel-protocol/x402/next";
 
 const config = {
   facilitator: { url: "https://agents.parallel.best" },
   routes: {
-    "/api/data": { price: "0.10", network: "ethereum", payTo: "0xYourAddress" },
+    "/api/data": { price: "0.10", network: "ethereum", payTo: "0xYourAddress" as const },
   },
 };
 
 export const GET = withPayment(config, async (req) => {
-  return Response.json({ data: "protected content" });
+  return NextResponse.json({ data: "protected content" });
 });
 ```
 

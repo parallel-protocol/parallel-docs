@@ -92,9 +92,18 @@ Metered payments are made in USDp. The cap counts in full against `maxAmount` an
 
 ## When the settlement fails
 
-The merchant settles after it has answered. If that settlement fails, the agent gets a `402` instead of the response, with a JSON body: `error` is `PAYMENT_SETTLEMENT_FAILED`, `reason` says why in a code, and `message` in a sentence. `payFetch` hands that response back as it is: it does not pay again.
+The merchant settles once its handler has answered, before it sends the response. If that settlement fails, the agent gets a `402` instead of the response, with a JSON body: `error` is `PAYMENT_SETTLEMENT_FAILED`, `reason` says why in a code, and `message` in a sentence. `payFetch` hands that response back as it is: it does not pay again.
 
-Read `reason` before signing anything else. `INSUFFICIENT_BALANCE` (fund the wallet first), `PAYMENT_EXPIRED` and `AUTHORIZATION_USED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later. `SETTLE_TIMEOUT`, `FACILITATOR_UNAVAILABLE`, `SETTLE_IN_PROGRESS` and `RECEIPT_UNAVAILABLE` mean the first payment may still settle: check with the merchant before you pay again. See also the [error codes](/agents/x402/error-codes).
+Read `reason` before signing anything else:
+
+- `INSUFFICIENT_BALANCE` (fund the wallet first) and `PAYMENT_EXPIRED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later.
+- For these, check with the merchant before you pay again:
+  - `SETTLE_TIMEOUT`, `FACILITATOR_UNAVAILABLE`, `FACILITATOR_INVALID_RESPONSE`, `SETTLE_IN_PROGRESS` and `RECEIPT_UNAVAILABLE`: the first payment may have settled, or may still settle.
+  - `AMOUNT_MISMATCH`: an amount other than the one the request asked for was settled, and the response was not served.
+  - `SETTLE_TOKEN_REQUIRED` and `SETTLE_TOKEN_INVALID`: the merchant could not complete the settlement, and the payment was not taken.
+  - `AUTHORIZATION_USED`: the authorization was consumed or cancelled on-chain, and not by this facilitator. If someone else settled it, the merchant was paid.
+
+See also the [error codes](/agents/x402/error-codes).
 
 ## The safety model
 
@@ -102,7 +111,8 @@ Read `reason` before signing anything else. `INSUFFICIENT_BALANCE` (fund the wal
 - **`maxAmount` is enforced client-side** against a verified token catalog — a merchant cannot re-scale amounts or trick the agent into overpaying.
 - **You only pay for success.** The merchant settles the payment only when it serves a successful response; an API error means nothing is charged, and unsettled authorizations simply expire.
 - **One payment settles once.** The facilitator claims a payment before it submits it, so the same authorization never settles twice.
-- **One payment at a time.** A wrapper signs one payment at a time, so concurrent invoices never spend the same balance twice, and it never retries a payment on its own. A payment can still settle when the paid retry fails on the network: treat non-idempotent paid requests accordingly.
+- **One payment at a time.** A wrapper signs one payment at a time, which keeps `dailyBudget` exact, and it never retries a payment on its own. It does not set aside what it has signed: each payment is checked against the wallet's on-chain balance, which a signed payment lowers only when it settles. Two payments signed together can each fit a balance that covers only one. The chain still refuses a double spend, so the second settlement fails with `INSUFFICIENT_BALANCE`, possibly after the merchant has served the request.
+- **A payment can settle even when the paid retry fails on the network.** Treat non-idempotent paid requests accordingly.
 
 ## Next steps
 
