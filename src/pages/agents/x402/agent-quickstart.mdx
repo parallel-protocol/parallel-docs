@@ -15,6 +15,8 @@ This guide makes an agent pay x402 APIs autonomously. The whole integration is o
 npm install @parallel-protocol/x402-fetch
 ```
 
+The package signs through the payment engine of the [Parallel CLI](/agents/cli), `@parallel-protocol/cli`, which it installs as a regular dependency. Since version 0.2.3 it accepts the CLI's 0.4 line. A fresh install gets CLI 0.4.1, which prepares a USDp or sUSDp payment on Base in about half a second instead of about 5 seconds; an existing project gets it by refreshing its lockfile. With this release and the facilitator update shipped alongside it, Parallel measured a paid call on Base at 3.5 seconds end to end, down from 9.4.
+
 ## 2. Fund a wallet
 
 The agent needs a wallet holding a small amount of **USDp, USDC, or sUSDp** on the target chain. **No ETH required** — settlement is relayed and gas is sponsored. Use a dedicated wallet holding only what you intend to spend.
@@ -57,9 +59,12 @@ The URL in the example is real: it is Parallel's **live demo API**, where every 
 | Option | Default | Purpose |
 |---|---|---|
 | `privateKey` | — | The agent's signing key. Pass it explicitly (recommended, any env var name you like) — or omit it and the package falls back to the `PARALLEL_PRIVATE_KEY` environment variable. It never leaves the machine; only signatures go over the network. |
-| `chain` | — | Chain to pay on: `"base"`, `"avalanche"`, `"hyperevm"`, or `"ethereum"`. Invoices for any other chain are refused. |
+| `chain` | `"base"` | Chain to pay on: `"base"`, `"avalanche"`, `"hyperevm"`, or `"ethereum"`. Invoices for any other chain are refused. |
 | `payWith` | *(auto)* | Force a payment token (`"usdp"`, `"usdc"`, `"susdp"`). Omitted, the agent picks from its balances. |
 | `maxAmount` | `"1"` | Hard spend cap per request, in token units. Invoices above it are refused before signing. |
+| `dailyBudget` | *(none)* | Cumulative spend ceiling per UTC day, across every payment the wrapper signs. Without it, nothing limits how many capped payments a day can sign. |
+| `timeoutMs` | `60000` | Time budget of the payment engine, in milliseconds. |
+| `allowInsecure` | `false` | Pay merchants served over plain `http://`. Localhost is always allowed. |
 
 ## Refusals cost nothing
 
@@ -67,19 +72,51 @@ Every guard fires **before** the agent signs — a refused invoice never spends 
 
 | Code | Cause |
 |---|---|
-| `NO_SIGNING_KEY` | No private key provided (option or env). |
+| `NO_SIGNING_KEY` | No private key provided (option or env), or a malformed one. Thrown when you wrap `fetch`. |
+| `UNKNOWN_CHAIN` | The configured `chain` is not a known chain. Thrown when you wrap `fetch`. |
 | `AMOUNT_EXCEEDS_MAX` | The invoice asks more than `maxAmount`. |
+| `BUDGET_EXCEEDED` | The invoice would take the day's spend past `dailyBudget`. |
 | `CHAIN_MISMATCH` | The invoice targets a different chain than configured. |
+| `UNSUPPORTED_SCHEME` | The invoice offers only schemes this client cannot pay on the configured chain. It pays `exact` invoices, and `upto` invoices in USDp. |
 | `INVALID_INVOICE` | The `402` response is malformed. |
 | `INSECURE_URL` | The merchant URL is plain `http://` (localhost excepted). |
-| `ENGINE_FAILED` | Payment preparation failed — the message carries the cause (usually balance, or a transient RPC error). |
+| `ENGINE_NOT_FOUND` | The payment engine, `@parallel-protocol/cli`, could not be found. |
+| `ENGINE_FAILED` | Payment preparation failed — the message carries the cause (usually balance, or a transient RPC error), and `engineCode` the engine's code, such as `INSUFFICIENT_BALANCE`. |
 | `ENGINE_TIMEOUT` | Payment preparation exceeded its time budget. |
+
+## Metered invoices
+
+A merchant can invoice a route with the `upto` scheme: a cap rather than a price, for a resource whose cost is only known once it is served. The agent signs the cap for the window the merchant announced (`maxTimeoutSeconds`, 3,600 seconds at most), the merchant charges its actual cost, and the escrow refunds the rest on-chain in the same settlement. The receipt's `amountSettled` is what was really paid.
+
+Metered payments are made in USDp. The cap counts in full against `maxAmount` and `dailyBudget`, and the refund is never credited back to the day's budget.
+
+## When the settlement fails
+
+The merchant settles once its handler has answered, before it sends the response. If that settlement fails, the agent gets a `402` instead of the response, with a JSON body: `error` is `PAYMENT_SETTLEMENT_FAILED`, `reason` says why in a code, and `message` in a sentence. `payFetch` hands that response back as it is: it does not pay again.
+
+Read `reason` before signing anything else:
+
+- `INSUFFICIENT_BALANCE` (fund the wallet first), `PAYMENT_EXPIRED` and `TX_REVERTED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later: the payment was not taken, and the facilitator will not settle it.
+- For these, check with the merchant before you pay again:
+  - `SETTLE_TIMEOUT`, `FACILITATOR_UNAVAILABLE`, `FACILITATOR_INVALID_RESPONSE`, `SETTLE_IN_PROGRESS` and `RECEIPT_UNAVAILABLE`: the first payment may have settled, or may still settle.
+  - `SUBMISSION_FAILED`: the settlement may have been interrupted after a transaction went out, so the payment may still settle.
+  - `UNKNOWN`: the merchant's SDK could not read why the settlement failed, so the payment may still settle.
+  - `PAYMENT_NOT_VERIFIED`: the facilitator holds no payment it can settle, but a repeated settle also gets this after a first attempt whose transaction may still be mined.
+  - `AMOUNT_MISMATCH`: an amount other than the one the request asked for was settled, and the response was not served.
+  - `SETTLE_TOKEN_REQUIRED` and `SETTLE_TOKEN_INVALID`: the merchant could not complete the settlement, and the payment was not taken.
+  - `PARALLELIZER_PAUSED` and `SERVICE_UNAVAILABLE`: the facilitator refused before it sent anything, so the payment was not taken, but the merchant can still settle it until it expires.
+  - `AUTHORIZATION_USED`: the authorization was consumed or cancelled on-chain, and not by this facilitator. If someone else settled it, the merchant was paid.
+
+For any other reason, check with the merchant as well before you pay again. The [error codes](/agents/x402/error-codes) give the detail for each reason.
 
 ## The safety model
 
 - **Nothing moves without a signature**, and the signature authorizes exactly one transfer, to one recipient, within a time window.
 - **`maxAmount` is enforced client-side** against a verified token catalog — a merchant cannot re-scale amounts or trick the agent into overpaying.
 - **You only pay for success.** The merchant settles the payment only when it serves a successful response; an API error means nothing is charged, and unsettled authorizations simply expire.
+- **One payment settles once.** The facilitator claims a payment before it submits it, so the same authorization never settles twice.
+- **One payment at a time.** A wrapper signs one payment at a time, which keeps `dailyBudget` exact, and it never retries a payment on its own. It does not set aside what it has signed: each payment is checked against the wallet's on-chain balance, which a signed payment lowers only when it settles. Two payments signed together can each fit a balance that covers only one. The chain still refuses a double spend, so the second settlement fails with `INSUFFICIENT_BALANCE`, possibly after the merchant has served the request.
+- **A payment can settle even when the paid retry fails on the network.** Treat non-idempotent paid requests accordingly.
 
 ## Next steps
 
