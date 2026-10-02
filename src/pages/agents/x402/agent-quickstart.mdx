@@ -96,15 +96,18 @@ The merchant settles once its handler has answered, before it sends the response
 
 Read `reason` before signing anything else:
 
-- `INSUFFICIENT_BALANCE` (fund the wallet first) and `PAYMENT_EXPIRED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later.
+- `INSUFFICIENT_BALANCE` (fund the wallet first), `PAYMENT_EXPIRED` and `TX_REVERTED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later: the payment was not taken, and the facilitator will not settle it.
 - For these, check with the merchant before you pay again:
   - `SETTLE_TIMEOUT`, `FACILITATOR_UNAVAILABLE`, `FACILITATOR_INVALID_RESPONSE`, `SETTLE_IN_PROGRESS` and `RECEIPT_UNAVAILABLE`: the first payment may have settled, or may still settle.
   - `SUBMISSION_FAILED`: the settlement may have been interrupted after a transaction went out, so the payment may still settle.
+  - `UNKNOWN`: the merchant's SDK could not read why the settlement failed, so the payment may still settle.
+  - `PAYMENT_NOT_VERIFIED`: the facilitator holds no payment it can settle, but a repeated settle also gets this after a first attempt whose transaction may still be mined.
   - `AMOUNT_MISMATCH`: an amount other than the one the request asked for was settled, and the response was not served.
   - `SETTLE_TOKEN_REQUIRED` and `SETTLE_TOKEN_INVALID`: the merchant could not complete the settlement, and the payment was not taken.
+  - `PARALLELIZER_PAUSED` and `SERVICE_UNAVAILABLE`: the facilitator refused before it sent anything, so the payment was not taken, but the merchant can still settle it until it expires.
   - `AUTHORIZATION_USED`: the authorization was consumed or cancelled on-chain, and not by this facilitator. If someone else settled it, the merchant was paid.
 
-See also the [error codes](/agents/x402/error-codes).
+For any other reason, check with the merchant as well before you pay again. The [error codes](/agents/x402/error-codes) give the detail for each reason.
 
 ## The safety model
 
