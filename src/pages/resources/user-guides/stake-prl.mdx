@@ -78,7 +78,7 @@ In both cases the vault holds the BPT itself; it is not staked anywhere else. Yo
 - **What you earn:** a share of the protocol's fees, paid in USDp and split between stakers according to their ParaBoost at the end of each epoch. The [fee distribution](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) page describes the mechanism, and why an epoch can distribute nothing.
 - **When:** once per epoch, after the keeper publishes the Merkle root. Rewards from the epoch you stake in are claimable after that epoch ends.
 - **Where:** on Base, regardless of the chain you staked on. Rewards from the epochs published before the move to Base are paid in PAR and claimed on Polygon PoS, so a claim can span both chains.
-- **Claim window:** 12 epochs, about one year. Unclaimed rewards return to the DAO Treasury after that.
+- **Claim window:** set for each epoch when it is published. PIP-68 reduces it from 12 epochs to 6, about six months, but the epochs published by 2 October 2026 can be claimed for 365 days. Unclaimed rewards return to the DAO Treasury when an epoch's window ends, so claim within six months to be safe.
 
 To claim in the app, open the **Stake** page, find **Available Rewards** and click **Claim Rewards**. The [`claim_rewards`](/agents/mcp/tools) MCP tool builds the same transactions.
 
@@ -126,7 +126,7 @@ Stake before a vote's snapshot is taken. PRL that is not staked at the snapshot 
   },
   {
     question: "Do I lose rewards I have not claimed yet?",
-    answer: "Not for 12 epochs, about a year. After that, unclaimed rewards return to the DAO Treasury, so claim at least once a year."
+    answer: "Only once the epoch's claim window ends: its unclaimed rewards then return to the DAO Treasury. PIP-68 reduces that window from 12 epochs to 6, about six months; the epochs published by 2 October 2026 can be claimed for 365 days. Claim at least every six months to be safe."
   }
 ]} />
 

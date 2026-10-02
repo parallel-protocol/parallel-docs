@@ -21,7 +21,7 @@ Before v2.1, the fees were converted to PAR and distributed on Polygon PoS. The 
 <figure><img src="https://lh7-rt.googleusercontent.com/docsz/AD_4nXe8R0RpYk4EA2fUNRJhuq-JcGNHY0CNffkQurUJ2oFNCnnvGFykwP79v4lOtCKKVeS-DIzYI8iYtAE_CqWEqzo7btc2EshcUZSv5mmkImzFlkgPTmEa1dZX6Rf6mGz2CDCqr09u?key=uOHfGKisLsmo3vlkLWSaDkLF" alt="" /><figcaption><p>Protocol Fees Distribution Overview</p></figcaption></figure>
 
 \
-The fees distributed to the PRL stakers are distributed on the same chain, regardless of the chain where the PRL tokens are staked. Stakers will be able to claim their tokens during 12 epochs (≃1 year), after which the tokens will be automatically returned to the DAO treasury.
+The fees distributed to the PRL stakers are distributed on the same chain, regardless of the chain where the PRL tokens are staked. Each epoch is published to the `RewardMerkleDistributor` with its own claim window, after which unclaimed rewards return to the DAO Treasury. PIP-68 reduces that window from 12 epochs (about a year) to 6 epochs (about six months), but the epochs published by 2 October 2026 carry a 365-day window on-chain: the epoch that started on Base on 5 September 2026 can be claimed until 5 September 2027, and each PAR epoch on Polygon PoS for 365 days after it started. To be safe, claim within six epochs.
 
 :::info
 An epoch can distribute nothing: PGP-42, adopted in May 2026, redirected the stakers' share to PRL buybacks and burns for three months.

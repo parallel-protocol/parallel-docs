@@ -170,8 +170,8 @@ PRL is a governance token whose price is set by the market and can fall to zero;
 
 - **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown, skippable by paying a penalty, sent to the DAO Treasury, that starts at 50% of the amount and decreases linearly over time.
 - **ParaBoost loss.** Your ParaBoost score, computed off-chain by a keeper at the end of each epoch, determines your share of fee distribution; transferring or unstaking sPRL resets it.
-- **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, held by the sPRL2 v2 vault, adding impermanent loss between PRL and wETH plus Balancer smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl).
-- **Claim window.** Fee rewards for stakers can be claimed during 12 epochs (about one year); unclaimed rewards return to the DAO Treasury.
+- **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, held by the sPRL2 v2 vault, adding impermanent loss between PRL and wETH plus Balancer smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl). If you still hold sPRL2 from the paused v1 vault, its BPT stays deposited in Aura, and exposed to Aura's smart contracts, until you migrate to v2 or withdraw; Aura has shut down its pool for this BPT.
+- **Claim window.** Each epoch's fee rewards can be claimed until its window ends; unclaimed rewards then return to the DAO Treasury. PIP-68 reduces the window from 12 epochs (about one year) to 6 (about six months); the epochs published by 2 October 2026 carry a 365-day window on-chain.
 - **Fee share.** The percentage and the payout token are governance decisions that change between tokenomics versions; read the [PRL fee distribution page](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) before relying on a number.
 
 ### How Parallel mitigates it
@@ -184,7 +184,7 @@ PRL is a governance token whose price is set by the market and can fall to zero;
 
 - Call `get_cooldown_status` before unstaking to see the remaining time and the estimated penalty, and `get_staking_info` to see the ParaBoost you would forfeit.
 - Choose sPRL1 if you do not want wETH exposure or third-party pool risk.
-- Claim rewards well inside the 12-epoch window.
+- Claim rewards within six epochs, the window PIP-68 sets, even when an epoch's on-chain window is longer.
 
 ## 8. Chain and operational risk
 
