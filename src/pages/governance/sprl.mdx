@@ -24,29 +24,32 @@ It is possible for sPRL1 and sPRL2 to initiate unstaking at any time, against a 
 
 A basic single-sided staking for users who do not want to take an impermanent loss from tokens in liquidity pools. Each PRL staked as sPRL1 will count as x1 voting power, with a 28-day unstaking cooldown.
 
-sPRL1 is currently deployed on:
+sPRL1 takes new stakes on:
 
 * Ethereum
-* Polygon PoS
 * Base
-* Sonic
+
+sPRL1 on Polygon PoS and Sonic is being sunset under Tokenomics v2.1 (PIP-68). It no longer takes new stakes, and its holders can still unstake and withdraw, with a one-day cooldown and no penalty. Under PIP-68, balances left there are excluded from the fee distribution.
 
 ### sPRL2: Liquidity Pool Staking
 
-A PRL/wETH 80/20 Balancer Pool Token staking for users who want to get the maximum voting power. The staked LP as sPRL2 is itself staked on Aura under the hood, with rewards in \$BAL and \$AURA automatically sent to the DAO treasury.
+A PRL/wETH 80/20 Balancer Pool Token staking for users who want to get the maximum voting power. Since Tokenomics v2.1 (PIP-68), the sPRL2 v2 vault holds the pool token itself, on Balancer, without staking it on Aura.
 
 As these stakers help Parallel increase the PRL liquidity a x2.5 boost on the equivalent value of PRL tokens staked (in \$) is applied. This boost ise applied for ParaBoost. sPRL2 holders are able to unstake their BPT tokens against a 28-day unstaking cooldown.
 
-sPRL2 is currently deployed on:
+sPRL2 v2 is deployed on:
 
 * Ethereum
+* Base
+
+The first sPRL2 vault, on Ethereum, staked the pool token on Aura. It is paused: its holders move their position to sPRL2 v2 in one transaction and without penalty, through the `sPRL2Migrator` contract the app uses.
 
 ## **Where to stake PRL?**
 
 You can increase your voting power by staking PRL [here](https://app.parallel.best//stake) and obtain sPRL1 and/or sPRL2.
 
 :::info
-If you don't know how to stake PRL, you can follow this guide.
+If you don't know how to stake PRL, you can follow [this guide](/resources/user-guides/stake-prl).
 :::
 
 ## What next?

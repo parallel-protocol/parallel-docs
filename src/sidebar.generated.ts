@@ -766,10 +766,6 @@ export const sidebar: Sidebar = [
           },
           { text: "How to bridge USDp and PRL", link: "/resources/user-guides/bridge" },
           { text: "How to stake PRL", link: "/resources/user-guides/stake-prl" },
-          {
-            text: "How to Migrate to PRL? (closed)",
-            link: "https://blog.parallel.best/how-to-migrate-to-prl",
-          },
         ],
       },
       {

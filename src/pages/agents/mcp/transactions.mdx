@@ -48,7 +48,7 @@ The approval is **bounded**: the calldata grants exactly `approvalAmount` — th
 Every write is statically simulated before it reaches you:
 
 - `simulation.success: false` comes with a `revertReason`. When the response bundles an `approvalTx`, a revert on allowance is the expected pre-approval state and is flagged `PENDING_APPROVAL` with severity `info` — submit the approval first, then the transaction. Any other revert is flagged `SIMULATION_FAILED` with severity `error`: the transaction would fail on-chain, don't send it.
-- `warnings[]` also surfaces business risks before you sign: an sPRL1 early-unstake penalty (`EARLY_UNSTAKE_PENALTY`), a ParaBoost about to be lost on unstake (`PARABOOST_LOST`) or locked on stake (`PARABOOST_LOCK`).
+- `warnings[]` also surfaces business risks before you sign: an sPRL1 early-unstake penalty (`EARLY_UNSTAKE_PENALTY`), a ParaBoost about to be lost on unstake (`PARABOOST_LOST`) or locked on stake (`PARABOOST_LOCK`), or an unstake on Polygon or Sonic, where staking is being sunset (`STAKING_SUNSET`).
 
 Each warning has a `severity` (`info`, `warning`, `error`) and a human-readable `message` — surface them to whoever approves the transaction.
 

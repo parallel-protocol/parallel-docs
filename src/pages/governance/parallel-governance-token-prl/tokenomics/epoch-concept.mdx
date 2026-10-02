@@ -11,7 +11,7 @@ subtitle: Understanding the Epoch Concept
 
 The epoch is the central unit of time in the tokenomics. An epoch is one calendar month, so it lasts 28, 29, 30 or 31 days depending on the month. It is used to determine the [ParaBoost](/governance/parallel-governance-token-prl/tokenomics/paraboost) calculation period and to manage the [fee sharing](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) distribution to sPRL1 and sPRL2 holders.
 
-On-chain, the `RewardMerkleDistributor` enforces an `EPOCH_LENGTH` of 28 days as the minimum window between two epochs, which every calendar month satisfies.
+On-chain, the `RewardMerkleDistributor` does not set the epoch length: its `EPOCH_LENGTH` constant of 28 days is only the shortest claim window it accepts for a published epoch.
 
 :::info
 The cooldown applied when unstaking sPRL1 and sPRL2 is **not** one epoch. It is a separate, fixed period of 28 days, held per staking contract as `timeLockDuration` and changeable by governance within a 1 to 365 day range. See [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms).
