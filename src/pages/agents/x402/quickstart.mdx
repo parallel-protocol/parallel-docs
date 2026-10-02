@@ -16,6 +16,10 @@ This guide adds stablecoin payment support to an API. The same pattern works for
 npm install @parallel-protocol/x402
 ```
 
+:::warning
+Use version 0.8.0 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, and earlier versions do not send it: their settlements are refused with `SETTLE_TOKEN_REQUIRED`, and the agent gets a `402` instead of your response.
+:::
+
 Install your framework separately — they are optional peer dependencies:
 
 ```bash
@@ -127,10 +131,11 @@ That's it. Your API now charges $0.01 per request to `/api/data`. Agents pay in 
 
 When an agent calls your endpoint with a signed payment header:
 
-1. The middleware sends the payload to the facilitator's `/x402/verify` endpoint — an instant, off-chain signature check.
+1. The middleware sends the payload to the facilitator's `/x402/verify` endpoint — an instant, off-chain check of the signature, the amount, the token and the recipient. A valid payment comes back with a settle token, which the middleware keeps in memory.
 2. If valid, **your handler runs** and produces the response.
-3. If your handler returns a 2xx, the middleware calls `/x402/settle` — the on-chain transfer happens.
+3. If your handler returns a 2xx, the middleware calls `/x402/settle` with that token — the on-chain transfer happens, once per payment.
 4. If your handler fails, **no settlement happens** — the agent is not charged.
+5. If the settlement fails, the agent gets a `402` with `PAYMENT_SETTLEMENT_FAILED` and a `reason` instead of your response. A settle that timed out or could not reach the facilitator is retried once first: repeating it is safe, since the facilitator answers with the recorded outcome. See the [error codes](/agents/x402/error-codes).
 
 Read more: [The verify / settle flow](/agents/x402/verify-vs-settle).
 

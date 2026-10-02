@@ -40,6 +40,8 @@ app.use(paymentMiddleware({
 }));
 ```
 
+Install `@parallel-protocol/x402` 0.8.0 or later: since 1 October 2026 the facilitator refuses a settle that does not present the token it issued at verify, and earlier versions do not send it.
+
 The shape changes — `payTo` moves into the route, and prices drop the `$` prefix — but every concept maps one-to-one. Agents paying in USDC keep paying in USDC. Agents holding USDp can now pay you natively, with the facilitator handling conversion at no extra fee.
 
 ## What you gain
