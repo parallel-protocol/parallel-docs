@@ -56,7 +56,7 @@ The collateral ratio is the USD value of everything held by the Parallelizer con
 1. **Open the dashboard.** Go to [app.parallel.best/transparency](https://app.parallel.best/transparency). It shows the total backing, the USDp supply, the resulting collateral ratio and the composition of the basket per chain.
 2. **Read the reserves on-chain.** For each `ParallelizerUSDp` contract in the table above, open its explorer page and look at its token holdings. The tokens to read are the assets accepted on that chain:
    - Ethereum: frxUSD, sfrxUSD, USDe, sUSDe
-   - Base: USDS, sUSDS
+   - Base: USDS, USDC, sUSDS
    - HyperEVM: USDe, sUSDe
    - Avalanche: USDC, ygamiUSDC
 3. **Value them.** Base stablecoins are valued at their Chainlink or Redstone USD feed. Yield-bearing assets are valued at their vault exchange rate multiplied by the underlying's USD feed. The exact feed for each asset is linked on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
@@ -78,7 +78,7 @@ USDp is backed by a basket of USD stablecoins, some of them yield-bearing. The D
 | Chain | Base stablecoins (0% to 100% exposure) | Yield-bearing assets (20% to 95% exposure) | Price feeds |
 | ----- | -------------------------------------- | ------------------------------------------ | ----------- |
 | Ethereum | frxUSD, USDe | sfrxUSD, sUSDe | Chainlink USD feeds; sfrxUSD through its exchange rate and Chainlink frxUSD/USD |
-| Base | USDS | sUSDS | Chainlink USDS/USD; sUSDS through its exchange rate and Chainlink |
+| Base | USDS, USDC | sUSDS | Chainlink USDS/USD and USDC/USD; sUSDS through its exchange rate and Chainlink |
 | HyperEVM | USDe | sUSDe | Redstone USDe/USD and sUSDe/USD |
 | Avalanche | USDC | ygamiUSDC (Silo vault wrapped as a Yearn vault) | Chainlink USDC/USD; ygamiUSDC through its vault share exchange rate and Chainlink |
 
