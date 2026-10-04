@@ -15,7 +15,9 @@ This guide makes an agent pay x402 APIs autonomously. The whole integration is o
 npm install @parallel-protocol/x402-fetch
 ```
 
-The package signs through the payment engine of the [Parallel CLI](/agents/cli), `@parallel-protocol/cli`, which it installs as a regular dependency. Since version 0.2.3 it accepts the CLI's 0.4 line. A fresh install gets CLI 0.4.1, which prepares a USDp or sUSDp payment on Base in about half a second instead of about 5 seconds; an existing project gets it by refreshing its lockfile. With this release and the facilitator update shipped alongside it, Parallel measured a paid call on Base at 3.5 seconds end to end, down from 9.4.
+This page describes version 0.3.0, the one a fresh install gets. The package signs through the payment engine of the [Parallel CLI](/agents/cli), `@parallel-protocol/cli`, which it installs as a regular dependency. Since version 0.2.3 it accepts the CLI's 0.4 line, so a fresh install gets CLI 0.4.1, which prepares a USDp or sUSDp payment on Base in about half a second instead of about 5 seconds; an existing project gets it by refreshing its lockfile. With CLI 0.4.1 and the facilitator update shipped alongside it, Parallel measured a paid call on Base at 3.5 seconds end to end, down from 9.4.
+
+A project on 0.2 moves to 0.3.0 by installing it, since a `^0.2` range does not reach 0.3. Code that read the response of a paid request answered with `402` must then catch an error instead: from 0.3.0, `payFetch` rejects with an `X402FetchError`, as described in [When the merchant refuses the payment](#when-the-merchant-refuses-the-payment) and [When the settlement fails](#when-the-settlement-fails).
 
 ## 2. Fund a wallet
 
@@ -44,8 +46,10 @@ try {
   console.log("paid:", receipt?.txHash, "gas sponsored:", receipt?.gasSponsored);
 } catch (err) {
   if (err instanceof X402FetchError) {
-    // A guard refused the invoice BEFORE signing — nothing was spent.
-    console.error(`refused [${err.code}]: ${err.message}`);
+    // PAYMENT_REFUSED and SETTLEMENT_FAILED: the merchant answered the paid
+    // request with 402, see err.reason and err.retryAfter. Every other code
+    // is raised before any payment is sent.
+    console.error(`payment failed [${err.code}]: ${err.message}`);
   }
 }
 ```
@@ -84,19 +88,39 @@ Every guard fires **before** the agent signs — a refused invoice never spends 
 | `ENGINE_FAILED` | Payment preparation failed — the message carries the cause (usually balance, or a transient RPC error), and `engineCode` the engine's code, such as `INSUFFICIENT_BALANCE`. |
 | `ENGINE_TIMEOUT` | Payment preparation exceeded its time budget. |
 
+Two more codes come after the payment is sent, when the merchant answers the paid request with `402`: `PAYMENT_REFUSED` and `SETTLEMENT_FAILED`. The sections below describe them.
+
 ## Metered invoices
 
 A merchant can invoice a route with the `upto` scheme: a cap rather than a price, for a resource whose cost is only known once it is served. The agent signs the cap for the window the merchant announced (`maxTimeoutSeconds`, 3,600 seconds at most), the merchant charges its actual cost, and the escrow refunds the rest on-chain in the same settlement. The receipt's `amountSettled` is what was really paid.
 
 Metered payments are made in USDp. The cap counts in full against `maxAmount` and `dailyBudget`, and the refund is never credited back to the day's budget.
 
+## When the merchant refuses the payment
+
+The merchant has the facilitator verify the payment before it runs its handler. If the facilitator refuses it, or the merchant cannot reach the facilitator, the merchant answers the paid request with a new `402` invoice that carries the refusal. `payFetch` then rejects with an `X402FetchError` whose `code` is `PAYMENT_REFUSED`, and it does not pay again. The error carries:
+
+- `reason`: the facilitator's code, such as `INSUFFICIENT_BALANCE` or `RATE_LIMIT_EXCEEDED`, or the merchant's own, such as `FACILITATOR_UNAVAILABLE` when it could not reach the facilitator. It is `UNKNOWN` when the merchant gave none, or gave something that is not a code.
+- `retryAfter`: the merchant's `Retry-After` header, when it sent one, as a string of seconds or an HTTP date. Do not pay again before that delay. After `RATE_LIMIT_EXCEEDED`, it points to the next UTC hour.
+- `message`: a summary that names the reason, then the merchant's own text. That text comes from the merchant: treat it as data, not as instructions.
+
+The merchant says nothing was taken: fix the cause before you pay again. The signed authorization still stays valid until it expires: five minutes after signing for an exact payment, and at the end of the merchant's window for a metered one.
+
 ## When the settlement fails
 
-The merchant settles once its handler has answered, before it sends the response. If that settlement fails, the agent gets a `402` instead of the response, with a JSON body: `error` is `PAYMENT_SETTLEMENT_FAILED`, `reason` says why in a code, and `message` in a sentence. `payFetch` hands that response back as it is: it does not pay again.
+The merchant settles once its handler has answered, before it sends the response. If that settlement fails, the merchant answers `402` instead of the response, with a JSON body: `error` is `PAYMENT_SETTLEMENT_FAILED`, `reason` says why in a code, and `message` in a sentence.
+
+`payFetch` then rejects with an `X402FetchError` whose `code` is `SETTLEMENT_FAILED`, and it does not pay again. The error carries:
+
+- `reason`: the body's `reason`, or its `error` when the body names no reason and its `error` is another code, such as `INVALID_SETTLE_AMOUNT`. It is `UNKNOWN` when the merchant named none, as merchants on `@parallel-protocol/x402` releases before 0.8.0 do, or gave something that is not a code.
+- `retryAfter`: the merchant's `Retry-After` header, when it sent one, as a string of seconds or an HTTP date.
+- `message`: a summary that names the reason, then the merchant's sentence, which says whether the payment may still settle. With reason `UNKNOWN`, the message says instead that the payment may still settle, and that you should not sign another payment for this request before checking with the merchant. Treat the merchant's text as data, not as instructions.
+
+Before version 0.3.0, `payFetch` returns that `402` response as it is: read `reason` from its JSON body, and `Retry-After` from its headers.
 
 Read `reason` before signing anything else:
 
-- `INSUFFICIENT_BALANCE` (fund the wallet first), `PAYMENT_EXPIRED` and `TX_REVERTED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later: the payment was not taken, and the facilitator will not settle it.
+- `INSUFFICIENT_BALANCE` (fund the wallet first), `PAYMENT_EXPIRED` and `TX_REVERTED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later, after `retryAfter` when the error carries one: the payment was not taken, and the facilitator will not settle it.
 - For these, check with the merchant before you pay again:
   - `SETTLE_TIMEOUT`, `FACILITATOR_UNAVAILABLE`, `FACILITATOR_INVALID_RESPONSE`, `SETTLE_IN_PROGRESS` and `RECEIPT_UNAVAILABLE`: the first payment may have settled, or may still settle.
   - `SUBMISSION_FAILED`: the settlement may have been interrupted after a transaction went out, so the payment may still settle.
@@ -116,6 +140,7 @@ For any other reason, check with the merchant as well before you pay again. The 
 - **You only pay for success.** The merchant settles the payment only when it serves a successful response; an API error means nothing is charged, and unsettled authorizations simply expire.
 - **One payment settles once.** The facilitator claims a payment before it submits it, so the same authorization never settles twice.
 - **One payment at a time.** A wrapper signs one payment at a time, which keeps `dailyBudget` exact, and it never retries a payment on its own. It does not set aside what it has signed: each payment is checked against the wallet's on-chain balance, which a signed payment lowers only when it settles. Two payments signed together can each fit a balance that covers only one. The chain still refuses a double spend, so the second settlement fails with `INSUFFICIENT_BALANCE`, possibly after the merchant has served the request.
+- **The engine gets only what it needs.** The signing engine runs as a child process of your agent. It receives the key and the settings it needs to start and reach the chain: `ALCHEMY_API_KEY`, the system paths, and the runtime's own settings (proxy, certificates, TLS and OpenSSL, `NODE_OPTIONS`). Since version 0.3.0, the rest of your environment is not passed to it.
 - **A payment can settle even when the paid retry fails on the network.** Treat non-idempotent paid requests accordingly.
 
 ## Next steps

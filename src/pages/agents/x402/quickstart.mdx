@@ -30,6 +30,8 @@ npm install express   # or: next · fastify · hono
 
 Point the middleware at the facilitator, then declare which routes are paid, at what price, on which network, and where funds should settle.
 
+Write the facilitator's URL with https, as below. Since version 0.8.1, the SDK refuses any other URL with an `X402ConfigError` when the middleware is created, except plain http on `localhost`, `127.0.0.1` and `[::1]`: `http://agents.parallel.best` is refused. The SDK calls that address only and never follows a redirect, which fails the call with `FACILITATOR_UNAVAILABLE`.
+
 <Tabs>
   <Tab label="Express">
 
