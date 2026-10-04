@@ -75,14 +75,14 @@ Worked example from the [Parallelizer Module page](/products/parallel-v3/how-it-
 
 USDp moves between its 24 chains through the [Bridging Module](/products/parallel-v3/how-it-works/bridging-module), built on the LayerZero OFT standard. The protocol can charge a fee when USDp is bridged, taken on the destination chain when the lz-USDp is burnt for USDp. That fee is currently set to 0.00% on every chain. What you pay is the LayerZero native gas fee quoted on the source chain, which covers verification and execution on the destination chain, and delivery takes around 10 minutes.
 
-The DAO parameters are the same on every chain:
+The DAO parameters are the same on every chain. The limits are those set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541), in USDp per chain:
 
 | Parameter | Value |
 | --- | --- |
 | Protocol fee | 0.00% |
 | Verification (DVNs) | 2 required (LayerZero Labs, Nethermind) plus 1 of 2 optional (Horizen, Canary) |
-| Daily mint and burn limits | 2,500,000 each |
-| Global mint and burn limits | 10,000,000 each |
+| Daily mint and burn limits | 250,000 each |
+| Global mint and burn limits | 1,500,000 each |
 | Isolate mode | Off |
 
 If a limit is reached you receive lz-USDp instead of USDp on the destination chain, which you can burn for USDp once the limit resets or bridge on to another chain. Limits, DVNs and the fee are all set by the DAO.
