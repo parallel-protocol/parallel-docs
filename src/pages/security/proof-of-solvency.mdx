@@ -75,14 +75,14 @@ If you would rather not read contracts by hand, the same data is exposed through
 
 USDp is backed by a basket of USD stablecoins, some of them yield-bearing. The DAO reviews each asset for stability, robustness and sustainable yield before allowing it, and can change the list and its parameters at any time.
 
-| Chain | Base stablecoins (0% to 100% exposure) | Yield-bearing assets (20% to 95% exposure) | Price feeds |
-| ----- | -------------------------------------- | ------------------------------------------ | ----------- |
-| Ethereum | frxUSD, USDe | sfrxUSD, sUSDe | Chainlink USD feeds; sfrxUSD through its exchange rate and Chainlink frxUSD/USD |
+| Chain | Base stablecoins (0% to 100% exposure) | Yield-bearing assets (40% to 100% exposure) | Price feeds |
+| ----- | -------------------------------------- | ------------------------------------------- | ----------- |
+| Ethereum | frxUSD, USDe (being retired) | sfrxUSD, sUSDe (being retired, 20% to 95%) | Chainlink USD feeds; sfrxUSD through its exchange rate and Chainlink frxUSD/USD |
 | Base | USDS, USDC | sUSDS | Chainlink USDS/USD and USDC/USD; sUSDS through its exchange rate and Chainlink |
 | HyperEVM | USDe | sUSDe | Redstone USDe/USD and sUSDe/USD |
 | Avalanche | USDC | ygamiUSDC (Silo vault wrapped as a Yearn vault) | Chainlink USDC/USD; ygamiUSDC through its vault share exchange rate and Chainlink |
 
-Every feed has a stale period of 86,400 seconds (24 hours): if a price has not been updated within that window, the Parallelizer treats it as stale. Each asset also carries a mint cap of 100,000,000 and a target price maintained by [keepers](/security/keepers), used to detect a depeg. The full parameter list, with links to each oracle contract, is on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
+Every feed has a stale period of 86,400 seconds (24 hours): if a price has not been updated within that window, the Parallelizer treats it as stale. Each asset also carries a mint cap, set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541) at 500,000 to 3,500,000 USDp depending on the asset and chain, and a target price maintained by [keepers](/security/keepers), used to detect a depeg. The full parameter list, with links to each oracle contract, is on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
 
 The exposure bands are what keeps the basket diversified: the Parallelizer raises mint fees on an asset that is above its target share and lowers burn fees on it, and does the opposite for an under-represented asset. Fees can even turn negative to attract a needed asset.
 

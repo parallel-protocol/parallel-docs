@@ -10,7 +10,7 @@ subtitle: Detailing current USDp production implementation
 
 The Parallelizer Module, which is going to serve as the main minting module, is deployed on what we believe to be the main drivers for growth for the protocol. Tokens allowed in the backing of USDp have been carefully reviewed for their stability, robustness, sustainable yield generation and business development potential. Allowed assets and their parameters can be updated at any time by the DAO.
 
-The Parallelizer Module is deployed on 4 chains with these parameters:
+The Parallelizer Module is deployed on 4 chains with these parameters, as set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541) (May 2026) and read on-chain in October 2026. Mint caps are in USDp minted against the asset:
 
 * **Ethereum:**
   * **frxUSD:**
@@ -21,17 +21,18 @@ The Parallelizer Module is deployed on 4 chains with these parameters:
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.00%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 1,500,000.00
   * **sfrxUSD:**
     * Price Feed: [sfrxUSD/frxUSD Exchange Rate](https://etherscan.io/address/0xcf62F905562626CfcDD2261162a51fd02Fc9c5b6#code) + [Chainlink frxUSD/USD](https://etherscan.io/address/0x9B4a96210bc8D9D55b1908B465D8B0de68B7fF83#code) ([MorphoChainlinkOracleV2](https://etherscan.io/address/0x0cB7dEe76aA916A3666F50b044f16051C325B3E2#code))
-    * Minimum Exposure: 20.00%
-    * Maximum Exposure: 95.00%
+    * Minimum Exposure: 40.00%
+    * Maximum Exposure: 100.00%
     * Whitelisted: No
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.10%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 3,500,000.00
   * **USDe:**
+    * Status: being retired under PIP-69. Minting is closed; burns stay open until no USDp is backed by USDe, then it is removed
     * Price Feed: [Chainlink USDe/USD](https://etherscan.io/address/0xa569d910839Ae8865Da8F8e70FfFb0cBA869F961#code)
     * Minimum Exposure: 0.00%
     * Maximum Exposure: 100.00%
@@ -39,8 +40,9 @@ The Parallelizer Module is deployed on 4 chains with these parameters:
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.00%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 1,500,000.00
   * **sUSDe:**
+    * Status: being retired under PIP-69. Minting is closed; burns stay open until no USDp is backed by sUSDe, then it is removed. Until then it keeps its earlier exposure band
     * Price Feed: [Chainlink sUSDe/USD](https://etherscan.io/address/0xFF3BC18cCBd5999CE63E788A1c250a88626aD099#code)
     * Minimum Exposure: 20.00%
     * Maximum Exposure: 95.00%
@@ -48,7 +50,7 @@ The Parallelizer Module is deployed on 4 chains with these parameters:
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.10%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 3,500,000.00
 * **Base:**
   * **USDS:**
     * Price Feed: [Chainlink USDS/USD](https://basescan.org/address/0x2330aaE3bca5F05169d5f4597964D44522F62930#code)
@@ -58,7 +60,7 @@ The Parallelizer Module is deployed on 4 chains with these parameters:
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.00%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 1,500,000.00
   * **USDC:**
     * Price Feed: [Chainlink USDC/USD](https://basescan.org/address/0x7e860098F58bBFC8648a4311b374B1D669a2bc6B#code)
     * Minimum Exposure: 0.00%
@@ -70,13 +72,13 @@ The Parallelizer Module is deployed on 4 chains with these parameters:
     * Mint Cap: 1,500,000.00
   * **sUSDS:**
     * Price Feed: [sUSDS/USDS Exchange Rate](https://basescan.org/address/0x906B24a339b848369B24Dc9Ed368b947fB9693bf#code) + [Chainlink USDS/USD](https://basescan.org/address/0x2330aaE3bca5F05169d5f4597964D44522F62930#code) ([MorphoChainlinkOracleV2](https://basescan.org/address/0x965018CbDdC4683EfA22998C324C399D7C7B0E51#code))
-    * Minimum Exposure: 20.00%
-    * Maximum Exposure: 95.00%
+    * Minimum Exposure: 40.00%
+    * Maximum Exposure: 100.00%
     * Whitelisted: No
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.10%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 3,500,000.00
 * **HyperEVM:**
   * **USDe:**
     * Price Feed: [Redstone USDe/USD](https://hyperevmscan.io/address/0xca727511c9d542aab9ef406d24e5bbbe4567c22d#code)
@@ -86,16 +88,16 @@ The Parallelizer Module is deployed on 4 chains with these parameters:
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.00%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 500,000.00
   * **sUSDe:**
     * Price Feed: [Redstone sUSDe/USD](https://hyperevmscan.io/address/0xFf8D73F413F0093A14190A987883B5101D7855Dd#code)
-    * Minimum Exposure: 20.00%
-    * Maximum Exposure: 95.00%
+    * Minimum Exposure: 40.00%
+    * Maximum Exposure: 100.00%
     * Whitelisted: No
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.10%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 1,000,000.00
 * **Avalanche:**
   * **USDC:**
     * Price Feed: [Chainlink USDC/USD](https://snowscan.xyz/address/0xF096872672F44D6EBA71458D74Fe67F9A77A23B9#code)
@@ -105,16 +107,17 @@ The Parallelizer Module is deployed on 4 chains with these parameters:
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.00%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 1,500,000.00
   * **ygamiUSDC Silo Vault: (wrapped as a Yearn Vault)**
+    * Status: minting is currently paused; burns stay open
     * Price Feed: [Vault Share Exchange Rate](https://snowscan.xyz/address/0x9fD32FD5e32C6B95483d36C5E724C5C5250Ce010#code) + [Chainlink USDC/USD](https://snowscan.xyz/address/0xF096872672F44D6EBA71458D74Fe67F9A77A23B9#code) ([MorphoChainlinkOracleV2](https://snowscan.xyz/address/0x338Dab2A67193C1E8E53506Ae34552B588DB2A44#code))
-    * Minimum Exposure: 20.00%
-    * Maximum Exposure: 95.00%
+    * Minimum Exposure: 40.00%
+    * Maximum Exposure: 100.00%
     * Whitelisted: No
     * Stale Period: 86,400 seconds
     * Mint Fee: 0.00%
     * Burn Fee: 0.10%
-    * Mint Cap: 100,000,000.00
+    * Mint Cap: 3,500,000.00
 
 ## Savings Module
 
