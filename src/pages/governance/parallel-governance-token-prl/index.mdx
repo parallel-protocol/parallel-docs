@@ -2,7 +2,8 @@
 title: Parallel Governance Token (PRL) — Governance
 description: >-
   PRL is the governance token of the Parallel Protocol: an ERC-20 issued on
-  Ethereum with a fixed one billion supply and no mint, pause or admin function.
+  Ethereum with a one billion initial supply, no mint, pause or admin function,
+  and more than half of the supply burned through governance decisions.
 subtitle: Introducing the Parallel Governance Token
 ---
 
@@ -13,7 +14,8 @@ PRL is the governance token of the Parallel Protocol, which is a DAO-governed pr
 * **Name:** Parallel Governance Token
 * **Symbol:** PRL
 * **Native blockchain deployed:** Ethereum
-* **Total Supply:** 1,000,000,000
+* **Initial supply:** 1,000,000,000, with no mint function
+* **Burned:** 544,348,739.47 PRL as of 4 October 2026, so the net supply is 455,651,260.53 PRL ([live total](https://api.parallel.best/public/supply/prl), [live circulating](https://api.parallel.best/public/supply/prl/circulating)). See [Supply and burns](#supply-and-burns).
 * **Decimals:** 18
 * **Permit:** Yes
 * **Pause function:** No
@@ -23,6 +25,23 @@ PRL is the governance token of the Parallel Protocol, which is a DAO-governed pr
 :::info
 PRL can be staked for sPRL to get voting power in the governance and receive fee sharing. Learn more [here](/governance/parallel-governance-token-prl/tokenomics).
 :::
+
+## Supply and burns
+
+PRL has no mint function, so its supply can only go down. Burned PRL are sent to the dead address `0x000000000000000000000000000000000000dEaD`, where no one can spend them. The live figures subtract that balance from the initial one billion:
+
+* total supply: [api.parallel.best/public/supply/prl](https://api.parallel.best/public/supply/prl)
+* circulating supply: [api.parallel.best/public/supply/prl/circulating](https://api.parallel.best/public/supply/prl/circulating)
+
+The DAO committed to burning 50% of the initial supply, 500,000,000 PRL. The burns come from governance decisions:
+
+* [PGP-37](https://gov.parallel.best/t/pgp-37-l-prl-burn-phase-i/515), PRL Burn Phase I (January 2026): 26,371,873.81 PRL, from bought-back MIMO and past inflation.
+* [PIP-65](https://gov.parallel.best/t/pip-65-accelerate-end-of-mimo-to-prl-migration-to-april-15th-2026/533) (April 2026): the 370,925,853.61 PRL left unmigrated when the MIMO to PRL migration closed.
+* [PGP-40](https://gov.parallel.best/t/pgp-40-prl-burn-phase-ii/536), PRL Burn Phase II (May 2026): recurring burns of PRL bought back monthly by the DAO Treasury, of PRL received from sPRL1 early-exit penalties, and of PRL bought back with unclaimed PAR.
+* [PGP-42](https://gov.parallel.best/t/pgp-42-redirect-sprl-par-distribution-to-prl-buyback-burn/539) (May 2026): for three months, the stakers' PAR distribution funds PRL buybacks and burns.
+* [PGP-45](https://gov.parallel.best/t/pgp-45-otc-buyback-burn-of-100m-prl-from-mimo-labs/550) (September 2026): an over-the-counter buyback and burn of 100,000,000 PRL.
+
+As of 4 October 2026, 544,348,739.47 PRL sit at the dead address, past the 500,000,000 target, for a net supply of 455,651,260.53 PRL.
 
 ## PRL Contract Addresses
 
