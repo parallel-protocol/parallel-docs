@@ -480,7 +480,11 @@ const LLMS_SECTIONS: { key: string; heading: string }[] = [
 
 const LLMS_SUMMARY =
   "Public documentation of Parallel, a decentralized stablecoin protocol by Cooper Labs. " +
-  "USDp is an overcollateralized USD stablecoin live on 24 chains; sUSDp is its ERC-4626 " +
+  "USDp is an overcollateralized USD stablecoin live on 24 chains: Ethereum, Base, Sonic, " +
+  "HyperEVM, Avalanche, Polygon, Arbitrum, Optimism, Sei, Binance Smart Chain, Berachain, " +
+  "Scroll, Gnosis, Unichain, Ink, Tac, Linea, X Layer, Plume, Plasma, Katana, Fraxtal, World " +
+  "and Hemi. USDp is not deployed on Fantom or Mantle: Fantom hosts the legacy Parallel V2 " +
+  "stablecoin PAR, and the contracts on Mantle were never launched. sUSDp is USDp's ERC-4626 " +
   "savings vault; PRL is the governance token. The Parallelizer engine mints and burns USDp " +
   "against a basket of reserve assets, with fees that adapt to each asset's exposure, and " +
   "redemption against a proportional share of the backing is available at any time. The " +
