@@ -8,7 +8,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 # Error codes
 
 :::warning
-Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify. `@parallel-protocol/x402` sends it from version 0.8.0. A merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`: the agent gets a `402` instead of the response, and the merchant is never paid. Use 0.8.1 or later.
+Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify. `@parallel-protocol/x402` sends it from version 0.8.0. A merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`: the agent gets a `402` instead of the response, and the merchant is never paid. Use 0.8.2 or later.
 :::
 
 ## Thrown by the SDK
@@ -37,7 +37,7 @@ When the facilitator refuses a payment at verify, your handler does not run and 
 |---|---|---|---|
 | `INVALID_PAYLOAD` | 400 | The payload does not have the shape of its settlement route, carries a field another route would read, or uses a method of the other scheme. | Sign a payment that matches one of the `accepts` entries. |
 | `INVALID_SIGNATURE` | 400 | Signature recovery failed. | Sign again. |
-| `INVALID_NONCE` | 409 | Nonce already used (replay detected). | Sign a new payment with a fresh nonce. |
+| `INVALID_NONCE` | 409 | Nonce already used: the same payment reached the facilitator before, and may have settled. | Do not sign another payment before checking with the merchant. |
 | `PAYMENT_EXPIRED` | 402 | The authorization's `validBefore` has passed. | Sign a new payment. |
 | `INSUFFICIENT_AMOUNT` | 402 | The amount the route guarantees the merchant is below the price: the signed amount on a transfer, the guaranteed output (`amountOut` or `amountOutMin`) on a conversion. Also an authorization for zero. | Sign for the invoiced `amount`. |
 | `INSUFFICIENT_BALANCE` | 402 | The payer does not hold the signed amount. Checked on metered payments, against the cap. | Fund the wallet, sign a new payment. |
@@ -69,12 +69,13 @@ The settlement runs after your handler answered. When it fails, the middleware d
 | Reason | Facilitator status | Meaning | What the agent should do |
 |---|---|---|---|
 | `INSUFFICIENT_BALANCE` | 402 | The payer no longer holds the signed amount. | Fund the wallet, sign a new payment. |
-| `AUTHORIZATION_USED` | 409 | The authorization is consumed or cancelled on-chain, and this facilitator did not settle it. | Sign a new payment. |
+| `AUTHORIZATION_USED` | 409 | The authorization is already consumed or cancelled on-chain. It may have paid the merchant. | Do not sign another payment before checking with the merchant. |
 | `PAYMENT_EXPIRED` | 402 | The authorization expired before settlement. On a metered route, the handler finished after the window. | Sign a new payment. |
-| `PAYMENT_NOT_VERIFIED` | 402 | No verified payment for this authorization, or it already failed. | Sign a new payment. |
+| `PAYMENT_NOT_VERIFIED` | 402 | No verified payment for this authorization, or an earlier settle of it failed. The merchant may have been paid, or may still be. | Do not sign another payment before checking with the merchant. |
 | `SETTLE_IN_PROGRESS` | 409 | Another settle of the same payment is still running. | Do not sign another payment before checking with the merchant. |
 | `SETTLE_TOKEN_INVALID`, `SETTLE_TOKEN_REQUIRED` | 403 | The merchant did not present the settle token issued at verify. A merchant-side issue, typically a middleware older than 0.8.0. Nothing was settled. | Do not sign another payment before checking with the merchant. |
-| `RELAYER_UNAVAILABLE`, `PARALLELIZER_PAUSED`, `SERVICE_UNAVAILABLE` | 503 | The facilitator or the chain is temporarily unable to settle. | Retry later with a new payment, after `Retry-After` when given. |
+| `RELAYER_UNAVAILABLE` | 503 | The facilitator is temporarily unable to settle. The payment was not taken, and the facilitator will not settle it. | Retry later with a new payment, after `Retry-After` when given. |
+| `PARALLELIZER_PAUSED`, `SERVICE_UNAVAILABLE` | 503 | The facilitator or the chain is temporarily unable to settle. This settle sent nothing, but the payment may still settle until its authorization expires, and an earlier attempt may already have settled it. | Do not sign another payment before checking with the merchant. |
 | `TX_REVERTED` | 500 | The transaction reverted for a reason the facilitator could not attribute. | Sign a new payment. |
 | `SUBMISSION_FAILED` | 500 | The submission failed. When the message says the outcome is unknown, a transaction may have been sent, and the payment may have settled or may still settle. | Sign a new payment, unless the message says the outcome is unknown: then check with the merchant first. |
 | `RECEIPT_UNAVAILABLE` | 500 | The transaction was sent but its confirmation could not be read. | Do not sign another payment before checking with the merchant. |
@@ -89,9 +90,9 @@ The SDK adds its own reasons:
 | `AMOUNT_MISMATCH` | On a metered route, the facilitator confirmed a settlement of another amount than the one the handler asked for. Money moved, and the response was not served. | Do not sign another payment before checking with the merchant. |
 | `UNKNOWN` | Anything the facilitator answered that is not a code, such as its per-IP rate limit. | Check with the merchant before paying again. |
 
-`AMOUNT_MISMATCH` is the one reason that points at the facilitator rather than at the request: alert on it rather than treating it as a routine refusal. For `SETTLE_IN_PROGRESS`, `RECEIPT_UNAVAILABLE`, `SETTLE_TOKEN_INVALID` and `SETTLE_TOKEN_REQUIRED`, the `message` is the SDK's own, since the facilitator's text for them addresses the merchant.
+`AMOUNT_MISMATCH` is the one reason that points at the facilitator rather than at the request: alert on it rather than treating it as a routine refusal. For `SETTLE_IN_PROGRESS`, `RECEIPT_UNAVAILABLE`, `SETTLE_TOKEN_INVALID` and `SETTLE_TOKEN_REQUIRED`, the `message` is the SDK's own, since the facilitator's text for them addresses the merchant. From version 0.8.2, it is the SDK's own too for `AUTHORIZATION_USED`, `PAYMENT_NOT_VERIFIED`, `PARALLELIZER_PAUSED` and `SERVICE_UNAVAILABLE`: the payment may have settled or may still settle, so the message tells the agent to check with the merchant before paying again, as it does for `UNKNOWN`.
 
-Before any of this, a settle that timed out or could not reach the facilitator is retried once by the SDK. The same settle is safe to repeat: if the first attempt went through, the facilitator answers with the recorded outcome.
+Before any of this, a settle that timed out or could not reach the facilitator is retried once by the SDK, with the same settle token. The same settle is safe to repeat: once the first attempt has finished, the facilitator answers with its recorded outcome, and any other answer to the retry tells the agent to check with the merchant.
 
 ## Rate limits
 
@@ -100,7 +101,7 @@ The facilitator counts the requests of each IP address that calls it, which is t
 | Limit | What the agent gets |
 |---|---|
 | Verifies per IP | A `402` with a new invoice, `error: "FACILITATOR_INVALID_RESPONSE"` and the facilitator's `Retry-After`. Nothing was verified. |
-| Settles per IP | A `402` with `reason: "UNKNOWN"` and the facilitator's `Retry-After`. The response is discarded and nothing was settled. |
+| Settles per IP | A `402` with `reason: "UNKNOWN"` and the facilitator's `Retry-After`. The response is discarded. This settle did nothing, but when the limit answers the SDK's retry of a settle that timed out, the first attempt may have settled. |
 | Verifies per payer | A `402` with a new invoice, `error: "RATE_LIMIT_EXCEEDED"`, and a `Retry-After` that points to the next UTC hour. |
 
 ## Handling errors
