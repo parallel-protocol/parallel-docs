@@ -38,12 +38,9 @@ const payFetch = wrapFetchWithPayment(fetch, {
   maxAmount: "1", // hard spend cap per request
 });
 
+let res: Response;
 try {
-  const res = await payFetch("https://api.parallel.best/public/x402/base/snapshot");
-  const data = await res.json();
-
-  const receipt = decodePaymentResponse(res);
-  console.log("paid:", receipt?.txHash, "gas sponsored:", receipt?.gasSponsored);
+  res = await payFetch("https://api.parallel.best/public/x402/base/snapshot");
 } catch (err) {
   if (err instanceof X402FetchError) {
     // PAYMENT_REFUSED and SETTLEMENT_FAILED: the merchant answered the paid
@@ -51,7 +48,15 @@ try {
     // is raised before any payment is sent.
     console.error(`payment failed [${err.code}]: ${err.message}`);
   }
+  throw err;
 }
+
+const data = await res.json();
+
+// The request is paid by now: if the receipt header cannot be decoded, this
+// throws INVALID_INVOICE, which is no reason to pay again.
+const receipt = decodePaymentResponse(res);
+console.log("paid:", receipt?.txHash, "gas sponsored:", receipt?.gasSponsored);
 ```
 
 That's the entire agent. The first request costs nothing (it just reads the `402` invoice); the paid retry carries the signed authorization.
@@ -82,7 +87,7 @@ Every guard fires **before** the agent signs — a refused invoice never spends 
 | `BUDGET_EXCEEDED` | The invoice would take the day's spend past `dailyBudget`. |
 | `CHAIN_MISMATCH` | The invoice targets a different chain than configured. |
 | `UNSUPPORTED_SCHEME` | The invoice offers only schemes this client cannot pay on the configured chain. It pays `exact` invoices, and `upto` invoices in USDp. |
-| `INVALID_INVOICE` | The `402` response is malformed. |
+| `INVALID_INVOICE` | The `402` response is malformed. `decodePaymentResponse` also throws it, after the payment, when the receipt header cannot be decoded. |
 | `INSECURE_URL` | The merchant URL is plain `http://` (localhost excepted). |
 | `ENGINE_NOT_FOUND` | The payment engine, `@parallel-protocol/cli`, could not be found. |
 | `ENGINE_FAILED` | Payment preparation failed — the message carries the cause (usually balance, or a transient RPC error), and `engineCode` the engine's code, such as `INSUFFICIENT_BALANCE`. |
@@ -140,7 +145,7 @@ For any other reason, check with the merchant as well before you pay again. The 
 - **You only pay for success.** The merchant settles the payment only when it serves a successful response; an API error means nothing is charged, and unsettled authorizations simply expire.
 - **One payment settles once.** The facilitator claims a payment before it submits it, so the same authorization never settles twice.
 - **One payment at a time.** A wrapper signs one payment at a time, which keeps `dailyBudget` exact, and it never retries a payment on its own. It does not set aside what it has signed: each payment is checked against the wallet's on-chain balance, which a signed payment lowers only when it settles. Two payments signed together can each fit a balance that covers only one. The chain still refuses a double spend, so the second settlement fails with `INSUFFICIENT_BALANCE`, possibly after the merchant has served the request.
-- **The engine gets only what it needs.** The signing engine runs as a child process of your agent. It receives the key and the settings it needs to start and reach the chain: `ALCHEMY_API_KEY`, the system paths, and the runtime's own settings (proxy, certificates, TLS and OpenSSL, `NODE_OPTIONS`). Since version 0.3.0, the rest of your environment is not passed to it.
+- **The engine gets only what it needs.** The signing engine runs as a child process of your agent. It receives the key and the settings it needs to start and reach the chain: `ALCHEMY_API_KEY`, the system paths, and the runtime's own settings (proxy, certificates, TLS and OpenSSL, `NODE_OPTIONS`). Since version 0.3.0, the rest of your environment is not passed to it. That list does not cover files on disk: version 0.4.1 of `@parallel-protocol/cli` still loads a `.env` file from your agent's working directory or any parent directory, and `~/.parallel/config.toml`.
 - **A payment can settle even when the paid retry fails on the network.** Treat non-idempotent paid requests accordingly.
 
 ## Next steps
