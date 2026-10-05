@@ -53,7 +53,7 @@ try {
 
 const data = await res.json();
 
-// The request is paid by now: if the receipt header cannot be decoded, this
+// Any payment was sent by now: if the receipt header cannot be decoded, this
 // throws INVALID_INVOICE, which is no reason to pay again.
 const receipt = decodePaymentResponse(res);
 console.log("paid:", receipt?.txHash, "gas sponsored:", receipt?.gasSponsored);
@@ -93,7 +93,7 @@ Every guard fires **before** the agent signs — a refused invoice never spends 
 | `ENGINE_FAILED` | Payment preparation failed — the message carries the cause (usually balance, or a transient RPC error), and `engineCode` the engine's code, such as `INSUFFICIENT_BALANCE`. |
 | `ENGINE_TIMEOUT` | Payment preparation exceeded its time budget. |
 
-Two more codes come after the payment is sent, when the merchant answers the paid request with `402`: `PAYMENT_REFUSED` and `SETTLEMENT_FAILED`. The sections below describe them.
+Two more codes from `payFetch` come after the payment is sent, when the merchant answers the paid request with `402`: `PAYMENT_REFUSED` and `SETTLEMENT_FAILED`. The sections below describe them.
 
 ## Metered invoices
 
@@ -145,7 +145,7 @@ For any other reason, check with the merchant as well before you pay again. The 
 - **You only pay for success.** The merchant settles the payment only when it serves a successful response; an API error means nothing is charged, and unsettled authorizations simply expire.
 - **One payment settles once.** The facilitator claims a payment before it submits it, so the same authorization never settles twice.
 - **One payment at a time.** A wrapper signs one payment at a time, which keeps `dailyBudget` exact, and it never retries a payment on its own. It does not set aside what it has signed: each payment is checked against the wallet's on-chain balance, which a signed payment lowers only when it settles. Two payments signed together can each fit a balance that covers only one. The chain still refuses a double spend, so the second settlement fails with `INSUFFICIENT_BALANCE`, possibly after the merchant has served the request.
-- **The engine gets only what it needs.** The signing engine runs as a child process of your agent. It receives the key and the settings it needs to start and reach the chain: `ALCHEMY_API_KEY`, the system paths, and the runtime's own settings (proxy, certificates, TLS and OpenSSL, `NODE_OPTIONS`). Since version 0.3.0, the rest of your environment is not passed to it. That list does not cover files on disk: version 0.4.1 of `@parallel-protocol/cli` still loads a `.env` file from your agent's working directory or any parent directory, and `~/.parallel/config.toml`.
+- **The engine gets only what it needs.** The signing engine runs as a child process of your agent. It receives the key and the settings it needs to start and reach the chain: `ALCHEMY_API_KEY`, the system paths, and the runtime's own settings (proxy, certificates, TLS and OpenSSL, `NODE_OPTIONS`). Since version 0.3.0, the rest of your environment is not passed to it. That list does not cover files on disk: version 0.4.1 of `@parallel-protocol/cli` still loads a `.env` file from your agent's working directory or any parent directory, or, failing that, from where the CLI is installed or any parent directory, which finds your project's `.env`. It also reads `~/.parallel/config.toml`.
 - **A payment can settle even when the paid retry fails on the network.** Treat non-idempotent paid requests accordingly.
 
 ## Next steps

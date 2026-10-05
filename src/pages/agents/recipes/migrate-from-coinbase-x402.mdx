@@ -40,7 +40,7 @@ app.use(paymentMiddleware({
 }));
 ```
 
-Install `@parallel-protocol/x402` 0.8.0 or later: since 1 October 2026 the facilitator refuses a settle that does not present the token it issued at verify, and earlier versions do not send it.
+Install `@parallel-protocol/x402` 0.8.1 or later: since 1 October 2026 the facilitator refuses a settle that does not present the token it issued at verify, and versions before 0.8.0 do not send it. Version 0.8.1 adds the URL checks below.
 
 Keep the facilitator's URL in https, as above. Since 0.8.1, the SDK refuses a plain http URL outside `localhost`, `127.0.0.1` and `[::1]` with an `X402ConfigError` when the middleware is created. It calls that address only and never follows a redirect, which fails the call with `FACILITATOR_UNAVAILABLE`.
 
