@@ -23,21 +23,24 @@ describe("CHAIN_LABELS", () => {
 describe("EXPLORERS", () => {
   const ADDR = "0x0000000000000000000000000000000000000000";
 
-  it("returns an https URL containing the address for every ChainSlug", () => {
-    for (const slug of SLUGS) {
-      const url = EXPLORERS[slug](ADDR);
-      expect(url.startsWith("https://")).toBe(true);
+  it("returns an https URL containing the address for every ChainSlug with an explorer", () => {
+    for (const slug of SLUGS.filter((s) => s !== "fantom")) {
+      const url = EXPLORERS[slug]?.(ADDR);
+      expect(url?.startsWith("https://")).toBe(true);
       expect(url).toContain(ADDR);
     }
   });
 
   it("uses the documented host per chain", () => {
-    expect(EXPLORERS.ethereum(ADDR)).toContain("etherscan.io");
-    expect(EXPLORERS.sei(ADDR)).toContain("seitrace.com");
-    expect(EXPLORERS.base(ADDR)).toContain("basescan.org");
-    expect(EXPLORERS.sonic(ADDR)).toContain("sonicscan.org");
-    expect(EXPLORERS.arbitrum(ADDR)).toContain("arbiscan.io");
-    expect(EXPLORERS.polygon(ADDR)).toContain("polygonscan.com");
-    expect(EXPLORERS.fantom(ADDR)).toContain("ftmscan.com");
+    expect(EXPLORERS.ethereum?.(ADDR)).toContain("etherscan.io");
+    expect(EXPLORERS.sei?.(ADDR)).toContain("seitrace.com");
+    expect(EXPLORERS.base?.(ADDR)).toContain("basescan.org");
+    expect(EXPLORERS.sonic?.(ADDR)).toContain("sonicscan.org");
+    expect(EXPLORERS.arbitrum?.(ADDR)).toContain("arbiscan.io");
+    expect(EXPLORERS.polygon?.(ADDR)).toContain("polygonscan.com");
+  });
+
+  it("links no explorer for Fantom, since ftmscan.com is gone", () => {
+    expect(EXPLORERS.fantom).toBeNull();
   });
 });

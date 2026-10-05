@@ -36,7 +36,7 @@ export interface ContractTableProps {
  *
  * - Desktop (≥ 768 px): three-column table (Contract / Address / Actions) with an `sr-only` caption.
  * - Mobile (< 768 px): each row collapses into a stacked card via CSS only.
- * - Each row exposes a copy button and an explorer link.
+ * - Each row exposes a copy button and, when the chain has an explorer, an explorer link.
  * - Contracts with a `description` render it inline beneath the contract name.
  */
 export function ContractTable({
@@ -86,7 +86,7 @@ export function ContractTable({
               key={`${contract.name}-${contract.address}`}
               contract={contract}
               chainLabel={chainLabel}
-              explorerUrl={buildExplorerUrl(contract.address)}
+              explorerUrl={buildExplorerUrl?.(contract.address)}
             />
           ))}
         </tbody>
@@ -98,7 +98,8 @@ export function ContractTable({
 interface ContractRowProps {
   contract: Contract;
   chainLabel: string;
-  explorerUrl: string;
+  /** Absent when the chain has no explorer to link to. */
+  explorerUrl?: string;
 }
 
 function ContractRow({ contract, chainLabel, explorerUrl }: ContractRowProps) {
@@ -116,15 +117,17 @@ function ContractRow({ contract, chainLabel, explorerUrl }: ContractRowProps) {
       <td className="cooper-ct-actions-cell">
         <span className="cooper-ct-actions">
           <CopyButton address={address} />
-          <a
-            className="cooper-ct-link"
-            href={explorerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`View ${name} on ${chainLabel} explorer`}
-          >
-            <Icon name="external-link" size={14} />
-          </a>
+          {explorerUrl ? (
+            <a
+              className="cooper-ct-link"
+              href={explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`View ${name} on ${chainLabel} explorer`}
+            >
+              <Icon name="external-link" size={14} />
+            </a>
+          ) : null}
         </span>
       </td>
     </tr>

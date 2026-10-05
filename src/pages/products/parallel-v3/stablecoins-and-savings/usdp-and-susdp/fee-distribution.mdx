@@ -44,13 +44,13 @@ The Savings Module is live on Ethereum, Base, HyperEVM and Avalanche. A Sonic de
 
 ## What the DAO Treasury does with its share
 
-The 10% share funds the [DAO Treasury](/governance/dao-treasury), alongside the early-unstake penalties paid by PRL stakers who skip the cooldown. The treasury follows a strategy voted by the DAO: every month, the net accumulated stablecoins are swapped into a 30/70 split of wETH and USDp and deployed into PRL/wETH and USDp liquidity pools, with the rewards from those positions compounded back into the treasury. The DAO Multisig executes the strategy, and the aggregated treasury is visible in real time on Octav.
+The 10% share funds the [DAO Treasury](/governance/dao-treasury). The early-unstake penalties paid by PRL stakers who skip the cooldown go to the Protocol & DAO Treasury multisig of their chain, except on Ethereum's sPRL1 vault, where they are burned. The treasury follows a strategy voted by the DAO: every month, the net accumulated stablecoins are swapped into a 30/70 split of wETH and USDp and deployed into PRL/wETH and USDp liquidity pools, with the rewards from those positions compounded back into the treasury. The DAO Multisig executes the strategy, and the aggregated treasury is visible in real time on Octav.
 
 ## The PRL stakers' share
 
-PRL stakers (sPRL1 and sPRL2) also receive a portion of protocol fees at the end of each epoch, weighted by their ParaBoost. The [PRL tokenomics fee distribution page](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) describes that flow: fees accumulated during an epoch are converted by a keeper, bridged to Polygon PoS and distributed to stakers, who have 12 epochs to claim before the tokens return to the DAO Treasury.
+PRL stakers (sPRL1 and sPRL2) also receive a portion of protocol fees at the end of each epoch, weighted by their ParaBoost. The [PRL tokenomics fee distribution page](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) describes that flow: since Tokenomics v2.1 (PIP-68), the stakers' share is swapped to USDp, bridged to Base and distributed to stakers there. Unclaimed rewards return to the DAO Treasury when an epoch's claim window ends. Each window is set on-chain when the epoch is published: PIP-68 sets 6 epochs as the target, and every epoch published so far carries 365 days.
 
-That page describes the distribution in PAR terms, as designed before USDp launched, and quotes 15% of protocol fees. It does not yet spell out how that share combines with the 90/10 split above for USDp revenue. Treat the percentage as indicative and check the latest governance proposals for the current figure.
+That share is 15% of Parallel V2 revenue. The fees collected by the USDp codebase follow the 90/10 split above.
 
 ## Related
 
