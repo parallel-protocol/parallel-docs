@@ -44,24 +44,27 @@ USDp itself is deployed on 24 chains. If you hold USDp on a chain without a Para
 
 Each collateral has its own oracle, exposure window and fees. The table below reflects the parameters documented on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation). Check that page or the app for the latest values.
 
-| Chain | Collateral | Mint fee | Burn fee | Max exposure |
-| --------- | ----------------------- | -------- | -------- | ------------ |
-| Ethereum | frxUSD | 0.00% | 0.00% | 100.00% |
-| Ethereum | sfrxUSD | 0.00% | 0.10% | 95.00% |
-| Ethereum | USDe | 0.00% | 0.00% | 100.00% |
-| Ethereum | sUSDe | 0.00% | 0.10% | 95.00% |
-| Base | USDS | 0.00% | 0.00% | 100.00% |
-| Base | sUSDS | 0.00% | 0.10% | 95.00% |
-| HyperEVM | USDe | 0.00% | 0.00% | 100.00% |
-| HyperEVM | sUSDe | 0.00% | 0.10% | 95.00% |
-| Avalanche | USDC | 0.00% | 0.00% | 100.00% |
-| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.10% | 95.00% |
+| Chain | Collateral | Mint fee | Burn fee | Max exposure | Mint cap |
+| --------- | ----------------------- | -------- | -------- | ------------ | -------- |
+| Ethereum | frxUSD | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Ethereum | sfrxUSD | 0.00% | 0.10% | 100.00% | 3,500,000 |
+| Ethereum | USDe | Closed (being retired) | 0.00% | 100.00% | 1,500,000 |
+| Ethereum | sUSDe | Closed (being retired) | 0.10% | 95.00% | 3,500,000 |
+| Base | USDS | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Base | USDC | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Base | sUSDS | 0.00% | 0.10% | 100.00% | 3,500,000 |
+| HyperEVM | USDe | 0.00% | 0.00% | 100.00% | 500,000 |
+| HyperEVM | sUSDe | 0.00% | 0.10% | 100.00% | 1,000,000 |
+| Avalanche | USDC | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | Paused | 0.10% | 100.00% | 3,500,000 |
 
-Every collateral currently has a mint cap of 100,000,000 and a 86,400 second oracle stale period. Yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) also carry a 20.00% minimum exposure, so the reserve always keeps a share of them.
+These parameters were set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541) (May 2026). Mint caps are in USDp minted against each asset, and every oracle has a 86,400 second stale period. Yield-bearing assets (sfrxUSD, sUSDS, ygamiUSDC and sUSDe on HyperEVM) also carry a 40.00% minimum exposure, so the reserve always keeps a share of them.
+
+USDe and sUSDe are being retired from Ethereum: minting with them is closed, and you can still burn USDp for them until that backing runs out. Until then, sUSDe on Ethereum keeps its earlier 20.00% to 95.00% exposure band. Minting with ygamiUSDC on Avalanche is currently paused; burns into it stay open.
 
 ## Fees today
 
-- **Mint fee: 0.00%** on every accepted collateral.
+- **Mint fee: 0.00%** on every collateral open for minting.
 - **Burn fee: 0.00%** on base stablecoins (frxUSD, USDe, USDS, USDC) and **0.10%** on yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC).
 
 :::warning
@@ -93,7 +96,7 @@ The app can route through aggregators (OpenOcean, KyberSwap, LiquidSwap, each on
 
 ## When a collateral hits its maximum exposure
 
-Each asset has a maximum share of the backing. Once that share is reached, minting with that asset is paused until burns or redemptions bring the exposure back under the limit. The other collaterals on the same chain stay open, so you can either switch asset or wait. Yield-bearing assets also have a minimum exposure, which is why burning for them can be paused when their share is already low.
+Each asset has a mint cap, the most USDp that can be minted against it, and can have a maximum share of the backing. Once either limit is reached, minting with that asset is paused until burns or redemptions bring it back under the limit. The other collaterals on the same chain stay open, so you can either switch asset or wait. Yield-bearing assets also have a minimum exposure, which is why burning for them can be paused when their share is already low.
 
 ## Getting collateral back: burn or redeem
 
@@ -123,11 +126,11 @@ You do not have to mint to hold USDp:
   },
   {
     question: "Why is the collateral I want to use greyed out or paused?",
-    answer: "Either that asset has reached its maximum exposure in the backing, or its oracle price has drifted too far from its target. Minting reopens on its own once exposure comes back under the limit or the price normalises. Try another accepted collateral on the same chain in the meantime."
+    answer: "Either that asset has reached its mint cap or its maximum exposure in the backing, or its oracle price has drifted too far from its target. Minting reopens on its own once it comes back under the limit or the price normalises. Governance can also close or pause minting with an asset; the table above shows those that are closed or paused today. Try another accepted collateral on the same chain in the meantime."
   },
   {
     question: "Do I pay a fee to mint?",
-    answer: "The mint fee is currently 0.00% on every accepted collateral. The mechanism is adaptive, so the DAO parameters and the exposure of each asset can change it. The app shows the exact fee in the quote before you confirm."
+    answer: "The mint fee is currently 0.00% on every collateral open for minting. The mechanism is adaptive, so the DAO parameters and the exposure of each asset can change it. The app shows the exact fee in the quote before you confirm."
   },
   {
     question: "What is the difference between burning and redeeming?",

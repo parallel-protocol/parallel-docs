@@ -42,7 +42,7 @@ Prices come from oracles: each collateral has a Chainlink or RedStone feed, comp
 
 ### How Parallel mitigates it
 
-- **Exposure bounds.** The yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) are bounded to 20.00%-95.00% exposure today, and every asset has a 100,000,000 mint cap, so the basket cannot concentrate in one issuer without a governance vote.
+- **Exposure bounds.** Every asset has a mint cap, the most USDp that can be minted against it: 500,000 to 3,500,000 depending on the asset and chain, as set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541). So the basket cannot concentrate in one issuer beyond that without a governance vote. The yield-bearing assets (sfrxUSD, sUSDS, ygamiUSDC, sUSDe) also keep at least 40.00% of their chain's backing, except sUSDe on Ethereum, which is being retired and keeps its earlier 20.00%-95.00% band.
 - **Adaptive fees.** Mint and burn fees rise as an asset nears its cap (100% effectively pauses minting with it) or go negative to attract an asset the basket lacks; today they are 0.00% on mints and 0.00% to 0.10% on burns.
 - **Depeg-aware burns.** Burning USDp for one asset applies a price penalty equal to the largest deviation of any basket asset from its target price, so rushing into the safest asset during a depeg does not pay, protecting holders who stay.
 - **Stale period.** Every collateral price feed has an 86,400-second stale period; an older price is rejected rather than used.
@@ -107,7 +107,7 @@ Two softer failure modes are more likely than a hack: when the destination chain
 ### How Parallel mitigates it
 
 - **Verifier quorum.** On every chain the configuration is 2 required DVNs (LayerZero Labs and Nethermind) plus 1 of 2 optional DVNs (Horizen and Canary); three independent verifiers must agree before USDp is minted.
-- **Limits.** Mint and burn limits are 2,500,000 USDp per day and 10,000,000 USDp global per chain, bounding a bridge exploit; the DAO can lower them at any time.
+- **Limits.** Mint and burn limits are 250,000 USDp per day and 1,500,000 USDp global per chain, as set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541), bounding a bridge exploit; the DAO can lower them at any time.
 - **Isolation mode.** The DAO can switch on isolation mode so a chain can never burn more USDp than was bridged into it, stopping a compromised chain from draining the others; it is currently off on every chain.
 - **Manual execution.** If executors are unavailable you can call `lzReceive` yourself through [LayerZero Scan](https://layerzeroscan.com/protocol/parallel-protocol) or a block explorer; an offline executor does not lose funds.
 - **Pause.** The guardians and Hypernative automation from section 3, plus the DAO, can also pause bridge mint and burn.
