@@ -29,7 +29,7 @@ Nothing on this page is financial, legal or tax advice. USDp is backed by other 
 | Governance and key holders | Everyone | 5 of 8 multisigs, Snapshot votes, role timelocks, scoped guardian powers | [DAO Multisigs](/governance/dao-multisigs), [Emergency Guardians](/security/parallel-emergency-guardians) |
 | PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait the full 28 days on Ethereum and Base, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
 | Chain and infrastructure outage | Everyone on that chain | Independent deployments per chain, isolation mode available on the bridge, Sonic wind-down | [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
-| x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
+| x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, one settlement per payment, bound to the merchant that verified, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
 | Signing a bad transaction from an AI tool | MCP and CLI users | The MCP server never signs; it returns unsigned, simulated transactions with warnings for you to review | [How MCP transactions work](/agents/mcp/transactions) |
 
 ## 1. Collateral and backing risk
@@ -212,8 +212,8 @@ Off-chain services (the app, the MCP server, subgraphs, the proof-of-solvency da
 
 Parallel runs an **x402 facilitator**: an off-chain service that verifies an agent's signed payment, then settles it on-chain, so any API can charge AI agents per request. Two facts matter before you depend on it:
 
-- **The facilitator is not audited and not open source.** The audits on the [audits page](/security/audits) (Bail Security, Cyfrin, Certora) cover the protocol smart contracts the settlement goes through, not the hosted service itself. The middleware and agent SDKs are MIT-licensed on npm; the facilitator is a closed service operated by Parallel.
-- **It is a single dependency.** If it is down, slow (the SDK times out after 10 seconds on `verify`, 60 on `settle`) or misbehaving, agents cannot pay and merchants cannot get paid until it recovers.
+- **The facilitator is not audited and not open source.** The audits on the [audits page](/security/audits) (Bail Security, Cyfrin, Certora) cover the protocol smart contracts the settlement goes through, not the hosted service itself. The middleware, the agent SDK and the CLI are MIT-licensed on npm; the facilitator is a closed service operated by Parallel.
+- **It is a single dependency.** If it is down, slow (the SDK times out after 10 seconds on `verify` and 60 on `settle`, and retries a settle once when it timed out or could not reach the facilitator) or misbehaving, agents cannot pay and merchants cannot get paid until it recovers.
 
 An agent can pay in USDp, USDC or sUSDp only, with gas sponsored on Base, HyperEVM and Avalanche (1,000 transactions per agent per month); on Ethereum it pays its own gas. A leaked agent key drains whatever that wallet holds, and a token-swapping settlement fails when the Parallelizer is paused (`PARALLELIZER_PAUSED`).
 
@@ -221,9 +221,10 @@ The **MCP server** and **CLI** are a different dependency: the MCP server never 
 
 ### How Parallel mitigates it
 
-- **Verify, then settle.** The facilitator checks the signature off-chain before the merchant's handler runs, and submits the on-chain transfer only after a success response; a failed request is never charged, and a settle without a prior verify (or after the 120-second verify window) is rejected. See [verify vs settle](/agents/x402/verify-vs-settle).
+- **Verify, then settle.** The facilitator checks the signature off-chain before the merchant's handler runs, and submits the on-chain transfer only after a success response; a failed request is never charged. A settle must present the token the facilitator issued at verify for that payment, required since 1 October 2026, and a settle without a verified payment is rejected. See [verify vs settle](/agents/x402/verify-vs-settle).
+- **One settlement per payment.** The facilitator claims a payment before it submits anything, so the same payment never settles twice, and a settle repeated after a lost answer gets the recorded outcome instead of a second transfer.
 - **Non-custodial.** Funds settle straight to the merchant's `payTo` wallet: the facilitator never holds them, so there is nothing to withdraw or lose if it disappears; an unsettled authorization simply expires.
-- **Bounded authorizations.** Every payment carries an amount, a chain, an expiry and a nonce; replays, expired signatures and chain mismatches are rejected and each signer is rate-limited hourly. See the [error codes page](/agents/x402/error-codes).
+- **Bounded authorizations.** Every payment carries an amount, a chain, an expiry and a nonce; replays, expired signatures and chain mismatches are rejected and each signer is rate-limited hourly. Verify also refuses a payload that does not have its route's shape, does not deliver the asset the merchant requires, or does not pay the merchant's `payTo`. See the [error codes page](/agents/x402/error-codes).
 - **Audited settlement path.** The contracts that move tokens are the audited protocol contracts; gas sponsoring alone cannot move funds.
 - **Unsigned by design.** Every MCP write tool simulates the transaction and returns `simulation.success`, a revert reason on failure, and business warnings before you sign, such as the staking warnings in section 7. See [how MCP transactions work](/agents/mcp/transactions).
 
@@ -231,7 +232,7 @@ The **MCP server** and **CLI** are a different dependency: the MCP server never 
 
 - **Keep agent wallets small.** Fund an agent with only what it needs next and top it up, rather than holding a treasury behind a server-side key; use a dedicated wallet for the CLI, never your main one.
 - **Confirm settlement yourself.** Merchant [webhooks](/agents/x402/webhooks) are on the roadmap, not live: read the `payment-response` header (it carries the on-chain `txHash`) or watch your `payTo` wallet before treating a request as paid.
-- **Handle the facilitator being down.** Catch `FACILITATOR_UNAVAILABLE` and `FACILITATOR_INVALID_RESPONSE` and decide whether to fail closed or serve unpaid.
+- **Handle the facilitator being down.** Catch `FACILITATOR_UNAVAILABLE` and `FACILITATOR_INVALID_RESPONSE` (and `SETTLE_TIMEOUT` when you call the facilitator client yourself) and decide whether to fail closed or serve unpaid. Behind the middleware, a failed settlement answers the agent `402` with `PAYMENT_SETTLEMENT_FAILED` and a `reason`; alert on `AMOUNT_MISMATCH`, which means a metered settlement was confirmed for another amount than the one asked.
 - **Treat the facilitator as a vendor.** If your business cannot tolerate an unaudited hosted service, settle against the audited contracts yourself.
 - **Read before you sign.** Inspect the `to`, `chainId`, `value` and warnings of every transaction an MCP client shows you, and replace the default unlimited approval with an exact one if you prefer.
 

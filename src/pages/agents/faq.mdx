@@ -35,7 +35,7 @@ import { HelpFooter } from '@/components/HelpFooter'
   },
   {
     question: "What happens if the facilitator goes down?",
-    answer: "Payments fail safe: if the facilitator is unreachable, nothing settles — signed authorizations simply expire and no funds move. A public status page for the hosted instance is being set up."
+    answer: "Payments fail safe: if the facilitator is unreachable, nothing settles — signed authorizations simply expire and no funds move. If only a settle's answer is lost, the SDK retries the settle once, which is safe since the facilitator answers a repeated settle with its recorded outcome; if that fails too, the agent gets a 402 saying the payment may still settle, and should check with the merchant before paying again. A public status page for the hosted instance is being set up."
   },
   {
     question: "How do I get notified when an agent pays?",

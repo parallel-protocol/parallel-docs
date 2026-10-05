@@ -15,10 +15,21 @@ You declare paid routes in your middleware; the facilitator handles the rest.
 
 Every paid request goes through two phases:
 
-1. **Verify** — the facilitator checks the agent's signed payment off-chain. Instant, no transaction. If it's valid, your handler runs.
-2. **Settle** — once your handler returns a success response, the facilitator submits the transfer on-chain and returns a settlement proof.
+1. **Verify** — the facilitator checks the agent's signed payment off-chain: its shape, signature, nonce and expiry, and that it delivers the required token, for at least the price, to your `payTo` on the route's network. Instant, no transaction. If it's valid, your handler runs, and the facilitator hands the middleware a settle token for this payment.
+2. **Settle** — once your handler returns a success response, the middleware presents that token, and the facilitator submits the transfer on-chain and returns a settlement proof.
 
 If verification fails, your handler never runs. If your handler fails, settlement never happens — the agent is only charged for a successful response. See [verify vs settle](/agents/x402/verify-vs-settle) for the full sequence.
+
+Each payment settles once. The facilitator claims the payment before it submits anything, so two settles of the same payment never both reach the chain, and a settle repeated after a lost answer gets the recorded outcome: the confirmation, marked `alreadySettled`, or the refusal. A settle that does not present the token issued at verify is refused with `SETTLE_TOKEN_REQUIRED`, or `SETTLE_TOKEN_INVALID` for a wrong one: the facilitator has required the token since 1 October 2026, and `@parallel-protocol/x402` sends it from version 0.8.0.
+
+## Exact and metered payments
+
+A route is priced in one of two schemes:
+
+- **`exact`**, the default: the agent signs the price, and you receive it.
+- **`upto`**, for a resource whose cost is only known once it is served, such as an LLM completion: the agent signs the price as a cap, valid for the route's `maxTimeoutSeconds` (3,600 at most). Your handler names the amount it actually charges, and the escrow refunds the rest on-chain in the same settlement. Metered routes are paid in USDp only.
+
+On a metered route the SDK keeps up to the last two minutes of that window for the settlement and its retry: on Express, Hono and Next.js the handler gets `maxTimeoutSeconds` minus 120 seconds, and 30 seconds at least. A settlement the facilitator confirms for another amount than the one your handler asked for is refused with `AMOUNT_MISMATCH` and the response is discarded. Alert on it: money moved, and the agent was not served. The configuration, with the `payment-settle-amount` header and the `meter` function, is in the [package README](https://www.npmjs.com/package/@parallel-protocol/x402).
 
 ## Supported stablecoins
 
