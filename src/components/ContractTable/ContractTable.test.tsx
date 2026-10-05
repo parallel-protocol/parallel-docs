@@ -78,6 +78,20 @@ describe("ContractTable", () => {
     expect(container.querySelector("symbol")).toBeNull();
   });
 
+  it("keeps the address and copy button but renders no explorer link on a chain without explorer", () => {
+    const { container } = render(
+      <ContractTable
+        chain="fantom"
+        contracts={[{ name: "ParallelAccessManager", address: ADDR_1 }]}
+      />,
+    );
+
+    expect(screen.getByText("0x1234…ef12")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: `Copy address ${ADDR_1}` })).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(container.querySelector('use[href="#cooper-icon-external-link"]')).toBeNull();
+  });
+
   it("keeps the row icons decorative", () => {
     const { container } = render(
       <ContractTable chain="ethereum" contracts={[{ name: "eUSD", address: ADDR_1 }]} />,

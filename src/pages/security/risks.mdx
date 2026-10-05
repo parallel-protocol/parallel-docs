@@ -27,9 +27,9 @@ Nothing on this page is financial, legal or tax advice. USDp is backed by other 
 | Bridge failure | Anyone bridging USDp | 2 required plus 1 of 2 optional DVNs, daily and global limits, manual execution fallback, pause | [Bridging Module](/products/parallel-v3/how-it-works/bridging-module) |
 | Savings rate and keeper trust | sUSDp holders | 35.00% hard cap on the rate, DAO-whitelisted keepers, keeper timelock, donation-attack fix | [Savings Module](/products/parallel-v3/how-it-works/savings-module), [Keepers](/security/keepers) |
 | Governance and key holders | Everyone | 5 of 8 multisigs, Snapshot votes, role timelocks, scoped guardian powers | [DAO Multisigs](/governance/dao-multisigs), [Emergency Guardians](/security/parallel-emergency-guardians) |
-| PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait the full 28 days, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
+| PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait the full 28 days on Ethereum and Base, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
 | Chain and infrastructure outage | Everyone on that chain | Independent deployments per chain, isolation mode available on the bridge, Sonic wind-down | [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
-| x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
+| x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, one settlement per payment, bound to the merchant that verified, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
 | Signing a bad transaction from an AI tool | MCP and CLI users | The MCP server never signs; it returns unsigned, simulated transactions with warnings for you to review | [How MCP transactions work](/agents/mcp/transactions) |
 
 ## 1. Collateral and backing risk
@@ -42,7 +42,7 @@ Prices come from oracles: each collateral has a Chainlink or RedStone feed, comp
 
 ### How Parallel mitigates it
 
-- **Exposure bounds.** The yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) are bounded to 20.00%-95.00% exposure today, and every asset has a 100,000,000 mint cap, so the basket cannot concentrate in one issuer without a governance vote.
+- **Exposure bounds.** Every asset has a mint cap, the most USDp that can be minted against it: 500,000 to 3,500,000 depending on the asset and chain, as set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541). So the basket cannot concentrate in one issuer beyond that without a governance vote. The yield-bearing assets (sfrxUSD, sUSDS, ygamiUSDC, sUSDe) also keep at least 40.00% of their chain's backing, except sUSDe on Ethereum, which is being retired and keeps its earlier 20.00%-95.00% band.
 - **Adaptive fees.** Mint and burn fees rise as an asset nears its cap (100% effectively pauses minting with it) or go negative to attract an asset the basket lacks; today they are 0.00% on mints and 0.00% to 0.10% on burns.
 - **Depeg-aware burns.** Burning USDp for one asset applies a price penalty equal to the largest deviation of any basket asset from its target price, so rushing into the safest asset during a depeg does not pay, protecting holders who stay.
 - **Stale period.** Every collateral price feed has an 86,400-second stale period; an older price is rejected rather than used.
@@ -84,7 +84,7 @@ Flash loans of USDp are possible on every chain, capped at 100,000 USDp per chai
 
 ### How Parallel mitigates it
 
-- **Audits and formal verification.** The V3 core was audited by Bail Security (2025-03) and Certora (2025-04); V3.1 by Cyfrin, with formal verification (2026-03-04), plus a Bail Security review of the fee-claim update; V3.2 (agentic payments) by Cyfrin and Bail Security (2026-05); the bridging module twice by Bail Security (2024-08, 2025-01); and the PRL token and tokenomics by Zenith and Bail Security. Full report links are on the [audits page](/security/audits).
+- **Audits and formal verification.** The V3 core was audited by Bail Security (2025-03) and Certora (2025-04); V3.1 by Cyfrin, with formal verification (2026-03-04), plus a Bail Security review of the fee-claim update; V3.2 (agentic payments) by Cyfrin and Bail Security (2026-05); the bridging module twice by Bail Security (2024-08, 2025-01); the PRL token and tokenomics by Zenith and Bail Security; and the sPRL2 v2 vault by Bail Security (2026-06). Full report links are on the [audits page](/security/audits).
 - **Bug bounty.** An Immunefi programme has been live since 30 June 2025 (PGP-28), paying up to 250,000 USD for the most critical impacts and a minimum of 50,000 USD for other critical bugs. See [Bug Bounty Program](/security/bug-bounty-program).
 - **Real-time monitoring.** Hypernative watches the protocol on every V3 chain and can automatically pause mint and burn on the Parallelizer and Bridging modules, and deposits and withdrawals on the Savings Module, but has no admin rights: it cannot add or remove collateral, change DVNs, or upgrade contracts. See [Hypernative](/security/hypernative).
 - **Emergency guardians.** Any DAO multisig signer can initiate a pause transaction, executed once other signers verify it; Tier 1 incidents (user funds at risk) are paused immediately, then discussed in a 24-hour governance vote. See [Parallel Emergency Guardians](/security/parallel-emergency-guardians).
@@ -107,7 +107,7 @@ Two softer failure modes are more likely than a hack: when the destination chain
 ### How Parallel mitigates it
 
 - **Verifier quorum.** On every chain the configuration is 2 required DVNs (LayerZero Labs and Nethermind) plus 1 of 2 optional DVNs (Horizen and Canary); three independent verifiers must agree before USDp is minted.
-- **Limits.** Mint and burn limits are 2,500,000 USDp per day and 10,000,000 USDp global per chain, bounding a bridge exploit; the DAO can lower them at any time.
+- **Limits.** Mint and burn limits are 250,000 USDp per day and 1,500,000 USDp global per chain, as set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541), bounding a bridge exploit; the DAO can lower them at any time.
 - **Isolation mode.** The DAO can switch on isolation mode so a chain can never burn more USDp than was bridged into it, stopping a compromised chain from draining the others; it is currently off on every chain.
 - **Manual execution.** If executors are unavailable you can call `lzReceive` yourself through [LayerZero Scan](https://layerzeroscan.com/protocol/parallel-protocol) or a block explorer; an offline executor does not lose funds.
 - **Pause.** The guardians and Hypernative automation from section 3, plus the DAO, can also pause bridge mint and burn.
@@ -168,10 +168,10 @@ Reserves are the exception: the Parallelizer holds the backing in permissionless
 
 PRL is a governance token whose price is set by the market and can fall to zero; staking it adds mechanisms you should understand before you commit:
 
-- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown, skippable by paying a penalty, sent to the DAO Treasury, that starts at 50% of the amount and decreases linearly over time.
+- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown on Ethereum and Base, skippable by paying a penalty that starts at 50% of the amount and decreases linearly over time; on the sunset Polygon and Sonic deployments, the cooldown is one day, without penalty. The penalty is burned on Ethereum's sPRL1 vault and sent to the Protocol & DAO Treasury multisig on the other vaults.
 - **ParaBoost loss.** Your ParaBoost score, computed off-chain by a keeper at the end of each epoch, determines your share of fee distribution; transferring or unstaking sPRL resets it.
-- **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, itself staked on Aura, adding impermanent loss between PRL and wETH plus Balancer and Aura smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl).
-- **Claim window.** Fee rewards for stakers can be claimed during 12 epochs (about one year); unclaimed rewards return to the DAO Treasury.
+- **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, held by the sPRL2 v2 vault, adding impermanent loss between PRL and wETH plus Balancer smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl). If you still hold sPRL2 from the paused v1 vault, its BPT stays deposited in Aura, and exposed to Aura's smart contracts, until you migrate to v2 or withdraw; Aura has shut down its pool for this BPT.
+- **Claim window.** Each epoch's fee rewards can be claimed until its window ends; unclaimed rewards then return to the DAO Treasury. The window is set on-chain when the epoch is published: PIP-68 sets 6 epochs (about six months) as the target, down from 12, and every epoch published so far carries 365 days.
 - **Fee share.** The percentage and the payout token are governance decisions that change between tokenomics versions; read the [PRL fee distribution page](/governance/parallel-governance-token-prl/tokenomics/fee-distribution) before relying on a number.
 
 ### How Parallel mitigates it
@@ -184,7 +184,7 @@ PRL is a governance token whose price is set by the market and can fall to zero;
 
 - Call `get_cooldown_status` before unstaking to see the remaining time and the estimated penalty, and `get_staking_info` to see the ParaBoost you would forfeit.
 - Choose sPRL1 if you do not want wETH exposure or third-party pool risk.
-- Claim rewards well inside the 12-epoch window.
+- Claim rewards within six epochs, the window PIP-68 sets, even when an epoch's on-chain window is longer.
 
 ## 8. Chain and operational risk
 
@@ -212,8 +212,8 @@ Off-chain services (the app, the MCP server, subgraphs, the proof-of-solvency da
 
 Parallel runs an **x402 facilitator**: an off-chain service that verifies an agent's signed payment, then settles it on-chain, so any API can charge AI agents per request. Two facts matter before you depend on it:
 
-- **The facilitator is not audited and not open source.** The audits on the [audits page](/security/audits) (Bail Security, Cyfrin, Certora) cover the protocol smart contracts the settlement goes through, not the hosted service itself. The middleware and agent SDKs are MIT-licensed on npm; the facilitator is a closed service operated by Parallel.
-- **It is a single dependency.** If it is down, slow (the SDK times out after 10 seconds on `verify`, 60 on `settle`) or misbehaving, agents cannot pay and merchants cannot get paid until it recovers.
+- **The facilitator is not audited and not open source.** The audits on the [audits page](/security/audits) (Bail Security, Cyfrin, Certora) cover the protocol smart contracts the settlement goes through, not the hosted service itself. The middleware, the agent SDK and the CLI are MIT-licensed on npm; the facilitator is a closed service operated by Parallel.
+- **It is a single dependency.** If it is down, slow (the SDK times out after 10 seconds on `verify` and 60 on `settle`, and retries a settle once when it timed out or could not reach the facilitator) or misbehaving, agents cannot pay and merchants cannot get paid until it recovers.
 
 An agent can pay in USDp, USDC or sUSDp only, with gas sponsored on Base, HyperEVM and Avalanche (1,000 transactions per agent per month); on Ethereum it pays its own gas. A leaked agent key drains whatever that wallet holds, and a token-swapping settlement fails when the Parallelizer is paused (`PARALLELIZER_PAUSED`).
 
@@ -221,9 +221,10 @@ The **MCP server** and **CLI** are a different dependency: the MCP server never 
 
 ### How Parallel mitigates it
 
-- **Verify, then settle.** The facilitator checks the signature off-chain before the merchant's handler runs, and submits the on-chain transfer only after a success response; a failed request is never charged, and a settle without a prior verify (or after the 120-second verify window) is rejected. See [verify vs settle](/agents/x402/verify-vs-settle).
+- **Verify, then settle.** The facilitator checks the signature off-chain before the merchant's handler runs, and submits the on-chain transfer only after a success response; a failed request is never charged. A settle must present the token the facilitator issued at verify for that payment, required since 1 October 2026, and a settle without a verified payment is rejected. See [verify vs settle](/agents/x402/verify-vs-settle).
+- **One settlement per payment.** The facilitator claims a payment before it submits anything, so the same payment never settles twice, and a settle repeated after a lost answer gets the recorded outcome instead of a second transfer.
 - **Non-custodial.** Funds settle straight to the merchant's `payTo` wallet: the facilitator never holds them, so there is nothing to withdraw or lose if it disappears; an unsettled authorization simply expires.
-- **Bounded authorizations.** Every payment carries an amount, a chain, an expiry and a nonce; replays, expired signatures and chain mismatches are rejected and each signer is rate-limited hourly. See the [error codes page](/agents/x402/error-codes).
+- **Bounded authorizations.** Every payment carries an amount, a chain, an expiry and a nonce; replays, expired signatures and chain mismatches are rejected and each signer is rate-limited hourly. Verify also refuses a payload that does not have its route's shape, does not deliver the asset the merchant requires, or does not pay the merchant's `payTo`. See the [error codes page](/agents/x402/error-codes).
 - **Audited settlement path.** The contracts that move tokens are the audited protocol contracts; gas sponsoring alone cannot move funds.
 - **Unsigned by design.** Every MCP write tool simulates the transaction and returns `simulation.success`, a revert reason on failure, and business warnings before you sign, such as the staking warnings in section 7. See [how MCP transactions work](/agents/mcp/transactions).
 
@@ -231,7 +232,7 @@ The **MCP server** and **CLI** are a different dependency: the MCP server never 
 
 - **Keep agent wallets small.** Fund an agent with only what it needs next and top it up, rather than holding a treasury behind a server-side key; use a dedicated wallet for the CLI, never your main one.
 - **Confirm settlement yourself.** Merchant [webhooks](/agents/x402/webhooks) are on the roadmap, not live: read the `payment-response` header (it carries the on-chain `txHash`) or watch your `payTo` wallet before treating a request as paid.
-- **Handle the facilitator being down.** Catch `FACILITATOR_UNAVAILABLE` and `FACILITATOR_INVALID_RESPONSE` and decide whether to fail closed or serve unpaid.
+- **Handle the facilitator being down.** Catch `FACILITATOR_UNAVAILABLE` and `FACILITATOR_INVALID_RESPONSE` (and `SETTLE_TIMEOUT` when you call the facilitator client yourself) and decide whether to fail closed or serve unpaid. Behind the middleware, a failed settlement answers the agent `402` with `PAYMENT_SETTLEMENT_FAILED` and a `reason`; alert on `AMOUNT_MISMATCH`, which means a metered settlement was confirmed for another amount than the one asked.
 - **Treat the facilitator as a vendor.** If your business cannot tolerate an unaudited hosted service, settle against the audited contracts yourself.
 - **Read before you sign.** Inspect the `to`, `chainId`, `value` and warnings of every transaction an MCP client shows you, and replace the default unlimited approval with an exact one if you prefer.
 
@@ -281,7 +282,7 @@ MCP read tools cache for 30 to 120 seconds; for a transaction that depends on an
   },
   {
     question: "What happens to my PRL if I unstake early?",
-    answer: "Unstaking sPRL normally takes a fixed 28-day cooldown with no cost. Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero, paid to the DAO Treasury. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
+    answer: "Unstaking sPRL on Ethereum and Base takes a fixed 28-day cooldown with no cost (one day, without penalty, on the sunset Polygon and Sonic deployments). Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero; it is burned on Ethereum's sPRL1 vault and paid to the Protocol & DAO Treasury multisig on the other vaults. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
   }
 ]} />
 

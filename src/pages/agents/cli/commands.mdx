@@ -89,13 +89,13 @@ Only USDp bridges for now, on every supported chain.
 parallel staking overview
 parallel staking info     <address>
 parallel staking cooldown <address>
-parallel staking stake    --type <sprl1|sprl2> --amount <n> --wallet
-parallel staking unstake  --type <sprl1|sprl2> --amount <n> --wallet   # starts cooldown
-parallel staking unstake  --type sprl2 --wallet                        # withdraw matured requests
+parallel staking stake    --type <sprl1|sprl2> --amount <n> [--chain base] --wallet
+parallel staking unstake  --type <sprl1|sprl2> --amount <n> [--chain <chain>] --wallet   # starts cooldown
+parallel staking unstake  --type <sprl1|sprl2> [--chain <chain>] --wallet                # withdraw matured requests
 parallel staking claim    --type <sprl1|sprl2|all> --wallet
 ```
 
-Staking transactions run on Ethereum. The sPRL2 stake takes `--weth-amount <n>` for the PRL + WETH path; `claim` can return transactions on both Ethereum and Polygon.
+`stake` and `unstake` act on the chain given by `--chain` (default `ethereum`): stake on Ethereum or Base, unstake on the chain that holds the position, Polygon and Sonic included while staking is being sunset there. The sPRL2 stake takes `--amount` in BPT of the chosen chain's pool, or `--amount` in PRL with `--weth-amount <n>` for the PRL + WETH path. `claim` sends one claim on Base, plus one on Polygon for the epochs published before the move to Base, while any remain. `info` and `cooldown` cover every chain, and list what is left in the paused sPRL2 v1 vault.
 
 ## Governance
 
@@ -115,6 +115,10 @@ parallel pay prepare --amount <n> --recipient <address> [--chain <chain>] [--wal
 ```
 
 `pay prepare` builds an x402 payment payload: `--token` sets what the merchant receives (`usdp` by default, `usdc`, `susdp`, a collateral symbol or a token address), `--pay-with` forces the paying token (`usdp`, `usdc` or `susdp`). With `--wallet` it auto-selects the route from your balances and signs the payload. This is the engine behind [agent payments](/agents/x402/agent-quickstart) — agents rarely call it directly.
+
+`--scheme upto` signs `--amount` as a cap for a [metered payment](/agents/x402/concepts#exact-and-metered-payments), in USDp only, and `--valid-for <seconds>` sets the window the merchant announced, 3,600 at most. The default scheme is `exact`.
+
+Since 0.4.1, `pay prepare` reads the signing domain from the token's `DOMAIN_SEPARATOR()` instead of calling `version()`, which USDp and sUSDp do not have: on Base, a USDp or sUSDp payment is prepared in about half a second instead of about 5. A token whose domain matches no known version is refused with `ROUTE_UNAVAILABLE` before anything is signed.
 
 `pay verify` reports `confirmed: true` only for payments the facilitator actually settled — a merely mined transaction returns `confirmed: false` with `txMined: true`, and an unknown hash returns everything `false`.
 
@@ -143,7 +147,7 @@ Failures exit 1 and print `Error [CODE]: message`. In JSON mode the envelope `{ 
 | `COLLATERAL_NOT_SUPPORTED` | Collateral (or bridge token) not accepted on this chain |
 | `EXCEEDS_CAP` | Mint or redeem beyond the collateral's deposited capacity — the message carries the remaining capacity |
 | `EXCEEDS_BRIDGE_LIMIT` | Daily or global bridge limit reached — the message carries the reset time |
-| `ROUTE_UNAVAILABLE` | The bridge route does not exist (same chain, or no bridgeable token on the destination) |
+| `ROUTE_UNAVAILABLE` | The bridge route does not exist (same chain, or no bridgeable token on the destination), or `pay prepare` cannot sign for the token: its signing domain matches no known version |
 | `PARTIAL_READ` | Some chain reads failed and the aggregate would be wrong — retry shortly |
 | `INSUFFICIENT_BALANCE` | Wallet balance too low for the requested amount |
 | `WALLET_REQUIRED` | Signing requested but no wallet available |
