@@ -14,7 +14,7 @@ Parallel charges very little today, but none of its fees are hard-coded. Mint an
 
 | Operation | Fee today | Notes | Where it goes |
 | --- | --- | --- | --- |
-| Mint USDp | 0.00% on every accepted asset | Adaptive: depends on the asset's exposure after the mint and on its deviation from target price. Can rise, or go negative as an incentive. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
+| Mint USDp | 0.00% on every asset open for minting | Adaptive: depends on the asset's exposure after the mint and on its deviation from target price. Can rise, or go negative as an incentive. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
 | Burn USDp | 0.00% on base stablecoins, 0.10% on yield-bearing assets | Same adaptive mechanism. Burns are paused while any backing asset deviates too far from its target price. | Fee collector, split 90% sUSDp / 10% DAO Treasury |
 | Redeem USDp | No fixed fee, dynamic penalty | A proportional share of every backing asset. Fair value at or above a 100% collateral ratio, less below it. | The shortfall stays in the backing and re-collateralises the protocol |
 | Bridge USDp | 0.00% protocol fee | You pay the LayerZero native gas fee on the source chain. Delivery takes around 10 minutes. | The LayerZero network (verifiers and executors), not Parallel |
@@ -39,22 +39,25 @@ The 0.00% mint fee you see today is a DAO parameter, not a property of the proto
 
 ### Current parameters per asset
 
-These are the DAO-approved parameters on the four chains where the Parallelizer Module runs. Mint caps are per asset. The full list, including price feeds and stale periods, is on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
+These are the parameters on the four chains where the Parallelizer Module runs, as set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541) (May 2026) and read on-chain in October 2026. Mint caps are per asset, in USDp minted against it. The full list, including price feeds and stale periods, is on the [implementation page](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation).
 
 | Chain | Asset | Mint fee | Burn fee | Min exposure | Max exposure | Mint cap |
 | --- | --- | --- | --- | --- | --- | --- |
-| Ethereum | frxUSD | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Ethereum | sfrxUSD | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
-| Ethereum | USDe | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Ethereum | sUSDe | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
-| Base | USDS | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Base | sUSDS | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
-| HyperEVM | USDe | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| HyperEVM | sUSDe | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
-| Avalanche | USDC | 0.00% | 0.00% | 0.00% | 100.00% | 100,000,000 |
-| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | 0.00% | 0.10% | 20.00% | 95.00% | 100,000,000 |
+| Ethereum | frxUSD | 0.00% | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Ethereum | sfrxUSD | 0.00% | 0.10% | 40.00% | 100.00% | 3,500,000 |
+| Ethereum | USDe | Closed (being retired) | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Ethereum | sUSDe | Closed (being retired) | 0.10% | 20.00% | 95.00% | 3,500,000 |
+| Base | USDS | 0.00% | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Base | USDC | 0.00% | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Base | sUSDS | 0.00% | 0.10% | 40.00% | 100.00% | 3,500,000 |
+| HyperEVM | USDe | 0.00% | 0.00% | 0.00% | 100.00% | 500,000 |
+| HyperEVM | sUSDe | 0.00% | 0.10% | 40.00% | 100.00% | 1,000,000 |
+| Avalanche | USDC | 0.00% | 0.00% | 0.00% | 100.00% | 1,500,000 |
+| Avalanche | ygamiUSDC (Silo vault, wrapped as a Yearn vault) | Paused | 0.10% | 40.00% | 100.00% | 3,500,000 |
 
-The pattern is deliberate: base stablecoins (frxUSD, USDe, USDS, USDC) can be burnt for free, while the yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) that generate the protocol's income carry a small 0.10% burn fee and must stay between 20% and 95% of the backing.
+The pattern is deliberate: base stablecoins (frxUSD, USDe, USDS, USDC) can be burnt for free, while the yield-bearing assets (sfrxUSD, sUSDe, sUSDS, ygamiUSDC) that generate the protocol's income carry a small 0.10% burn fee. A burn that would take a yield-bearing asset below 40% of its chain's backing pays up to 99.90%, which keeps those assets at 40% or more; there is no maximum exposure other than the mint cap.
+
+Under PIP-69, USDe and sUSDe are being retired from the Ethereum backing: minting with them is closed, burning into them stays open until that backing reaches zero, and they are then removed. sUSDe on Ethereum keeps its earlier 20% to 95% band in the meantime. Minting with ygamiUSDC on Avalanche is currently paused; burns into it stay open.
 
 ## Redeeming
 
@@ -72,14 +75,14 @@ Worked example from the [Parallelizer Module page](/products/parallel-v3/how-it-
 
 USDp moves between its 24 chains through the [Bridging Module](/products/parallel-v3/how-it-works/bridging-module), built on the LayerZero OFT standard. The protocol can charge a fee when USDp is bridged, taken on the destination chain when the lz-USDp is burnt for USDp. That fee is currently set to 0.00% on every chain. What you pay is the LayerZero native gas fee quoted on the source chain, which covers verification and execution on the destination chain, and delivery takes around 10 minutes.
 
-The DAO parameters are the same on every chain:
+The DAO parameters are the same on every chain. The limits are those set by [PIP-69](https://gov.parallel.best/t/pip-69-usdp-parallelizer-bridging-modules-parameters-updates/541), in USDp per chain:
 
 | Parameter | Value |
 | --- | --- |
 | Protocol fee | 0.00% |
 | Verification (DVNs) | 2 required (LayerZero Labs, Nethermind) plus 1 of 2 optional (Horizen, Canary) |
-| Daily mint and burn limits | 2,500,000 each |
-| Global mint and burn limits | 10,000,000 each |
+| Daily mint and burn limits | 250,000 each |
+| Global mint and burn limits | 1,500,000 each |
 | Isolate mode | Off |
 
 If a limit is reached you receive lz-USDp instead of USDp on the destination chain, which you can burn for USDp once the limit resets or bridge on to another chain. Limits, DVNs and the fee are all set by the DAO.
@@ -125,7 +128,7 @@ Fee parameters were set per collateral type by governance. These fees no longer 
 <FAQ items={[
   {
     question: "Is minting USDp free?",
-    answer: "Under the current DAO parameters the mint fee is 0.00% on every accepted asset, so you only pay gas. The fee is adaptive, not fixed: it rises when an asset is above its maximum exposure in the backing and can even turn negative to reward you for bringing in an asset the backing is short of. Check the quote in the app before you confirm."
+    answer: "Under the current DAO parameters the mint fee is 0.00% on every asset open for minting, so you only pay gas. The fee is adaptive, not fixed: it rises when an asset is above its maximum exposure in the backing and can even turn negative to reward you for bringing in an asset the backing is short of. Check the quote in the app before you confirm."
   },
   {
     question: "Why did my redeem return less than $1 per USDp?",
