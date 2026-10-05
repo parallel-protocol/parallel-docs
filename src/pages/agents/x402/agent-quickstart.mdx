@@ -17,7 +17,7 @@ npm install @parallel-protocol/x402-fetch
 
 This page describes version 0.3.1, the one a fresh install gets. The package signs through the payment engine of the [Parallel CLI](/agents/cli), `@parallel-protocol/cli`, which it installs as a regular dependency. Since version 0.2.3 it accepts the CLI's 0.4 line, so a fresh install gets CLI 0.4.1, which prepares a USDp or sUSDp payment on Base in about half a second instead of about 5 seconds; an existing project gets it by refreshing its lockfile. With CLI 0.4.1 and the facilitator update shipped alongside it, Parallel measured a paid call on Base at 3.5 seconds end to end, down from 9.4.
 
-A project on 0.2 moves to 0.3.0 by installing it, since a `^0.2` range does not reach 0.3. Code that read the response of a paid request answered with `402` must then catch an error instead: from 0.3.0, `payFetch` rejects with an `X402FetchError`, as described in [When the merchant refuses the payment](#when-the-merchant-refuses-the-payment) and [When the settlement fails](#when-the-settlement-fails).
+A project on 0.2 moves to 0.3.1 by installing it, since a `^0.2` range does not reach 0.3. Code that read the response of a paid request answered with `402` must then catch an error instead: from 0.3.0, `payFetch` rejects with an `X402FetchError`, as described in [When the merchant refuses the payment](#when-the-merchant-refuses-the-payment) and [When the settlement fails](#when-the-settlement-fails).
 
 ## 2. Fund a wallet
 

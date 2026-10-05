@@ -35,15 +35,15 @@ interface PaymentMiddlewareConfig {
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `price` | `string \| bigint \| (ctx) => string \| bigint` | Yes | Amount required. A string like `"0.01"` is parsed with each accepted token's own decimals. Pass a `bigint` to skip parsing, or a function to price each request from its content. On a metered route, `price` is the cap. |
-| `decimals` | `number` | No | Override for custom tokens only. Each accepted token's decimals are resolved automatically from Parallel's on-chain token catalog; an unknown token without `decimals` throws `X402ConfigError` at startup. |
+| `price` | `string \| bigint \| (ctx) => string \| bigint \| Promise<string \| bigint>` | Yes | Amount required. A string like `"0.01"` is parsed with each accepted token's own decimals. Pass a `bigint` to skip parsing, or a function to price each request from its content. On a metered route, `price` is the cap. |
+| `decimals` | `number` | No | Override for custom tokens only. Each accepted token's decimals are resolved automatically from Parallel's on-chain token catalog. An unknown token without `decimals` throws `X402ConfigError` at the first request on the route. |
 | `network` | `string` | Yes | Chain slug: `"ethereum"`, `"base"`, `"avalanche"`, or `"hyperevm"`. |
 | `payTo` | `Address` | Yes | The merchant's receiving address. |
 | `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to USDp, USDC, and sUSDp for the network, and required on networks without defaults. A metered route accepts USDp only. |
 | `description` | `string` | No | Human-readable description of the resource, included in the `402` body. |
 | `scheme` | `"exact" \| "upto"` | No | `exact` (default) charges `price` as invoiced. `upto` invoices `price` as a cap: the handler names the amount it actually charges, and the rest is refunded on-chain. See [metered routes](#metered-routes-upto). |
 | `maxTimeoutSeconds` | `number` | No | Settlement window announced to the payer, 300 by default. On a metered route it is 3,600 at most: a larger value throws `X402ConfigError` at startup. On metered routes, Express, Hono and Next.js give the handler this window minus two minutes, kept for the settlement and its retry, and 30 seconds at least. Fastify does not time handlers out. |
-| `meter` | `(ctx) => string \| bigint \| undefined` | No | Metered routes only: reads the amount to charge from the handler's response. See [metered routes](#metered-routes-upto). |
+| `meter` | `(ctx) => string \| bigint \| undefined \| Promise<string \| bigint \| undefined>` | No | Metered routes only: reads the amount to charge from the handler's response. See [metered routes](#metered-routes-upto). |
 
 Route matching is **longest-prefix-wins**: `/api/v1/users` matches a `/api/v1` config before a `/api` one.
 

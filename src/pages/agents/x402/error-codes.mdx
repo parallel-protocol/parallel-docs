@@ -15,7 +15,7 @@ Since 1 October 2026 the facilitator settles a payment only when the settle pres
 
 | Error class | When |
 |---|---|
-| `X402ConfigError` | Invalid config at middleware setup, with a message that names the field at fault: bad `payTo`, an unknown network with no `acceptedTokens`, or a facilitator URL that is malformed or not https. Plain http is accepted only for `localhost`, `127.0.0.1` and `[::1]`. |
+| `X402ConfigError` | Invalid config, with a message that names the field at fault. At middleware setup: bad `payTo`, a facilitator URL that is malformed or not https (plain http is accepted only for `localhost`, `127.0.0.1` and `[::1]`), or a metered route with `maxTimeoutSeconds` above 3,600. At the first request on a route: an unknown network with no `acceptedTokens`, an unknown token with no `decimals`, or a price below the token's precision. |
 | `X402RuntimeError` | A runtime failure. The specific cause is in `.code` (below). |
 
 ### `X402RuntimeError.code`
@@ -75,9 +75,10 @@ The settlement runs after your handler answered. When it fails, the middleware d
 | `SETTLE_IN_PROGRESS` | 409 | Another settle of the same payment is still running. | Do not sign another payment before checking with the merchant. |
 | `SETTLE_TOKEN_INVALID`, `SETTLE_TOKEN_REQUIRED` | 403 | The merchant did not present the settle token issued at verify. A merchant-side issue, typically a middleware older than 0.8.0. Nothing was settled. | Do not sign another payment before checking with the merchant. |
 | `RELAYER_UNAVAILABLE` | 503 | The facilitator is temporarily unable to settle. The payment was not taken, and the facilitator will not settle it. | Retry later with a new payment, after `Retry-After` when given. |
-| `PARALLELIZER_PAUSED`, `SERVICE_UNAVAILABLE` | 503 | The facilitator or the chain is temporarily unable to settle. This settle sent nothing, but the payment may still settle until its authorization expires, and an earlier attempt may already have settled it. | Do not sign another payment before checking with the merchant. |
+| `PARALLELIZER_PAUSED` | 503 | The Parallelizer has paused the swap this route needs, or the facilitator could not read whether it has. This settle sent nothing, but the payment may still settle until its authorization expires, and an earlier attempt may already have settled it. | Do not sign another payment before checking with the merchant. |
+| `SERVICE_UNAVAILABLE` | 503 | The facilitator could not read its own store. This settle sent nothing, but the payment may still settle until its authorization expires, and an earlier attempt may already have settled it. | Do not sign another payment before checking with the merchant. |
 | `TX_REVERTED` | 500 | The transaction reverted for a reason the facilitator could not attribute. | Sign a new payment. |
-| `SUBMISSION_FAILED` | 500 | The submission failed. When the message says the outcome is unknown, a transaction may have been sent, and the payment may have settled or may still settle. | Sign a new payment, unless the message says the outcome is unknown: then check with the merchant first. |
+| `SUBMISSION_FAILED` | 500 | The submission failed. When the message says the outcome is unknown, a transaction may have been sent, and the payment may have settled or may still settle. | Do not sign another payment before checking with the merchant. x402-fetch says so for this reason whatever the message. A client that reads the merchant's 402 itself may sign a new payment when the message says no transaction was submitted. |
 | `RECEIPT_UNAVAILABLE` | 500 | The transaction was sent but its confirmation could not be read. | Do not sign another payment before checking with the merchant. |
 | `INVALID_PAYLOAD`, `NETWORK_MISMATCH`, `PAYMENT_METHOD_NOT_SUPPORTED` | 400 | The settle does not match the payment that was verified, or a metered amount is missing, malformed or above the cap. Nothing was settled. | Sign a new payment. |
 | `INSUFFICIENT_AMOUNT` | 402 | A metered amount of zero. Nothing was settled. | Sign a new payment. |
@@ -90,9 +91,11 @@ The SDK adds its own reasons:
 | `AMOUNT_MISMATCH` | On a metered route, the facilitator confirmed a settlement of another amount than the one the handler asked for. Money moved, and the response was not served. | Do not sign another payment before checking with the merchant. |
 | `UNKNOWN` | Anything the facilitator answered that is not a code, such as its per-IP rate limit. | Check with the merchant before paying again. |
 
+On a metered route, a handler that names an amount the middleware cannot settle (malformed, finer than the token, above the cap, or a `meter` that fails) has its response discarded, and the agent gets a `402` whose body is `{ error: "INVALID_SETTLE_AMOUNT", message }`, with no `reason`. Nothing was settled. It is a merchant-side bug, and the same request fails the same way until the merchant fixes its handler.
+
 `AMOUNT_MISMATCH` is the one reason that points at the facilitator rather than at the request: alert on it rather than treating it as a routine refusal. For `SETTLE_IN_PROGRESS`, `RECEIPT_UNAVAILABLE`, `SETTLE_TOKEN_INVALID` and `SETTLE_TOKEN_REQUIRED`, the `message` is the SDK's own, since the facilitator's text for them addresses the merchant. From version 0.8.2, it is the SDK's own too for `AUTHORIZATION_USED`, `PAYMENT_NOT_VERIFIED`, `PARALLELIZER_PAUSED` and `SERVICE_UNAVAILABLE`: the payment may have settled or may still settle, so the message tells the agent to check with the merchant before paying again, as it does for `UNKNOWN`.
 
-Before any of this, a settle that timed out or could not reach the facilitator is retried once by the SDK, with the same settle token. The same settle is safe to repeat: once the first attempt has finished, the facilitator answers with its recorded outcome, and any other answer to the retry tells the agent to check with the merchant.
+Before any of this, a settle that timed out or could not reach the facilitator is retried once by the SDK, with the same settle token. The same settle is safe to repeat: once the first attempt has finished, the facilitator answers with its recorded outcome, the confirmation marked `alreadySettled` or `PAYMENT_NOT_VERIFIED` when it failed, and any other answer to the retry tells the agent to check with the merchant.
 
 ## Rate limits
 

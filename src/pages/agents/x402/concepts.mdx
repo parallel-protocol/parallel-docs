@@ -20,7 +20,7 @@ Every paid request goes through two phases:
 
 If verification fails, your handler never runs. If your handler fails, settlement never happens — the agent is only charged for a successful response. See [verify vs settle](/agents/x402/verify-vs-settle) for the full sequence.
 
-Each payment settles once. The facilitator claims the payment before it submits anything, so two settles of the same payment never both reach the chain, and a settle repeated once the first one has finished gets its recorded outcome: the confirmation, marked `alreadySettled`, or the refusal. A settle that does not present the token issued at verify is refused with `SETTLE_TOKEN_REQUIRED`, or `SETTLE_TOKEN_INVALID` for a wrong one: the facilitator has required the token since 1 October 2026, and `@parallel-protocol/x402` sends it from version 0.8.0.
+Each payment settles once. The facilitator claims the payment before it submits anything, so two settles of the same payment never both reach the chain, and a settle repeated once the first one has finished gets its recorded outcome: the confirmation, marked `alreadySettled`, or `PAYMENT_NOT_VERIFIED` when it failed. A settle that does not present the token issued at verify is refused with `SETTLE_TOKEN_REQUIRED`, or `SETTLE_TOKEN_INVALID` for a wrong one: the facilitator has required the token since 1 October 2026, and `@parallel-protocol/x402` sends it from version 0.8.0.
 
 ## Exact and metered payments
 
