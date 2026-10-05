@@ -27,7 +27,7 @@ Nothing on this page is financial, legal or tax advice. USDp is backed by other 
 | Bridge failure | Anyone bridging USDp | 2 required plus 1 of 2 optional DVNs, daily and global limits, manual execution fallback, pause | [Bridging Module](/products/parallel-v3/how-it-works/bridging-module) |
 | Savings rate and keeper trust | sUSDp holders | 35.00% hard cap on the rate, DAO-whitelisted keepers, keeper timelock, donation-attack fix | [Savings Module](/products/parallel-v3/how-it-works/savings-module), [Keepers](/security/keepers) |
 | Governance and key holders | Everyone | 5 of 8 multisigs, Snapshot votes, role timelocks, scoped guardian powers | [DAO Multisigs](/governance/dao-multisigs), [Emergency Guardians](/security/parallel-emergency-guardians) |
-| PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait the full 28 days, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
+| PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait the full 28 days on Ethereum and Base, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
 | Chain and infrastructure outage | Everyone on that chain | Independent deployments per chain, isolation mode available on the bridge, Sonic wind-down | [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
 | x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
 | Signing a bad transaction from an AI tool | MCP and CLI users | The MCP server never signs; it returns unsigned, simulated transactions with warnings for you to review | [How MCP transactions work](/agents/mcp/transactions) |
@@ -168,7 +168,7 @@ Reserves are the exception: the Parallelizer holds the backing in permissionless
 
 PRL is a governance token whose price is set by the market and can fall to zero; staking it adds mechanisms you should understand before you commit:
 
-- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown, skippable by paying a penalty that starts at 50% of the amount and decreases linearly over time. The penalty is burned on Ethereum's sPRL1 vault and sent to the Protocol & DAO Treasury multisig on the other vaults.
+- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown on Ethereum and Base, skippable by paying a penalty that starts at 50% of the amount and decreases linearly over time; on the sunset Polygon and Sonic deployments, the cooldown is one day, without penalty. The penalty is burned on Ethereum's sPRL1 vault and sent to the Protocol & DAO Treasury multisig on the other vaults.
 - **ParaBoost loss.** Your ParaBoost score, computed off-chain by a keeper at the end of each epoch, determines your share of fee distribution; transferring or unstaking sPRL resets it.
 - **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, held by the sPRL2 v2 vault, adding impermanent loss between PRL and wETH plus Balancer smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl). If you still hold sPRL2 from the paused v1 vault, its BPT stays deposited in Aura, and exposed to Aura's smart contracts, until you migrate to v2 or withdraw; Aura has shut down its pool for this BPT.
 - **Claim window.** Each epoch's fee rewards can be claimed until its window ends; unclaimed rewards then return to the DAO Treasury. The window is set on-chain when the epoch is published: PIP-68 sets 6 epochs (about six months) as the target, down from 12, and every epoch published so far carries 365 days.
@@ -281,7 +281,7 @@ MCP read tools cache for 30 to 120 seconds; for a transaction that depends on an
   },
   {
     question: "What happens to my PRL if I unstake early?",
-    answer: "Unstaking sPRL normally takes a fixed 28-day cooldown with no cost. Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero; it is burned on Ethereum's sPRL1 vault and paid to the Protocol & DAO Treasury multisig on the other vaults. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
+    answer: "Unstaking sPRL on Ethereum and Base takes a fixed 28-day cooldown with no cost (one day, without penalty, on the sunset Polygon and Sonic deployments). Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero; it is burned on Ethereum's sPRL1 vault and paid to the Protocol & DAO Treasury multisig on the other vaults. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
   }
 ]} />
 
