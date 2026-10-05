@@ -168,7 +168,7 @@ Reserves are the exception: the Parallelizer holds the backing in permissionless
 
 PRL is a governance token whose price is set by the market and can fall to zero; staking it adds mechanisms you should understand before you commit:
 
-- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown on Ethereum and Base, skippable by paying a penalty that starts at 50% of the amount and decreases linearly over time; on the sunset Polygon and Sonic deployments, the cooldown is one day, without penalty. The penalty is burned on Ethereum's sPRL1 vault and sent to the Protocol & DAO Treasury multisig on the other vaults.
+- **Early-unstake penalty.** sPRL1 and sPRL2 unstake against a fixed 28-day cooldown on Ethereum and Base, skippable by paying a penalty that starts at 50% of the amount and decreases linearly over time; on the sunset Polygon and Sonic deployments and the paused sPRL2 v1 vault, the cooldown is one day, without penalty. The penalty is burned on Ethereum's sPRL1 vault and sent to the Protocol & DAO Treasury multisig on the other vaults.
 - **ParaBoost loss.** Your ParaBoost score, computed off-chain by a keeper at the end of each epoch, determines your share of fee distribution; transferring or unstaking sPRL resets it.
 - **sPRL2 liquidity-pool exposure.** sPRL2 is an 80/20 PRL/wETH Balancer pool token, held by the sPRL2 v2 vault, adding impermanent loss between PRL and wETH plus Balancer smart-contract risk on top of Parallel's own. It is deployed on Ethereum and Base; see the [PRL contract addresses](/developers-hub/contract-addresses/parallel-v3/prl). If you still hold sPRL2 from the paused v1 vault, its BPT stays deposited in Aura, and exposed to Aura's smart contracts, until you migrate to v2 or withdraw; Aura has shut down its pool for this BPT.
 - **Claim window.** Each epoch's fee rewards can be claimed until its window ends; unclaimed rewards then return to the DAO Treasury. The window is set on-chain when the epoch is published: PIP-68 sets 6 epochs (about six months) as the target, down from 12, and every epoch published so far carries 365 days.
@@ -282,7 +282,7 @@ MCP read tools cache for 30 to 120 seconds; for a transaction that depends on an
   },
   {
     question: "What happens to my PRL if I unstake early?",
-    answer: "Unstaking sPRL on Ethereum and Base takes a fixed 28-day cooldown with no cost (one day, without penalty, on the sunset Polygon and Sonic deployments). Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero; it is burned on Ethereum's sPRL1 vault and paid to the Protocol & DAO Treasury multisig on the other vaults. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
+    answer: "Unstaking sPRL on Ethereum and Base takes a fixed 28-day cooldown with no cost (one day, without penalty, on the sunset Polygon and Sonic deployments and the paused sPRL2 v1 vault). Skipping it costs a penalty that starts at 50% of the amount and falls linearly to zero; it is burned on Ethereum's sPRL1 vault and paid to the Protocol & DAO Treasury multisig on the other vaults. Unstaking or transferring sPRL also resets your ParaBoost score; section 7 covers both in full."
   }
 ]} />
 
