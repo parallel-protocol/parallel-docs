@@ -17,7 +17,7 @@ npm install @parallel-protocol/x402
 ```
 
 :::warning
-Use version 0.8.1 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, and versions before 0.8.0 do not send it: their settlements are refused with `SETTLE_TOKEN_REQUIRED`, and the agent gets a `402` instead of your response. Version 0.8.1 adds the facilitator URL checks of step 2.
+Use version 0.8.2 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, and versions before 0.8.0 do not send it: their settlements are refused with `SETTLE_TOKEN_REQUIRED`, and the agent gets a `402` instead of your response. Version 0.8.1 adds the facilitator URL checks of step 2, and 0.8.2 tells the agent to check with you before paying again for the reasons listed in the error codes.
 :::
 
 Install your framework separately — they are optional peer dependencies:
