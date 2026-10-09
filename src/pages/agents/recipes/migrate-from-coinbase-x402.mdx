@@ -1,25 +1,26 @@
 ---
 title: Migrate from Coinbase x402 to Parallel
-description: Point your middleware at the Parallel facilitator and start accepting USDp, USDC, and sUSDp. A few lines of code, no agent-side changes.
+description: Point your middleware at the Parallel facilitator and start accepting USDp, USDC, and sUSDp. A few lines change on your server, and your agents pay with the Parallel client.
 ---
 
 import { HelpFooter } from '@/components/HelpFooter'
 
 # Migrate from Coinbase x402 to Parallel
 
-If you already use the Coinbase x402 facilitator, switching to Parallel takes a few minutes. x402 is a standard — your routes, your pricing, and your existing agent clients keep working.
+If you already use the Coinbase x402 middleware, moving your server to Parallel takes a few minutes. Your routes and prices carry over, written in the Parallel format below. Your agents need the Parallel client: Parallel uses its own payment format, so a Coinbase x402 client cannot pay a Parallel route.
 
 ## The change
 
-**Before (Coinbase x402):**
+**Before (Coinbase x402, `x402-express`):**
 
 ```ts
 import { paymentMiddleware } from "x402-express";
+import { facilitator } from "@coinbase/x402";
 
 app.use(paymentMiddleware(
   "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
   { "/api/search": { price: "$0.01", network: "base" } },
-  { url: "https://x402.org/facilitator" }
+  facilitator
 ));
 ```
 
@@ -44,37 +45,41 @@ Install `@parallel-protocol/x402` 0.8.2 or later: since 1 October 2026 the facil
 
 Keep the facilitator's URL in https, as above. Since 0.8.1, the SDK refuses a plain http URL outside `localhost`, `127.0.0.1` and `[::1]` with an `X402ConfigError` when the middleware is created. It calls that address only and never follows a redirect, which fails the call with `FACILITATOR_UNAVAILABLE`.
 
-The shape changes — `payTo` moves into the route, and prices drop the `$` prefix — but every concept maps one-to-one. Agents paying in USDC keep paying in USDC. Agents holding USDp can now pay you natively, with the facilitator handling conversion at no extra fee.
+Three things change in a route:
+
+- `payTo` moves into the route.
+- The price is an amount of each accepted token, without the `$` prefix: `"0.01"` asks for 0.01 USDp, 0.01 USDC, or 0.01 sUSDp.
+- The route key is a plain path, and it also covers the paths below it: `"/api"` covers `"/api/search"`. Keys with a method, a wildcard, or a parameter, such as `"GET /api/search"`, `"/api/*"`, or `"/api/[id]"`, match no request, and a request that matches no route is served without payment. Write `"/api/search"` or `"/api"` instead.
 
 ## What you gain
 
-- **Automatic conversion** when the agent holds one token and you accept another — no extra platform fee.
-- **Gas sponsored** on Base, HyperEVM, and Avalanche.
-- **More tokens accepted** — USDp, USDC, and sUSDp (yield-bearing: your revenue earns from the moment it settles).
-- **Same x402 standard** — no API change, no breaking change, no agent migration required.
+- **Automatic conversion** when the agent holds one token and you accept another: between USDp and sUSDp on every network, and with USDC on Base and Avalanche, where USDC backs USDp. The facilitator takes no fee. A swap through the Parallelizer pays its mint or burn fee, on the agent's side: you receive at least your price.
+- **Three tokens accepted**: USDp, USDC, and sUSDp (yield-bearing: your revenue earns from the moment it settles).
 
 ## What stays the same
 
 - Your handler signatures.
-- Your existing agent clients.
-- Your wallet address — funds still settle directly to it.
+- Your wallet address: payments settle to it.
+- Gas: the facilitator pays it on Base, HyperEVM, and Avalanche, as the Coinbase facilitator does.
+
+## What changes for your agents
+
+Agents pay Parallel routes with [`@parallel-protocol/x402-fetch`](/agents/x402/agent-quickstart), a drop-in `fetch` replacement. Parallel uses its own payment format, so a Coinbase x402 client cannot pay a Parallel route.
 
 ## Comparison
 
 |  | Coinbase x402 | **Parallel x402** |
 |---|---|---|
-| Tokens accepted | USDC only | **USDC, USDp, and sUSDp** |
-| Conversion | — | **Automatic, no extra platform fee** |
-| Gas | Standard | **Sponsored on Base, HyperEVM, and Avalanche** |
+| Conversion between tokens | No | **Automatic, no facilitator fee** |
 | Settles to | Your wallet | **Your wallet** |
-| Standard | x402 | **x402 (compatible)** |
+| Agent client | Coinbase x402 clients | **`@parallel-protocol/x402-fetch`** |
 
 ## FAQ
 
-**Do I lose access to USDC payments?** No. USDC is fully supported.
+**Do I lose access to USDC payments?** No. USDC is accepted next to USDp and sUSDp.
 
-**Do I need to update my agent clients?** No. x402 is a standard — agents sending standard USDC payment payloads keep working.
+**Do I need to update my agent clients?** Yes. Agents pay Parallel routes with [`@parallel-protocol/x402-fetch`](/agents/x402/agent-quickstart). A Coinbase x402 client cannot pay them, since Parallel uses its own payment format.
 
-**Can I run both facilitators in parallel?** Yes — point different routes (or different deployments) at different facilitators.
+**Can I run both facilitators in parallel?** Yes. Keep the Coinbase middleware on some routes and put the Parallel middleware on others, or on another deployment. An agent pays each route with the client of its facilitator.
 
 <HelpFooter />
