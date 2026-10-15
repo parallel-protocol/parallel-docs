@@ -128,9 +128,9 @@ Read `reason` before signing anything else:
 - `INSUFFICIENT_BALANCE` (fund the wallet first), `PAYMENT_EXPIRED` and `TX_REVERTED` ask for a new payment, and `RELAYER_UNAVAILABLE` for a new one later, after `retryAfter` when the error carries one: the payment was not taken, and the facilitator will not settle it.
 - For these, check with the merchant before you pay again:
   - `SETTLE_TIMEOUT`, `FACILITATOR_UNAVAILABLE`, `FACILITATOR_INVALID_RESPONSE`, `SETTLE_IN_PROGRESS` and `RECEIPT_UNAVAILABLE`: the first payment may have settled, or may still settle.
-  - `SUBMISSION_FAILED`: the settlement may have been interrupted after a transaction went out, so the payment may still settle.
+  - `SUBMISSION_FAILED`: the settlement may have been interrupted after a transaction went out, or the facilitator could not read whether the authorization was used, so the payment may have settled or may still settle.
   - `UNKNOWN`: the merchant's SDK could not read why the settlement failed, so the payment may still settle.
-  - `PAYMENT_NOT_VERIFIED`: the facilitator holds no payment it can settle, but a repeated settle also gets this after a first attempt whose transaction may still be mined.
+  - `PAYMENT_NOT_VERIFIED`: the facilitator holds no payment it can settle, and the code alone does not say why.
   - `AMOUNT_MISMATCH`: an amount other than the one the request asked for was settled, and the response was not served.
   - `SETTLE_TOKEN_REQUIRED` and `SETTLE_TOKEN_INVALID`: the merchant could not complete the settlement, and the payment was not taken.
   - `PARALLELIZER_PAUSED` and `SERVICE_UNAVAILABLE`: the facilitator refused this settle before it sent anything, but the payment can still settle until it expires, and when this answers the merchant's retry of a settle whose answer was lost, the first attempt may already have settled it.
