@@ -46,7 +46,7 @@ You set a price and the tokens you accept. The agent can choose which token to p
 
 ## Supported networks
 
-The facilitator settles on **Base**, **Ethereum**, **Avalanche**, and **HyperEVM**. Most builders use Base for the lowest cost and sponsored gas. You choose the network per route with the `network` field.
+The facilitator settles on **Base**, **Ethereum**, **Avalanche**, and **HyperEVM**. Most builders use Base for the lowest cost and sponsored gas. You choose the network per route with the `network` field. From version 0.8.3, the middleware refuses a route on another chain of the Parallel catalog, such as Sonic, with an `X402ConfigError` when it is created.
 
 ## Non-custodial settlement
 

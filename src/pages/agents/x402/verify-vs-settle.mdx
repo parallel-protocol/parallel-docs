@@ -56,9 +56,9 @@ The facilitator settles each payment through one of 13 routes, chosen from the s
 | **B** | `swapExactOutputWithAuthorization` | USDp | USDC (exact) | 120K | The Parallelizer swaps the agent's USDp for the exact USDC amount. |
 | **C** | `depositWithAuthorization` | USDp | sUSDp | 110K | The agent's USDp is deposited into the savings vault, and the merchant receives the sUSDp shares. |
 | **D** | `swapExactOutputWithAuthorization` | USDp | Another backing collateral (exact) | 120K | Same as B, for the other collaterals of the Parallelizer. |
-| **E** | `swapExactInputWithAuthorization` | USDC or a collateral (exact) | USDp (minimum) | 120K | The agent pays an exact amount, and the Parallelizer delivers at least the minimum USDp. |
-| **F** | `transferWithAuthorization` | USDC or a collateral | The same token | 65K | Direct transfer of the token. |
-| **G** | `swapExactInputWithAuthorization` | USDC or a collateral (exact) | sUSDp | 200K | The token is swapped to USDp, which is deposited as sUSDp for the merchant, in one transaction. |
+| **E** | `swapExactInputWithAuthorization` | USDC (exact) | USDp (minimum) | 120K | The agent pays an exact USDC amount, and the Parallelizer delivers at least the minimum USDp. |
+| **F** | `transferWithAuthorization` | USDC | USDC | 65K | Direct USDC transfer. |
+| **G** | `swapExactInputWithAuthorization` | USDC (exact) | sUSDp | 200K | The USDC is swapped to USDp, which is deposited as sUSDp for the merchant, in one transaction. |
 | **H** | `redeemWithAuthorization` | sUSDp | USDp | 130K | The agent redeems sUSDp shares, and the merchant receives the USDp. |
 | **I** | `redeemWithAuthorization` and `swapExactOutputWithAuthorization` | sUSDp | USDC (exact) | 180K | sUSDp is redeemed to USDp, then swapped for the exact USDC amount, in one transaction. |
 | **J** | `transferWithAuthorization` | sUSDp | sUSDp | 65K | Direct transfer of sUSDp shares. |
@@ -71,7 +71,7 @@ What each route needs on the chain:
 - Routes B, D, E, G, I, K and L need the Parallelizer, deployed on Ethereum, Base, Avalanche and HyperEVM.
 - Routes B and I swap to USDC, so they need USDC among the chain's collaterals, which is the case on Base and Avalanche.
 - Routes C, G, H, I, J, K and L need sUSDp on the chain.
-- Routes E, F and G take as payment the chain's USDC or one of its collaterals, and the token must support EIP-3009.
+- Route F takes the chain's USDC, on the four chains. Routes E and G take it only where USDC is a collateral of the Parallelizer, on Base and Avalanche. On these routes, any other token is refused with `PAYMENT_METHOD_NOT_SUPPORTED`, at verify and at settle.
 - Route U needs the escrow contract, deployed on Base. On route U, verify also checks that the payer holds the cap. A metered payment on another chain is refused at verify with `PAYMENT_METHOD_NOT_SUPPORTED`.
 
 The facilitator's `GET /capabilities?chain=<slug>` lists the routes available on a chain right now, with their gas estimates and fees, and the settlement receipt says in `gasSponsored` whether the facilitator paid the gas.
@@ -85,5 +85,7 @@ The facilitator's `GET /capabilities?chain=<slug>` lists the routes available on
 | Receipt | `payment-response` | server → client (on `200`) |
 
 All three carry base64-encoded payloads. The full shapes are documented in [Schemas](/agents/x402/schemas).
+
+From version 0.5.0, `@parallel-protocol/x402-fetch` also sends an `x402-client` header with the paid request, naming the x402-fetch and CLI versions the agent runs, for example `x402-fetch/0.5.1 cli/0.5.2`. The middleware does not read it. Your handler can, to spot a payer on outdated versions and tell it to update.
 
 <HelpFooter />
