@@ -17,7 +17,7 @@ npm install @parallel-protocol/x402-fetch
 
 This page describes version 0.5.1, the one a fresh install gets. The package signs through the payment engine of the [Parallel CLI](/agents/cli), `@parallel-protocol/cli`, which it installs as a regular dependency, in version 0.5.2 or a later 0.5 release.
 
-A project on an earlier release moves to 0.5.1 by installing it, since a `^0.4` or older range does not reach 0.5. From 0.3.0, `payFetch` rejects with an `X402FetchError` when the merchant answers a paid request with `402`, as described in [When the merchant refuses the payment](#when-the-merchant-refuses-the-payment) and [When the settlement fails](#when-the-settlement-fails): code written for 0.2 that read that response must catch the error instead.
+A project on an earlier release moves to 0.5.1 with `npm install @parallel-protocol/x402-fetch@latest`, which also sets its range to `^0.5.1`. Without `@latest`, `npm install` and `npm update` keep the release that a `^0.4` or older range allows, since it does not reach 0.5. From 0.3.0, `payFetch` rejects with an `X402FetchError` when the merchant answers a paid request with `402`, as described in [When the merchant refuses the payment](#when-the-merchant-refuses-the-payment) and [When the settlement fails](#when-the-settlement-fails): code written for 0.2 that read that response must catch the error instead.
 
 ## 2. Fund a wallet
 
@@ -142,7 +142,7 @@ Read `reason` before signing anything else:
   - `AMOUNT_MISMATCH`: an amount other than the one the request asked for was settled, and the response was not served.
   - `SETTLE_TOKEN_REQUIRED` and `SETTLE_TOKEN_INVALID`: the merchant could not complete the settlement, and the payment was not taken.
   - `PARALLELIZER_PAUSED`, `SAVINGS_PAUSED` and `SERVICE_UNAVAILABLE`: the facilitator refused this settle before it sent anything, but the payment can still settle until it expires, and when this answers the merchant's retry of a settle whose answer was lost, the first attempt may already have settled it.
-  - `AUTHORIZATION_USED`: the authorization was consumed or cancelled on-chain, and not by this facilitator. If someone else settled it, the merchant was paid.
+  - `AUTHORIZATION_USED`: the authorization was consumed or cancelled on-chain, possibly by an earlier attempt of this facilitator whose receipt it did not see, so the merchant may have been paid.
 
 For any other reason, check with the merchant as well before you pay again. The [error codes](/agents/x402/error-codes) give the detail for each reason.
 
@@ -153,7 +153,8 @@ For any other reason, check with the merchant as well before you pay again. The 
 - **You only pay for success.** The merchant settles the payment only when it serves a successful response; an API error means nothing is charged, and unsettled authorizations simply expire.
 - **One payment settles once.** The facilitator claims a payment before it submits it, so the same authorization never settles twice.
 - **Payments that come together are signed together.** The engine prepares them concurrently, and none accounts for what the others have signed: each is checked against the wallet's on-chain balance, which a signed payment lowers only when it settles. Two payments signed together can each fit a balance that covers only one. The chain still refuses a double spend, so the second settlement fails with `INSUFFICIENT_BALANCE`, possibly after the merchant has served the request. `dailyBudget` counts each payment from the moment its signing starts, and the wrapper never retries a payment on its own.
-- **The engine gets only what it needs.** The signing engine runs as a child process of your agent. It receives the key and the settings it needs to start and reach the chain: `ALCHEMY_API_KEY`, the system paths, and the runtime's own settings (proxy, certificates, TLS and OpenSSL, `NODE_OPTIONS`). Since version 0.3.0, the rest of your environment is not passed to it. That list does not cover files on disk: from version 0.5.2, `@parallel-protocol/cli` loads a `.env` file only from the directory it runs in, which is your agent's working directory. Earlier releases also look in the parent directories, and then where the CLI is installed, which finds your project's `.env`.- **A payment can settle even when the paid retry fails on the network.** Treat non-idempotent paid requests accordingly.
+- **The engine gets only what it needs.** The signing engine runs as a child process of your agent. It receives the key and the settings it needs to start and reach the chain: `ALCHEMY_API_KEY`, the system paths, and the runtime's own settings (proxy, certificates, TLS and OpenSSL, `NODE_OPTIONS`). Since version 0.3.0, the rest of your environment is not passed to it. That list does not cover files on disk: from version 0.5.2, `@parallel-protocol/cli` loads a `.env` file only from the directory it runs in, which is your agent's working directory. Earlier releases also look in the parent directories, and then where the CLI is installed, which finds your project's `.env`.
+- **A payment can settle even when the paid retry fails on the network.** Treat non-idempotent paid requests accordingly.
 
 ## Next steps
 
