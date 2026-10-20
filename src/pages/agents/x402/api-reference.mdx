@@ -37,7 +37,7 @@ interface PaymentMiddlewareConfig {
 |---|---|---|---|
 | `price` | `string \| bigint \| (ctx) => string \| bigint \| Promise<string \| bigint>` | Yes | Amount required. A string like `"0.01"` is parsed with each accepted token's own decimals. Pass a `bigint` to skip parsing, or a function to price each request from its content. On a metered route, `price` is the cap. |
 | `decimals` | `number` | No | Override for custom tokens only. Each accepted token's decimals are resolved automatically from Parallel's on-chain token catalog. An unknown token without `decimals` throws `X402ConfigError` at the first request on the route. |
-| `network` | `string` | Yes | Chain slug: `"ethereum"`, `"base"`, `"avalanche"`, or `"hyperevm"`. |
+| `network` | `string` | Yes | Chain slug: `"ethereum"`, `"base"`, `"avalanche"`, or `"hyperevm"`, the chains the facilitator settles on. From 0.8.3, another chain of the Parallel catalog, such as Sonic, throws `X402ConfigError` when the middleware is created. |
 | `payTo` | `Address` | Yes | The merchant's receiving address. |
 | `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to USDp, USDC, and sUSDp for the network, and required on networks without defaults. A metered route accepts USDp only. |
 | `description` | `string` | No | Human-readable description of the resource, included in the `402` body. |
