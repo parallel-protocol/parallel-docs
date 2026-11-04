@@ -9,7 +9,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 The Parallel MCP server lets any AI assistant read the protocol and prepare transactions for you: live TVL and savings rates, mint and redeem quotes, bridge transfers, staking — 36 tools behind one URL.
 
-**Zero config. Never signs.** There is no API key, no account and no private key to provide. Read tools return live on-chain data; write tools return **unsigned transaction data** that you review and sign in your own wallet. The server cannot move funds — yours or anyone's.
+**Zero config. Never signs.** There is no API key, no account and no private key to provide. Read tools return live on-chain data, [cached briefly](/agents/mcp/transactions#data-freshness). Write tools return **unsigned transaction data** that you review and sign in your own wallet. The server cannot move funds, yours or anyone's.
 
 ## 1. Connect
 
@@ -36,6 +36,8 @@ claude mcp add --transport http parallel https://mcp.parallel.best/mcp
 
 **Any other MCP client** — point it at `https://mcp.parallel.best/mcp` with the Streamable HTTP transport.
 
+The endpoint is stateless. Every request is a POST that stands on its own, `initialize` included. The server issues no session id, and a GET or DELETE gets HTTP 405. Answers come back as plain JSON, not as an event stream. A request body larger than 64 KB gets HTTP 413 with a JSON-RPC error (code `-32000`) before it is parsed.
+
 ## 2. Try it
 
 Ask in plain language — the assistant picks the right tools:
@@ -50,13 +52,13 @@ Total TVL, USDp supply, the savings APY and the proof-of-solvency ratio, in one 
 What's the current sUSDp savings rate?
 ```
 
-The live protocol-wide APY (around 12% at the time of writing), the exchange rate and total deposits per chain.
+The live protocol-wide APY, the exchange rate and total deposits per chain.
 
 ```
-Quote me a mint of 500 USDp with USDC on Base
+Quote me a mint of USDp with 500 USDC on Base
 ```
 
-Expected output, fees and price impact — a read, nothing to sign.
+The expected USDp output, the fee and the oracle price. A read, nothing to sign.
 
 ```
 Deposit 100 USDp into savings on Base, receiver 0xYourAddress
@@ -68,9 +70,9 @@ An unsigned transaction (plus an approval if needed) ready to review and sign in
 
 | The server | Your wallet |
 |---|---|
-| Reads on-chain data through public RPCs | — |
+| Reads on-chain data through RPC nodes, and some staking, governance and bridge data from HTTP APIs | — |
 | Builds and simulates unsigned transactions | Reviews, signs and submits every transaction |
-| Warns before risky operations (slippage, penalties, lost boosts) | Decides |
+| Warns before risky operations (failed simulations, unstake penalties, lost boosts, sunset chains) | Decides |
 | Holds no keys, no funds, no user accounts | Holds the keys |
 
 The endpoint is public and unauthenticated by design: there is nothing to steal and nothing to configure.
