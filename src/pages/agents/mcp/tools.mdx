@@ -64,11 +64,11 @@ import { HelpFooter } from '@/components/HelpFooter'
 | Tool | What it does |
 |---|---|
 | `get_staking_overview` | Epochs, totals staked in sPRL1/sPRL2 in all and per chain, voting power, and APRs with an `aprNote` (when an epoch has settled — otherwise null, with the reason in `unavailableFields`) |
-| `get_staking_info` | One address's full staking position on every chain: balances, rewards (including the legacy ones on Polygon), cooldowns, ParaBoost, and any sPRL2 left in the paused v1 vault |
+| `get_staking_info` | One address's full staking position on every chain: balances, rewards (in USDp on Base, and in PAR for the legacy ones on Polygon, with the date the next legacy epoch closes), cooldowns, ParaBoost, and any sPRL2 left in the paused v1 vault |
 | `get_cooldown_status` | Pending unstake requests on every chain, remaining time and estimated penalties |
 | `stake` | Builds staking transactions on Ethereum or Base (`chain`) — PRL into sPRL1, or BPT or PRL + WETH into sPRL2 |
 | `unstake` | On the `chain` that holds the position. With `amount`: builds the cooldown start. Without: builds the withdrawal of matured requests |
-| `claim_rewards` | Builds reward claims for sPRL1/sPRL2 on Base, plus one on Polygon for the epochs published before the move to Base while any remain |
+| `claim_rewards` | Builds reward claims for sPRL1/sPRL2 on Base, paid in USDp, plus one on Polygon, paid in PAR, for the epochs published before the move to Base that can still be claimed |
 
 New stakes go to Ethereum or Base: sPRL1, and the sPRL2 v2 vault, which replaced the paused v1 vault on Ethereum. sPRL1 on Polygon and Sonic is being sunset: a stake there is refused with `CHAIN_SUNSET`, while unstaking and withdrawing stay open and carry a `STAKING_SUNSET` warning. Every staking APR comes with an `aprNote`: a 0.00% means the last epoch distributed no rewards, not that a vault pays none.
 

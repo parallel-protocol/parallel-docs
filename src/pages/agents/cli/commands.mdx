@@ -95,7 +95,7 @@ parallel staking unstake  --type <sprl1|sprl2> [--chain <chain>] --wallet       
 parallel staking claim    --type <sprl1|sprl2|all> --wallet
 ```
 
-`stake` and `unstake` act on the chain given by `--chain` (default `ethereum`): stake on Ethereum or Base, unstake on the chain that holds the position, Polygon and Sonic included while staking is being sunset there. The sPRL2 stake takes `--amount` in BPT of the chosen chain's pool, or `--amount` in PRL with `--weth-amount <n>` for the PRL + WETH path. `claim` sends one claim on Base, plus one on Polygon for the epochs published before the move to Base, while any remain. `info` and `cooldown` cover every chain, and list what is left in the paused sPRL2 v1 vault.
+`stake` and `unstake` act on the chain given by `--chain` (default `ethereum`): stake on Ethereum or Base, unstake on the chain that holds the position, Polygon and Sonic included while staking is being sunset there. The sPRL2 stake takes `--amount` in BPT of the chosen chain's pool, or `--amount` in PRL with `--weth-amount <n>` for the PRL + WETH path. `claim` sends one claim on Base, for rewards in USDp, plus one on Polygon, for rewards in PAR from the epochs published before the move to Base that can still be claimed. `info` gives the date the next of those epochs closes. `info` and `cooldown` cover every chain, and list what is left in the paused sPRL2 v1 vault.
 
 ## Governance
 
