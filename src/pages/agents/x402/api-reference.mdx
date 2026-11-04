@@ -10,7 +10,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 Reference for the `@parallel-protocol/x402` package: configuration, framework adapters, and the lower-level facilitator client.
 
 :::warning
-Use version 0.8.2 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, which the SDK sends from 0.8.0: with 0.7.x or earlier, every settlement is refused with `SETTLE_TOKEN_REQUIRED`.
+Use version 0.8.2 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, which the SDK sends from 0.8.0: with 0.7.x or earlier, every settlement is refused with `SETTLE_TOKEN_REQUIRED`. Accepting USDC on a metered route needs version 0.10.0 or later.
 :::
 
 ## Configuration
@@ -35,21 +35,21 @@ interface PaymentMiddlewareConfig {
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `price` | `string \| bigint \| (ctx) => string \| bigint \| Promise<string \| bigint>` | Yes | Amount required. A string like `"0.01"` is parsed with each accepted token's own decimals. Pass a `bigint` to skip parsing, or a function to price each request from its content. On a metered route, `price` is the cap. |
-| `decimals` | `number` | No | Override for custom tokens only. Each accepted token's decimals are resolved automatically from Parallel's on-chain token catalog. An unknown token without `decimals` throws `X402ConfigError` at the first request on the route. |
+| `price` | `string \| bigint \| (ctx) => string \| bigint \| Promise<string \| bigint>` | Yes | Amount required. A string like `"0.01"` is parsed with each accepted token's own decimals. Pass a `bigint` to skip parsing, or a function to price each request from its content. On a metered route, `price` is the cap. On a metered route that accepts tokens with different decimals, such as USDp and USDC, a `bigint` price is refused with `X402ConfigError`: use a string like `"2"`. |
+| `decimals` | `number` | No | Override for custom tokens only. Each accepted token's decimals are read from the token catalog of `@parallel-protocol/chains`, and `decimals` replaces them for every token of the route. An unknown token without `decimals` throws `X402ConfigError` at the first request on the route. On a metered route that accepts tokens with different decimals, `decimals` is refused with `X402ConfigError` at startup. |
 | `network` | `string` | Yes | Chain slug: `"ethereum"`, `"base"`, `"avalanche"`, or `"hyperevm"`, the chains the facilitator settles on. From 0.8.3, another chain of the Parallel catalog, such as Sonic, throws `X402ConfigError` when the middleware is created. |
 | `payTo` | `Address` | Yes | The merchant's receiving address. |
-| `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to USDp, USDC, and sUSDp for the network, and required on networks without defaults. A metered route accepts USDp only. |
+| `acceptedTokens` | `Address[]` | No | Token addresses the route accepts. Defaults to USDp, USDC, and sUSDp for the network on a fixed-price route, and to USDp on a metered route. Required on networks without defaults. A metered route on Base can also list USDC, paid through Permit2 by standard x402 clients: see [USDC from standard x402 clients](#usdc-from-standard-x402-clients). Any other token on a metered route throws `X402ConfigError` at startup. |
 | `description` | `string` | No | Human-readable description of the resource, included in the `402` body. |
-| `scheme` | `"exact" \| "upto"` | No | `exact` (default) charges `price` as invoiced. `upto` invoices `price` as a cap: the handler names the amount it actually charges, and the rest is refunded on-chain. See [metered routes](#metered-routes-upto). |
+| `scheme` | `"exact" \| "upto"` | No | `exact` (default) charges `price` as invoiced. `upto` invoices `price` as a cap: the handler names the amount it actually charges, and only that amount is paid. See [metered routes](#metered-routes-upto). |
 | `maxTimeoutSeconds` | `number` | No | Settlement window announced to the payer, 300 by default. On a metered route it is 3,600 at most: a larger value throws `X402ConfigError` at startup. On metered routes, Express, Hono and Next.js give the handler this window minus two minutes, kept for the settlement and its retry, and 30 seconds at least. Fastify does not time handlers out. |
-| `meter` | `(ctx) => string \| bigint \| undefined \| Promise<string \| bigint \| undefined>` | No | Metered routes only: reads the amount to charge from the handler's response. See [metered routes](#metered-routes-upto). |
+| `meter` | `(ctx) => string \| bigint \| null \| undefined \| Promise<string \| bigint \| null \| undefined>` | No | Metered routes only: reads the amount to charge from the handler's response. On a route that accepts tokens with different decimals, it must return a string, since a `bigint` is refused like a failing meter. See [metered routes](#metered-routes-upto). |
 
 Route matching is **longest-prefix-wins**: `/api/v1/users` matches a `/api/v1` config before a `/api` one.
 
 ### Metered routes (`upto`)
 
-On a route with `scheme: "upto"`, `price` is a cap: the handler names the amount it charges, and the facilitator settles that amount through [route U](/agents/x402/verify-vs-settle#settlement-routes), refunding the rest to the agent. Metered payments are made in USDp, on Base.
+On a route with `scheme: "upto"`, `price` is a cap: the handler names the amount it charges, and the facilitator settles that amount through [route U](/agents/x402/verify-vs-settle#settlement-routes), refunding the rest to the agent, or through route V for a payment signed with Permit2. Metered payments settle on Base, the one chain with the escrow. They are made in USDp, and in USDC from standard x402 clients, see [below](#usdc-from-standard-x402-clients).
 
 ```ts
 import { SETTLE_AMOUNT_HEADER } from "@parallel-protocol/x402";
@@ -71,9 +71,19 @@ The handler names the amount in the `payment-settle-amount` header, in whole tok
 | an amount up to `price` | That amount is settled, and the receipt's `amountSettled` carries it. |
 | malformed, more decimals than the token, or above `price` | The response is discarded and the agent gets `402 INVALID_SETTLE_AMOUNT`. |
 
-Instead of the header, a `meter` function on the route can read the amount from the response: it receives `{ status, header(name), body, request }` and returns an amount, or nothing to let the header decide. An amount above the cap settles the cap, and a `meter` that throws makes the agent get `402 INVALID_SETTLE_AMOUNT`.
+Instead of the header, a `meter` function on the route can read the amount from the response: it receives `{ status, header(name), body, request }` and returns an amount, or nothing to let the header decide. An amount above the cap settles the cap, and a `meter` that throws makes the agent get `402 INVALID_SETTLE_AMOUNT`. So does a `meter` that returns something that is not an amount.
 
 A handler that finishes after the window has done the work, but the payment can no longer settle: the agent gets `402 PAYMENT_SETTLEMENT_FAILED` with reason `PAYMENT_EXPIRED`, and the merchant is not paid. Keep a margin.
+
+#### USDC from standard x402 clients
+
+On Base, a metered route can also accept USDC from standard x402 clients that support the `upto` scheme, such as AgentCash. They sign a Permit2 transfer of the cap, and the facilitator settles it through route V: the Permit2 proxy pays the merchant the USDC charged, and the escrow converts it to USDp in the same transaction. This needs version 0.10.0 or later.
+
+List the network's USDC in `acceptedTokens`, for example `[PARALLEL_TOKENS.base.usdc, PARALLEL_TOKENS.base.usdp]`. The `402` then lists the USDC entry first, with its EIP-712 domain and the escrow as `facilitatorAddress`. It also declares the `eip2612GasSponsoring` extension, so a client whose Permit2 allowance for USDC falls short can sign an EIP-2612 permit with the payment.
+
+Before you list USDC, approve the escrow for USDC from the `payTo` address, with an ERC-20 `approve`. Its address is `getUptoEscrowAddress("base")` from `@parallel-protocol/chains`, `0xc3F4de61381A05ED7FBE61c8327B45507BA87F26`. The escrow takes back each USDC charge to convert it, so every payment uses up that much of the allowance. A payment whose cap the remaining allowance does not cover is refused at verify with `MERCHANT_NOT_ENABLED`. Receive on a dedicated address rather than a treasury, since it bounds what the approval exposes.
+
+On such a route, `price` must be a decimal string such as `"2"`, and so must the amount a `meter` returns. The receipt gives the USDC charged in `amountSettled`, and the USDp the merchant received in `amountDelivered` when the facilitator could read it from the settlement. `@parallel-protocol/x402-fetch` does not pay the USDC entry. It pays the USDp entry of the same invoice, through route U.
 
 ## Framework adapters
 
@@ -81,8 +91,8 @@ A handler that finishes after the window has done the work, but the payment can 
 |---|---|---|
 | `@parallel-protocol/x402/express` | `paymentMiddleware(config)` | Express 4 / 5 |
 | `@parallel-protocol/x402/next` | `withPayment(config, handler)` | Next.js 14 / 15 |
-| `@parallel-protocol/x402/fastify` | `paymentMiddleware(config)` | Fastify 4 / 5 |
-| `@parallel-protocol/x402/hono` | `paymentMiddleware(config)` | Hono 4+ |
+| `@parallel-protocol/x402/fastify` | `paymentMiddleware(config)` | Fastify 5 (5.12.7 or later) |
+| `@parallel-protocol/x402/hono` | `paymentMiddleware(config)` | Hono 4 |
 
 See the [quickstart](/agents/x402/quickstart) for a working example of each.
 
@@ -105,6 +115,7 @@ const result = await client.settle(paymentHeader, paymentRequirements, { settleT
 if (result.success) {
   console.log(result.txHash, result.route, result.gasSponsored);
   console.log(result.amountSettled);  // metered routes: the amount charged
+  console.log(result.amountDelivered); // route V: the USDp the merchant received, when readable
   console.log(result.alreadySettled); // true when an earlier settle already did it
 } else {
   console.error(result.error.code);    // e.g. "INSUFFICIENT_BALANCE"
@@ -113,7 +124,9 @@ if (result.success) {
 }
 ```
 
-The constructor throws `X402ConfigError` when the URL is neither https nor plain http on `localhost`, `127.0.0.1` or `[::1]`. `verify` uses a 10-second timeout and `settle` a 60-second one, since it waits for on-chain inclusion. `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure, with the facilitator's text in `.detail` and its status in `.status`, and a verify that issues no settle token is an invalid response. `settle` returns a result union on facilitator errors and throws on connectivity issues, with `SETTLE_TIMEOUT` when the 60 seconds ran out: the payment may then still settle.
+A confirmation also carries the fields of the standard x402 settlement response: `transaction`, `network`, `amount` and `payer`.
+
+The constructor throws `X402ConfigError` when the URL is neither https nor plain http on `localhost`, `127.0.0.1` or `[::1]`. `verify` uses a 10-second timeout and `settle` a 60-second one, since it waits for on-chain inclusion. Both translate a standard x402 Permit2 payment into the form the facilitator verifies, and both throw `INVALID_PAYMENT` when the payment header cannot be decoded. `verify` throws an [`X402RuntimeError`](/agents/x402/error-codes) on any failure, with the facilitator's text in `.detail` and its status in `.status`. A verify that issues no settle token is an invalid response, `FACILITATOR_INVALID_RESPONSE`. `settle` returns a result union on the facilitator's refusals. It throws `SETTLE_TIMEOUT` when the 60 seconds ran out, `FACILITATOR_UNAVAILABLE` when it cannot reach the facilitator or gets an error answer that carries no `error` field, and `FACILITATOR_INVALID_RESPONSE` for a malformed answer. After `SETTLE_TIMEOUT` or `FACILITATOR_UNAVAILABLE`, the payment may still settle.
 
 The settle token is a secret for the life of the request. Keep it in memory, never log it, never send it to the payer.
 
@@ -135,6 +148,7 @@ const result = await gate({
   getMethod: () => request.method,
   getPath: () => request.path,
   getUrl: () => request.url,
+  getBody: async () => request.body, // optional: the parsed body, for price and meter functions
 });
 
 if (result.type === "pass") {
@@ -161,8 +175,10 @@ Use `createPaymentMiddleware` instead if you want the whole flow (verify, run th
 
 ## Utilities
 
-| Function | Signature | Description |
+| Export | Type | Description |
 |---|---|---|
+| `PARALLEL_TOKENS` | `Record<network, { usdp, susdp, usdc, … }>` | The token addresses of each network, such as `PARALLEL_TOKENS.base.usdc` |
+| `getDefaultAcceptedTokens` | `(network) => [usdp, usdc, susdp] \| undefined` | The default `acceptedTokens` of a fixed-price route |
 | `parsePrice` | `(price, decimals?) => bigint` | `"0.01"` → `10000000000000000n` (18 decimals default) |
 | `validateAddress` | `(address) => boolean` | Checks `0x` + 40 hex chars |
 | `toEip155Network` | `(network) => string` | `"base"` → `"eip155:8453"` |
