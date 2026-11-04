@@ -41,7 +41,7 @@ Standard x402 clients that support the `upto` scheme, such as AgentCash, can pay
 
 To accept them:
 
-1. From your `payTo` address, approve the escrow for Base USDC with an ERC-20 `approve`. The escrow is `0xc3F4de61381A05ED7FBE61c8327B45507BA87F26`, which `getUptoEscrowAddress("base")` returns in `@parallel-protocol/chains` 0.6.0. It takes back each USDC charge to convert it, so every payment uses up that much of the allowance. A payment whose cap the remaining allowance does not cover is refused at verify with `MERCHANT_NOT_ENABLED`. Use a dedicated receiving address, since it limits what the approval exposes.
+1. From your `payTo` address, approve the escrow for Base USDC once with an ERC-20 `approve`. The escrow is `0xc3F4de61381A05ED7FBE61c8327B45507BA87F26`, which `getUptoEscrowAddress("base")` returns in `@parallel-protocol/chains` 0.6.0. Each payment uses up the USDC it converts from that allowance: when what is left falls below the route's cap, approve again. Until then, and before the first approval, these payments are refused at verify with `MERCHANT_NOT_ENABLED`. Use a dedicated receiving address, since it limits what the approval exposes.
 2. List `PARALLEL_TOKENS.base.usdc` in the route's `acceptedTokens`, next to `PARALLEL_TOKENS.base.usdp` for agents on the Parallel client. Write the price as a decimal string such as `"0.01"`: with USDp and USDC on the same route, a `bigint` price is refused at startup with `X402ConfigError`.
 
 The `402` then lists the USDC entry first, with what these clients need to sign. The receipt gives the USDC charged in `amountSettled`, and the USDp you received in `amountDelivered` when the facilitator could read it from the settlement.
