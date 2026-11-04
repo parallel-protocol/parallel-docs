@@ -1,6 +1,6 @@
 ---
 title: Webhooks
-description: Merchant webhooks for the Parallel x402 facilitator are on the roadmap. Until then, confirm payments from the payment-response header or on-chain.
+description: Merchant webhooks for the Parallel x402 facilitator are on the roadmap. Until then, confirm payments from the payment-response header, the facilitator, or on-chain.
 ---
 
 import { HelpFooter } from '@/components/HelpFooter'
@@ -9,9 +9,10 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 Webhook delivery for merchants is **on the roadmap**.
 
-Until then, you can confirm payments in two ways:
+Until then, you can confirm payments in three ways:
 
-- **Read the `payment-response` header** on the successful response — it contains the on-chain `txHash` and settlement details ([schema](/agents/x402/schemas)).
+- **Read the `payment-response` header** of the paid response. The middleware adds it after your handler has answered, so your handler does not see it: read it from the response on its way out. It holds the `txHash`, the `route`, the `payer` and the `amount` charged, and `amountSettled` on metered routes ([schema](/agents/x402/schemas)). If you build on `createPaymentGate`, `settleVerified` returns the same confirmation as an object.
+- **Ask the facilitator.** `GET https://agents.parallel.best/x402/verify?txHash=<hash>&chain=<slug>` says in `x402Payment` whether the transaction is a payment the facilitator settled, and in `txMined` whether it was mined and succeeded. Without `chain`, a hash the facilitator has no record of gets a `400` with `MISSING_CHAIN`.
 - **Watch your `payTo` wallet on-chain** for incoming transfers.
 
 When webhooks ship, this page will document the event types, payload format, and signature verification.
