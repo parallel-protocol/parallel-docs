@@ -11,15 +11,15 @@ import { HelpFooter } from '@/components/HelpFooter'
 <FAQ items={[
   {
     question: "Is the facilitator free?",
-    answer: "Yes. The hosted facilitator is free to use — Parallel takes no cut of your revenue. Gas is sponsored on Base, HyperEVM, and Avalanche (1,000 transactions per agent per month)."
+    answer: "Yes. The hosted facilitator is free to use, and Parallel takes no cut of your revenue. Gas is sponsored on Base, HyperEVM, and Avalanche. The facilitator counts 1,000 sponsored payments per paying address each UTC month, across these chains together. Past that, payments still settle, and the receipt says gasSponsored is false."
   },
   {
     question: "Do I need to create an account?",
-    answer: "No. There's no signup, no KYB, and no Parallel onboarding. Funds settle directly to the wallet address you control. You can start accepting payments in about five minutes."
+    answer: "No. There's no signup, no KYB, and no Parallel onboarding. Funds settle directly to the wallet address you control. You can start accepting payments in about five minutes. Accepting USDC on a metered route needs one approval: your payTo address approves the escrow for USDC, and renews it when payments bring the allowance below the route's cap."
   },
   {
     question: "What stablecoins are supported?",
-    answer: "USDp, USDC, and sUSDp. The merchant picks which tokens to accept; the agent can choose which token to pay with — or let the SDK select the route automatically."
+    answer: "USDp, USDC, and sUSDp. The merchant picks which tokens to accept, and the agent can choose which token to pay with, or let the SDK select the route automatically. Metered routes are paid in USDp, and on Base also in USDC from Coinbase x402 clients, converted to USDp for you."
   },
   {
     question: "How is this different from Stripe?",
@@ -27,19 +27,19 @@ import { HelpFooter } from '@/components/HelpFooter'
   },
   {
     question: "How is this different from Coinbase x402?",
-    answer: "Coinbase x402 handles USDC only. Parallel x402 accepts USDp, USDC, and sUSDp, converts automatically when the agent pays in a different token than you receive, and sponsors gas on Base, HyperEVM, and Avalanche. It's the same x402 standard, so you can migrate in minutes."
+    answer: "Coinbase x402 settles the token the agent signs for. Parallel x402 accepts USDp, USDC, and sUSDp, and converts between them when the agent pays in a different token than you receive: USDp and sUSDp on every network, USDC on Base and Avalanche. Your server moves in minutes. Agents pay with the Parallel client, @parallel-protocol/x402-fetch, and Coinbase x402 clients can pay your metered routes on Base in USDC."
   },
   {
     question: "Is the facilitator audited?",
-    answer: "The smart contracts that settle every payment are audited by Bailsec, Cyfrin, and Certora. The facilitator itself is a hosted service operated by Parallel."
+    answer: "The protocol contracts payments go through, the USDp and sUSDp tokens and the Parallelizer, are audited by Bail Security, Cyfrin and Certora. The reports are on the audits page, docs.parallel.best/security/audits. The facilitator itself is a hosted service operated by Parallel."
   },
   {
     question: "What happens if the facilitator goes down?",
-    answer: "Payments fail safe: if the facilitator is unreachable, nothing settles — signed authorizations simply expire and no funds move. If only a settle's answer is lost, the SDK retries the settle once, which is safe since the facilitator answers a repeated settle with its recorded outcome; if that fails too, the agent gets a 402 saying the payment may still settle, and should check with the merchant before paying again. A public status page for the hosted instance is being set up."
+    answer: "Payments fail safe: if the facilitator is unreachable, nothing settles. Signed authorizations simply expire and no funds move. If only a settle's answer is lost, the SDK retries the settle once, which is safe since the facilitator answers a repeated settle with its recorded outcome. If that fails too, the agent gets a 402 saying the payment may still settle, and should check with the merchant before paying again. A public status page for the hosted instance is being set up. Meanwhile, the facilitator's GET /health reports whether its chain nodes, database and cache answer."
   },
   {
     question: "How do I get notified when an agent pays?",
-    answer: "Read the payment-response header on the successful response (it contains the on-chain transaction hash) or watch your wallet on-chain. Webhook delivery is on the roadmap."
+    answer: "Read the payment-response header on the successful response (it contains the on-chain transaction hash), or watch your wallet on-chain. To confirm a hash, call GET https://agents.parallel.best/x402/verify?txHash=<hash>&chain=<chain> on the facilitator. Webhook delivery is on the roadmap."
   },
   {
     question: "What about KYC / AML?",
