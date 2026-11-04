@@ -117,7 +117,7 @@ app.use(paymentMiddleware({
 }));
 ```
 
-Before you list USDC, approve the escrow for USDC once from the `payTo` address, with an ERC-20 `approve` on Base USDC. The escrow is `0xc3F4de61381A05ED7FBE61c8327B45507BA87F26`, which `getUptoEscrowAddress("base")` in `@parallel-protocol/chains` returns. Use a dedicated receiving address, since it limits what the approval exposes. Until the approval is in place, these payments are refused at verify with `MERCHANT_NOT_ENABLED`.
+Before you list USDC, approve the escrow for USDC once from the `payTo` address, with an ERC-20 `approve` on Base USDC. The escrow is `0xc3F4de61381A05ED7FBE61c8327B45507BA87F26`, which `getUptoEscrowAddress("base")` in `@parallel-protocol/chains` returns. Each payment uses up the USDC it converts from that allowance: when what is left falls below the route's cap, approve again. Until then, and before the first approval, these payments are refused at verify with `MERCHANT_NOT_ENABLED`. Use a dedicated receiving address, since it limits what the approval exposes.
 
 On a metered route, `price` is a cap. Your handler names the amount it charges in the `payment-settle-amount` header, and the cap is charged when it names none. Write the price as a decimal string. Coinbase x402 clients count the whole cap against their spending limit, which is $1 per payment by default in their current release, so keep the cap low. The receipt gives the USDC charged in `amountSettled`, and the USDp you received in `amountDelivered`.
 
