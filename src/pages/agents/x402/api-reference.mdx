@@ -45,7 +45,7 @@ interface PaymentMiddlewareConfig {
 | `maxTimeoutSeconds` | `number` | No | Settlement window announced to the payer, 300 by default. On a metered route it is 3,600 at most: a larger value throws `X402ConfigError` at startup. On metered routes, Express, Hono and Next.js give the handler this window minus two minutes, kept for the settlement and its retry, and 30 seconds at least. Fastify does not time handlers out. |
 | `meter` | `(ctx) => string \| bigint \| null \| undefined \| Promise<string \| bigint \| null \| undefined>` | No | Metered routes only: reads the amount to charge from the handler's response. On a route that accepts tokens with different decimals, it must return a string, since a `bigint` is refused like a failing meter. See [metered routes](#metered-routes-upto). |
 
-Route matching is **longest-prefix-wins**: `/api/v1/users` matches a `/api/v1` config before a `/api` one.
+Route matching is **longest-prefix-wins**: `/api/v1/users` matches a `/api/v1` config before a `/api` one. From version 0.10.1, the request path and the keys are compared once normalized, so case, percent-encoding and repeated slashes make no difference: a free route that is another form of a paid one, such as `/Reports/q1` next to a paid `/reports/q1`, is charged.
 
 ### Metered routes (`upto`)
 
