@@ -27,7 +27,7 @@ Requires Node.js ≥ 22. The package is MIT-licensed.
 ```bash
 parallel protocol overview      # TVL, USDp supply, savings APY, solvency ratio
 parallel protocol tvl --chain base
-parallel savings rate           # protocol-wide sUSDp APY (~12% at the time of writing)
+parallel savings rate           # protocol-wide sUSDp APY
 ```
 
 Optionally, set your defaults once — `parallel config init` walks you through it and writes `~/.parallel/config.toml`.
@@ -52,7 +52,7 @@ Success envelopes print to stdout; error envelopes print to stderr, so stdout st
 
 ## The wallet model
 
-The CLI never looks for a key unless you pass `--wallet`. Without it, nothing signs: add `--dry-run` to any transaction command and it prints the full unsigned transaction (add `--address <addr>` to simulate for a real account instead of the zero address); with neither `--wallet` nor `--dry-run`, the command refuses with `WALLET_REQUIRED`.
+The CLI never looks for a key unless you pass `--wallet`, or run `pay engine`, which signs with `$PARALLEL_PRIVATE_KEY`. Without it, nothing signs: add `--dry-run` to any transaction command and it prints the full unsigned transaction (add `--address <addr>` to simulate for a real account instead of the zero address, which also prints it without `--dry-run`). With none of `--wallet`, `--dry-run` or `--address`, the command refuses with `WALLET_REQUIRED`. `pay prepare` never refuses: without a wallet it prints an unsigned payload.
 
 | You run | What happens |
 |---|---|

@@ -19,11 +19,13 @@ It was designed for the agent economy. AI agents can't hold credit cards or comp
 Parallel runs an **x402 facilitator** and ships drop-in middleware so any API can accept stablecoin payments in a few lines:
 
 - **Drop-in middleware** for Express, Next.js, Fastify, and Hono.
-- **Accepts USDp, USDC, and sUSDp** — the SDK routes the payment automatically.
-- **Zero platform fee** — Parallel takes no cut of your revenue.
+- **Accepts USDp, USDC, and sUSDp**: with the Parallel agent client, the agent pays from a token its wallet holds, and the facilitator converts it to the token you receive in the same transaction. USDp and sUSDp convert on every supported network, USDC on Base and Avalanche.
+- **Metered pricing**: with `scheme: "upto"`, the agent signs a cap and your handler charges the actual cost, up to that cap. Metered routes settle on Base in USDp. They can also take USDC from standard x402 clients, which Parallel's escrow converts to USDp for you.
+- **Agent clients**: agents pay with `@parallel-protocol/x402-fetch`, a drop-in `fetch` replacement. Standard x402 clients, AgentCash among them, can pay only the metered routes on Base that take USDC.
+- **Zero platform fee**: Parallel takes no cut of your revenue.
 - **Gas sponsored** on Base, HyperEVM, and Avalanche.
-- **Settles directly to your wallet** — non-custodial, no Parallel account.
-- **MIT-licensed SDKs** — the middleware, the agent package and the CLI that signs its payments are published on npm.
+- **Settles directly to your wallet**: non-custodial, no Parallel account.
+- **MIT-licensed SDKs**: the middleware, the agent package and the CLI that signs its payments are published on npm.
 
 ## Start here
 

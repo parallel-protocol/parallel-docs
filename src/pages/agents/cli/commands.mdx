@@ -18,8 +18,6 @@ Global flags, available across commands:
 | `--dry-run` | | Build the transaction without signing or broadcasting |
 | `--wallet [path\|env]` | `-w` | Sign and broadcast — see [the wallet model](/agents/cli#the-wallet-model) |
 | `--address <0x…>` | | Simulate a write for a real account without a wallet — works on swap, savings, staking and bridge write commands |
-| `--no-cache` | | Bypass the read cache and force a fresh RPC call |
-| `--verbose` | `-v` | Verbose logs |
 
 ## Protocol data
 
@@ -143,10 +141,10 @@ Failures exit 1 and print `Error [CODE]: message`. In JSON mode the envelope `{ 
 | `INVALID_AMOUNT` | Negative, zero, malformed or sub-decimal amount |
 | `UNKNOWN_CHAIN` | Chain identifier not recognised |
 | `CHAIN_SUNSET` | Operation not available on a sunset chain |
-| `PARALLELIZER_NOT_DEPLOYED` | Mint, redeem and savings need a chain with a Parallelizer |
+| `PARALLELIZER_NOT_DEPLOYED` | Mint and redeem need a chain with a Parallelizer |
 | `COLLATERAL_NOT_SUPPORTED` | Collateral (or bridge token) not accepted on this chain |
-| `EXCEEDS_CAP` | Mint or redeem beyond the collateral's deposited capacity — the message carries the remaining capacity |
-| `EXCEEDS_BRIDGE_LIMIT` | Daily or global bridge limit reached — the message carries the reset time |
+| `EXCEEDS_CAP` | Mint beyond the collateral cap, or redeem beyond what is deposited — the message carries the remaining capacity |
+| `EXCEEDS_BRIDGE_LIMIT` / `EXCEEDS_GLOBAL_LIMIT` | Daily or global bridge limit reached — the message carries the daily capacity left, or the global limit |
 | `ROUTE_UNAVAILABLE` | The bridge route does not exist (same chain, or no bridgeable token on the destination), or `pay prepare` cannot sign for the token: its signing domain matches no known version |
 | `PARTIAL_READ` | Some chain reads failed and the aggregate would be wrong — retry shortly |
 | `INSUFFICIENT_BALANCE` | Wallet balance too low for the requested amount |

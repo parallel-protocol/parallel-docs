@@ -7,7 +7,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 # How the facilitator works
 
-The **facilitator** is the service that verifies and settles x402 payments on-chain. Your API never touches a smart contract — the middleware talks to the facilitator, and the facilitator does the on-chain work.
+The **facilitator** is the service that verifies and settles x402 payments on-chain. Your API never calls a smart contract: the middleware talks to the facilitator, and the facilitator does the on-chain work. One optional step is yours: to take USDC from standard x402 clients on a metered route, your `payTo` address approves the escrow for USDC.
 
 You declare paid routes in your middleware; the facilitator handles the rest.
 
@@ -15,8 +15,8 @@ You declare paid routes in your middleware; the facilitator handles the rest.
 
 Every paid request goes through two phases:
 
-1. **Verify** — the facilitator checks the agent's signed payment off-chain: its shape, signature, nonce and expiry, and that it delivers the required token, for at least the price, to your `payTo` on the route's network. Instant, no transaction. If it's valid, your handler runs, and the facilitator hands the middleware a settle token for this payment.
-2. **Settle** — once your handler returns a success response, the middleware presents that token, and the facilitator submits the transfer on-chain and returns a settlement proof.
+1. **Verify**: the facilitator checks the agent's signed payment without sending a transaction. It checks its shape, signature, nonce and expiry, and that it delivers the required token, for at least the price, to your `payTo` on the route's network. It refuses a payment whose conversion would go through a paused Parallelizer or savings vault. On a metered route paid in USDp, it checks that the payer holds the cap. On a metered route paid in USDC through Permit2, it simulates the settlement at the cap. If the payment is valid, the facilitator hands the middleware a settle token for it, and your handler runs.
+2. **Settle**: once your handler returns a success response, the middleware presents that token, and the facilitator submits the transfer on-chain and returns a settlement proof.
 
 If verification fails, your handler never runs. If your handler fails, settlement never happens — the agent is only charged for a successful response. See [verify vs settle](/agents/x402/verify-vs-settle) for the full sequence.
 
@@ -27,30 +27,41 @@ Each payment settles once. The facilitator claims the payment before it submits 
 A route is priced in one of two schemes:
 
 - **`exact`**, the default: the agent signs the price, and you receive it.
-- **`upto`**, for a resource whose cost is only known once it is served, such as an LLM completion: the agent signs the price as a cap, valid for the route's `maxTimeoutSeconds` (3,600 at most). Your handler names the amount it actually charges, and the escrow refunds the rest on-chain in the same settlement. Metered routes are paid in USDp only.
+- **`upto`**, for a resource whose cost is only known once it is served, such as an LLM completion: the agent signs the price as a cap, valid for the route's `maxTimeoutSeconds` (3,600 at most). Your handler names the amount it actually charges, at most the cap, and only that amount is paid. Metered routes settle on Base, in USDp by default, through Parallel's escrow, which takes the signed cap and refunds the rest in the same transaction. A route can also take USDC from [standard x402 clients](#standard-x402-clients): they sign a Permit2 transfer, which moves only the amount charged, and the escrow converts it to USDp for you.
 
-On a metered route the SDK keeps up to the last two minutes of that window for the settlement and its retry: on Express, Hono and Next.js the handler gets `maxTimeoutSeconds` minus 120 seconds, and 30 seconds at least. A settlement the facilitator confirms for another amount than the one your handler asked for is refused with `AMOUNT_MISMATCH` and the response is discarded. Alert on it: money moved, and the agent was not served. The configuration, with the `payment-settle-amount` header and the `meter` function, is in the [package README](https://www.npmjs.com/package/@parallel-protocol/x402).
+On a metered route the SDK keeps up to the last two minutes of that window for the settlement and its retry: on Express, Hono and Next.js the handler gets `maxTimeoutSeconds` minus 120 seconds, and 30 seconds at least. Fastify does not time handlers out. An amount above the cap in the `payment-settle-amount` header is refused: the response is discarded, and the agent gets a `402` with `INVALID_SETTLE_AMOUNT`. An amount a `meter` function returns above the cap settles the cap. A settlement the facilitator confirms for another amount than the one your handler asked for is refused with `AMOUNT_MISMATCH` and the response is discarded. Alert on it: money moved, and the agent was not served. The configuration, with the `payment-settle-amount` header and the `meter` function, is in the [API reference](/agents/x402/api-reference#metered-routes-upto).
 
 ## Supported stablecoins
 
-By default a route accepts **USDp**, **USDC**, and **sUSDp**. The agent pays with whichever of these it holds; you receive the token you configured — including sUSDp, Parallel's yield-bearing savings token, so your revenue can start earning the moment it settles. You can narrow or widen the accepted set per route with the [`acceptedTokens`](/agents/x402/api-reference#routeconfig) option.
+By default a fixed-price route accepts **USDp**, **USDC**, and **sUSDp**, and a metered route accepts USDp. You can narrow or widen the accepted set per route with the [`acceptedTokens`](/agents/x402/api-reference#routeconfig) option. Each payment delivers one of the tokens your route accepts. `@parallel-protocol/x402-fetch` targets the first one in your list, unless the agent sets `payWith` to another token your route accepts, and without `payWith` it pays from whichever token the wallet holds. Put the token you prefer first. Accepting sUSDp, Parallel's yield-bearing savings token, lets your revenue start earning the moment it settles.
+
+## Standard x402 clients
+
+Standard x402 clients that support the `upto` scheme, such as AgentCash, can pay a metered route on Base in USDC. They sign a Permit2 transfer of the cap, and the escrow converts the USDC charged to USDp for you. They cannot pay a fixed-price route.
+
+To accept them:
+
+1. From your `payTo` address, approve the escrow for Base USDC once with an ERC-20 `approve`. The escrow is `0xc3F4de61381A05ED7FBE61c8327B45507BA87F26`, which `getUptoEscrowAddress("base")` returns in `@parallel-protocol/chains` 0.6.0. Each payment uses up the USDC it converts from that allowance: when what is left falls below the route's cap, approve again. Until then, and before the first approval, these payments are refused at verify with `MERCHANT_NOT_ENABLED`. Use a dedicated receiving address, since it limits what the approval exposes.
+2. List `PARALLEL_TOKENS.base.usdc` in the route's `acceptedTokens`, next to `PARALLEL_TOKENS.base.usdp` for agents on the Parallel client. Write the price as a decimal string such as `"0.01"`: with USDp and USDC on the same route, a `bigint` price is refused at startup with `X402ConfigError`.
+
+The `402` then lists the USDC entry first, with what these clients need to sign. The receipt gives the USDC charged in `amountSettled`, and the USDp you received in `amountDelivered` when the facilitator could read it from the settlement.
 
 ## Smart routing
 
-You set a price and the tokens you accept. The agent can choose which token to pay with — or let the SDK pick the route automatically. If the agent pays in a different token than the one you receive, the conversion happens inside the same settlement, at no extra platform fee.
+You set a price and the tokens you accept. The agent's client chooses how to pay: the Parallel client picks from the wallet's balances unless the agent names a token. If the agent pays in a different token than the one you receive, the conversion happens inside the same settlement transaction, at no extra platform fee. On a fixed-price route, a swap through the Parallelizer pays its mint or burn fee on the agent's side, and you receive at least your price. On a metered route paid in USDC, the conversion to USDp goes through the Parallelizer, so its mint fee comes out of what you receive. At settle, the facilitator reads the Parallelizer's quote, and the conversion must deliver at least 99.9% of it, or the settlement fails and nothing is taken.
 
 ## Fees and gas
 
 - **Zero platform fee.** Parallel does not take a cut of your revenue.
-- **Gas sponsored.** Transactions on Base, HyperEVM, and Avalanche are gas-sponsored — 1,000 per agent per month. Gas is not sponsored on Ethereum mainnet.
+- **Gas sponsored.** The facilitator sends every settlement transaction, so agents need no gas token. On Base, HyperEVM, and Avalanche, the first 1,000 settlements of each payer address in a calendar month (UTC), across these chains together, count as sponsored. Settlements on Ethereum, and those past the quota, count as not sponsored and still settle. The receipt reports it in `gasSponsored`.
 
 ## Supported networks
 
-The facilitator settles on **Base**, **Ethereum**, **Avalanche**, and **HyperEVM**. Most builders use Base for the lowest cost and sponsored gas. You choose the network per route with the `network` field. From version 0.8.3, the middleware refuses a route on another chain of the Parallel catalog, such as Sonic, with an `X402ConfigError` when it is created.
+The facilitator settles on **Base**, **Ethereum**, **Avalanche**, and **HyperEVM**. Most builders use Base for the lowest cost and sponsored gas. You choose the network per route with the `network` field. From version 0.8.3, the middleware refuses a route on another chain of the Parallel catalog, such as Sonic, with an `X402ConfigError` when it is created. Metered payments settle on Base only: on another network they are refused at verify with `PAYMENT_METHOD_NOT_SUPPORTED`.
 
 ## Non-custodial settlement
 
-Funds settle directly to the `payTo` address you configure. There is no Parallel account, no holding period, and no withdrawal step — the protocol is non-custodial and Cooper Labs never holds your funds.
+Funds settle directly to the `payTo` address you configure. There is no Parallel account, no holding period, and no withdrawal step. The protocol is non-custodial, and Cooper Labs never holds your funds. Metered payments go through Parallel's escrow contract, and reach your `payTo` in the same transaction.
 
 ## Next steps
 
