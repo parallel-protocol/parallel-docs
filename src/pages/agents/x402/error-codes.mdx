@@ -32,6 +32,8 @@ An `X402RuntimeError` also carries the facilitator's text in `.detail`, its HTTP
 
 From version 0.10.1, a request whose path has `.` or `..` segments gets a `400` with `{ error: "INVALID_PATH", message }` when it reaches a paid route, before any invoice, since routers and proxies do not all resolve these segments. The agent should send the path resolved.
 
+A handler that does not answer in time gets a `504` with `{ error: "HANDLER_TIMEOUT", message }` on Express and Hono, and an empty `504` on Next.js. Nothing is settled.
+
 ## Refused at verify
 
 When the facilitator refuses a payment at verify, your handler does not run and nothing moves. The middleware re-issues a `402` with a new invoice: the facilitator's code is the `error` field, its text the `message` field, and its `Retry-After` header is copied whenever it sent one. The facilitator's own status is the `.status` of the error when you call the [`FacilitatorClient`](/agents/x402/api-reference#facilitatorclient) yourself.
