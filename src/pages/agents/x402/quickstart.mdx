@@ -17,7 +17,7 @@ npm install @parallel-protocol/x402
 ```
 
 :::warning
-Use version 0.8.2 or later, and 0.10.0 or later to take USDC from standard x402 clients on metered routes. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, and versions before 0.8.0 do not send it: their settlements are refused with `SETTLE_TOKEN_REQUIRED`, and the agent gets a `402` instead of your response. Version 0.8.1 adds the facilitator URL checks of step 2, and 0.8.2 tells the agent to check with you before paying again for the reasons listed in the error codes.
+Use version 0.10.1 or later: in earlier versions a request could reach a paid route unpaid through another form of its path, such as `/API/data` on Express or `/api/dat%61` on Fastify. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, and versions before 0.8.0 do not send it: their settlements are refused with `SETTLE_TOKEN_REQUIRED`, and the agent gets a `402` instead of your response. Version 0.8.1 adds the facilitator URL checks of step 2, and 0.8.2 tells the agent to check with you before paying again for the reasons listed in the error codes.
 :::
 
 Install your framework separately. It is an optional peer dependency: Express 4 or 5, Next.js 14 or 15, Fastify 5.12.7 or a later 5.x, or Hono 4.

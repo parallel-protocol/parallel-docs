@@ -8,7 +8,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 # Error codes
 
 :::warning
-Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify. `@parallel-protocol/x402` sends it from version 0.8.0. A merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`: the agent gets a `402` instead of the response, and the merchant is never paid. Use 0.8.2 or later.
+Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify. `@parallel-protocol/x402` sends it from version 0.8.0. A merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`: the agent gets a `402` instead of the response, and the merchant is never paid. Use 0.10.1 or later.
 :::
 
 ## Thrown by the SDK
@@ -29,6 +29,8 @@ Since 1 October 2026 the facilitator settles a payment only when the settle pres
 | `INVALID_PAYMENT` | The `payment-signature` / `X-PAYMENT` header could not be decoded. |
 
 An `X402RuntimeError` also carries the facilitator's text in `.detail`, its HTTP status in `.status` (the redirect's status for a redirect), and its `Retry-After` in `.retryAfter` when it sent one.
+
+From version 0.10.1, a request whose path has `.` or `..` segments gets a `400` with `{ error: "INVALID_PATH", message }` when it reaches a paid route, before any invoice, since routers and proxies do not all resolve these segments. The agent should send the path resolved.
 
 ## Refused at verify
 

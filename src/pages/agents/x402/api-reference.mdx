@@ -10,7 +10,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 Reference for the `@parallel-protocol/x402` package: configuration, framework adapters, and the lower-level facilitator client.
 
 :::warning
-Use version 0.8.2 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, which the SDK sends from 0.8.0: with 0.7.x or earlier, every settlement is refused with `SETTLE_TOKEN_REQUIRED`. Accepting USDC on a metered route needs version 0.10.0 or later.
+Use version 0.10.1 or later: in earlier versions a request could reach a paid route unpaid through another form of its path. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, which the SDK sends from 0.8.0: with 0.7.x or earlier, every settlement is refused with `SETTLE_TOKEN_REQUIRED`. Accepting USDC on a metered route needs version 0.10.0 or later.
 :::
 
 ## Configuration
