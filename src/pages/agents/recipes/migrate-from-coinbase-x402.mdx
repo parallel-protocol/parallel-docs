@@ -69,7 +69,7 @@ app.use(paymentMiddleware({
 }));
 ```
 
-Install `@parallel-protocol/x402` 0.10.0 or later. It is the first version that takes payments from Coinbase x402 clients, on metered routes. A version before 0.8.0 no longer settles anything: since 1 October 2026 the facilitator refuses a settle that does not present the token it issued at verify. Version 0.8.1 adds the URL checks below.
+Install `@parallel-protocol/x402` 0.10.1 or later. Version 0.10.0 is the first that takes payments from Coinbase x402 clients, on metered routes, and 0.10.1 stops a request from reaching a paid route unpaid through another form of its path. A version before 0.8.0 no longer settles anything: since 1 October 2026 the facilitator refuses a settle that does not present the token it issued at verify. Version 0.8.1 adds the URL checks below.
 
 Keep the facilitator's URL in https, as above. Since 0.8.1, the SDK refuses a plain http URL outside `localhost`, `127.0.0.1` and `[::1]` with an `X402ConfigError` when the middleware is created. It calls that address only and never follows a redirect, which fails the call with `FACILITATOR_UNAVAILABLE`.
 

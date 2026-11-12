@@ -1,6 +1,6 @@
 ---
 title: x402 payment schemas
-description: Wire formats for the Parallel x402 payment headers — PaymentRequired, the signed payment payload, and the settlement confirmation.
+description: "Wire formats for the Parallel x402 payment headers: PaymentRequired, the signed payment payload, and the settlement confirmation."
 ---
 
 import { HelpFooter } from '@/components/HelpFooter'
@@ -9,7 +9,7 @@ import { HelpFooter } from '@/components/HelpFooter'
 
 The three x402 headers each carry a base64-encoded JSON payload. These are the shapes the middleware and the facilitator exchange.
 
-## `402` response — `payment-required`
+## `402` response: `payment-required`
 
 Returned when no valid payment is present. The `payment-required` header holds a base64-encoded `PaymentRequired` object:
 
@@ -30,12 +30,22 @@ interface PaymentRequired {
     amount: string;          // in the token's smallest unit (18 decimals for USDp)
     payTo: string;
     maxTimeoutSeconds: number;  // the settlement window, 300 by default, 3,600 at most on "upto"
-    extra: { decimals: number };  // the payer must scale the amount with THESE decimals
+    extra: {
+      decimals: number;             // the payer must scale the amount with THESE decimals
+      name?: string;                // on a metered USDC entry paid through Permit2: the token's EIP-712 domain
+      version?: string;
+      facilitatorAddress?: string;  // on that entry: the escrow that settles it
+    };
   }>;
+  extensions?: {                    // present when an entry is paid through Permit2
+    eip2612GasSponsoring: { info: { description: string; version: "1" }; schema: object };
+  };
 }
 ```
 
-## Request header — `payment-signature`
+The same object is also the JSON body of the `402`. On a metered route that lists USDC, the USDC entry comes first, because the x402 SDK's client pays, by default, the first entry it supports.
+
+## Request header: `payment-signature`
 
 The agent attaches a `payment-signature` (or `X-PAYMENT`) header with a base64-encoded signed payload:
 
@@ -60,13 +70,17 @@ const signedPayload = {
 const header = Buffer.from(JSON.stringify(signedPayload)).toString("base64");
 ```
 
-Agent-side signing helpers (EIP-3009 authorizations, EIP-712 signing) live in the `@parallel-protocol/payment-core` package.
+`network` is the chain slug, such as `"base"`, not the `eip155` form of the `402`. On a metered USDC entry, a standard x402 client sends its own Permit2 payload instead, with `accepted.scheme: "upto"` and `payload.permit2Authorization`. The middleware translates it to the method `uptoPermit2` before it reaches the facilitator.
+
+Agent-side signing helpers (EIP-3009 authorizations, EIP-712 signing) live in the `@parallel-protocol/payment-core` package, and from 0.3.0 `buildUptoPermit2TypedData` builds the Permit2 message of a metered payment.
 
 ### Metered payments (`upto`)
 
-On a metered invoice, the agent signs a `ReceiveWithAuthorization` of the cap to Parallel's escrow contract, on the USDp domain, instead of a transfer to the merchant. The payload has `scheme: "upto"` and the method `uptoWithAuthorization`, carries the merchant in `uptoParams.payTo`, and puts the payer's random salt in `authorization.nonce`: the signed nonce is derived from the salt and the payment's terms, so the signature only holds for those exact values. `@parallel-protocol/payment-core` exports `deriveUptoNonce` for this. The escrow address comes from Parallel's chain catalog (`@parallel-protocol/chains`), never from the invoice.
+On a metered invoice, the Parallel client signs a `ReceiveWithAuthorization` of the cap to Parallel's escrow contract, on the USDp domain, instead of a transfer to the merchant. The payload has `scheme: "upto"` and the method `uptoWithAuthorization`, carries the merchant in `uptoParams.payTo`, and puts the payer's random salt in `authorization.nonce`: the signed nonce is derived from the salt and the payment's terms, so the signature only holds for those exact values. `@parallel-protocol/payment-core` exports `deriveUptoNonce` for this. The escrow address comes from Parallel's chain catalog (`@parallel-protocol/chains`), never from the invoice.
 
-## `200` response — `payment-response`
+With `@parallel-protocol/chains` 0.6.0, the escrow on Base is `0xc3F4de61381A05ED7FBE61c8327B45507BA87F26`. The facilitator still settles route U payments signed for the previous escrow, `0xcCA03ed95Ab203a8566a8abfFDF03AEE4030B974`. A standard x402 client reads the escrow from `extra.facilitatorAddress` instead, and the facilitator settles a Permit2 payment only through the current escrow.
+
+## Paid response: `payment-response`
 
 On success, the middleware sets a `payment-response` header with a base64-encoded settlement confirmation:
 
@@ -74,16 +88,22 @@ On success, the middleware sets a `payment-response` header with a base64-encode
 interface PaymentConfirmation {
   success: true;
   txHash: string;
-  route: string;        // the settlement route, "A" to "L", or "U" for a metered payment
-  chain: string;        // "base"
+  route: string;             // the settlement route, "A" to "L", or "U" or "V" for a metered payment
+  chain: string;             // "base"
   gasSponsored: boolean;
-  networkId: string;    // "eip155:8453"
-  amountSettled?: string;  // metered routes: the amount charged, in the token's smallest unit
-  alreadySettled?: true;  // answered from an earlier settle's recorded outcome, nothing broadcast this time
+  networkId: string;         // "eip155:8453"
+  amountSettled?: string;    // metered routes: the amount charged, in the paid token's smallest unit
+  amountDelivered?: string;  // route V: the USDp the merchant received, when the facilitator could read it
+  alreadySettled?: true;     // answered from an earlier settle's recorded outcome, nothing broadcast this time
+  // The fields of the standard x402 settlement response, for clients built on the x402 SDK:
+  transaction?: string;      // the txHash
+  network?: string;          // "eip155:8453"
+  amount?: string;           // amountSettled, or the invoice entry's amount on a fixed-price route
+  payer?: string;            // the payer's address
 }
 ```
 
-`route` is one of the [settlement routes](/agents/x402/verify-vs-settle#settlement-routes). The middleware sets `access-control-expose-headers` automatically so browser clients can read `payment-response`.
+From 0.10.0 the middleware always sends `transaction`, `network` and `amount`, and `payer` when the payment names it. `route` is one of the [settlement routes](/agents/x402/verify-vs-settle#settlement-routes). The middleware sets `access-control-expose-headers` automatically so browser clients can read `payment-response`.
 
 ## `402` after a failed settlement
 
@@ -98,5 +118,16 @@ interface SettlementFailureBody {
 ```
 
 The facilitator's `Retry-After` header is copied when it sent one. The reasons and what the agent should do with each are listed in [settlement failures](/agents/x402/error-codes#settlement-failures).
+
+## `402` for an invalid metered amount
+
+On a metered route, an amount the middleware cannot settle discards your response: a `payment-settle-amount` header that is malformed, has more decimals than the token, or exceeds the cap, or a `meter` function that throws or returns something that is not an amount. The agent gets a `402` with a plain JSON body and no `payment-required` header. Nothing is settled.
+
+```ts
+interface InvalidSettleAmountBody {
+  error: "INVALID_SETTLE_AMOUNT";
+  message: string;
+}
+```
 
 <HelpFooter />

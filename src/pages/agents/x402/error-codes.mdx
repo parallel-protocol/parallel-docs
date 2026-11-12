@@ -8,14 +8,15 @@ import { HelpFooter } from '@/components/HelpFooter'
 # Error codes
 
 :::warning
-Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify. `@parallel-protocol/x402` sends it from version 0.8.0. A merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`: the agent gets a `402` instead of the response, and the merchant is never paid. Use 0.8.2 or later.
+Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify. `@parallel-protocol/x402` sends it from version 0.8.0. A merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`: the agent gets a `402` instead of the response, and the merchant is never paid. Use 0.10.1 or later.
 :::
 
 ## Thrown by the SDK
 
 | Error class | When |
 |---|---|
-| `X402ConfigError` | Invalid config, with a message that names the field at fault. At middleware setup: bad `payTo`, a facilitator URL that is malformed or not https (plain http is accepted only for `localhost`, `127.0.0.1` and `[::1]`), a metered route with `maxTimeoutSeconds` above 3,600, or, from version 0.8.3, a `network` of the Parallel catalog other than `ethereum`, `base`, `avalanche` and `hyperevm`, such as Sonic. At the first request on a route: an unknown network with no `acceptedTokens`, an unknown token with no `decimals`, or a price below the token's precision. |
+| `X402ConfigError` | Invalid config, with a message that names the field at fault. At middleware setup: no route, bad `payTo`, a price that is malformed or not positive, a facilitator URL that is malformed or not https (plain http is accepted only for `localhost`, `127.0.0.1` and `[::1]`), a `meter` on a route that is not metered, a metered route with `maxTimeoutSeconds` above 3,600, a metered route that lists a token other than the network's USDp and Base USDC, a `bigint` price or a `decimals` on a metered route whose tokens have different decimals, two route keys that are the same path once normalized, such as `/api/data` and `/API/data/`, with different configs (from version 0.10.1), or, from version 0.8.3, a `network` of the Parallel catalog other than `ethereum`, `base`, `avalanche` and `hyperevm`, such as Sonic. At the first request on a route: an unknown network with no `acceptedTokens`, an unknown token with no `decimals`, a price below the token's precision, or a price function that throws or does not return a price. |
+| `X402PriceRejectedError` | Thrown by your price function to refuse a request before anything is invoiced. The client gets its `status`, 400 by default, with `{ error: code, message }`. |
 | `X402RuntimeError` | A runtime failure. The specific cause is in `.code` (below). |
 
 ### `X402RuntimeError.code`
@@ -29,30 +30,42 @@ Since 1 October 2026 the facilitator settles a payment only when the settle pres
 
 An `X402RuntimeError` also carries the facilitator's text in `.detail`, its HTTP status in `.status` (the redirect's status for a redirect), and its `Retry-After` in `.retryAfter` when it sent one.
 
+From version 0.10.1, a request whose path has `.` or `..` segments gets a `400` with `{ error: "INVALID_PATH", message }` when it reaches a paid route, before any invoice, since routers and proxies do not all resolve these segments. The agent should send the path resolved.
+
+A handler that does not answer in time gets a `504` with `{ error: "HANDLER_TIMEOUT", message }` on Express and Hono, and an empty `504` on Next.js. Nothing is settled.
+
 ## Refused at verify
 
 When the facilitator refuses a payment at verify, your handler does not run and nothing moves. The middleware re-issues a `402` with a new invoice: the facilitator's code is the `error` field, its text the `message` field, and its `Retry-After` header is copied whenever it sent one. The facilitator's own status is the `.status` of the error when you call the [`FacilitatorClient`](/agents/x402/api-reference#facilitatorclient) yourself.
 
 | Code | Facilitator status | Meaning | What the agent should do |
 |---|---|---|---|
-| `INVALID_PAYLOAD` | 400 | The payload does not have the shape of its settlement route, carries a field another route would read, or uses a method of the other scheme. | Sign a payment that matches one of the `accepts` entries. |
-| `INVALID_SIGNATURE` | 400 | Signature recovery failed. | Sign again. |
-| `INVALID_NONCE` | 409 | Nonce already used: the same payment reached the facilitator before, and may have settled. | Do not sign another payment before checking with the merchant. |
+| `INVALID_PAYLOAD` | 400 | The payload does not have the shape of its settlement route, carries a field another route would read, uses a method of the other scheme, or names a token, escrow or proxy its route does not take. On a payment through Permit2, also an EIP-2612 permit that is not for the cap or ends before the Permit2 deadline. | Sign a payment that matches one of the `accepts` entries. |
+| `INVALID_SIGNATURE` | 400 | Signature recovery failed. On a payment through Permit2, also the payer's contract wallet or Permit2 refusing the signature. | Sign again. |
+| `INVALID_NONCE` | 409 | Nonce already used, at the facilitator or on-chain: the payment may have settled. | Do not sign another payment before checking with the merchant. |
 | `PAYMENT_EXPIRED` | 402 | The authorization's `validBefore` has passed. | Sign a new payment. |
+| `PAYMENT_NOT_YET_VALID` | 402 | The authorization's `validAfter` has not passed yet. | Sign again with a `validAfter` in the past. |
 | `INSUFFICIENT_AMOUNT` | 402 | The amount the route guarantees the merchant is below the price: the signed amount on a transfer, the guaranteed output (`amountOut` or `amountOutMin`) on a conversion. Also an authorization for zero. | Sign for the invoiced `amount`. |
-| `INSUFFICIENT_BALANCE` | 402 | The payer does not hold the signed amount. Checked on metered payments, against the cap. | Fund the wallet, sign a new payment. |
+| `INSUFFICIENT_BALANCE` | 402 | The payer does not hold the signed amount, or on a metered payment the cap. | Fund the wallet, sign a new payment. |
 | `ASSET_MISMATCH` | 400 | The route does not deliver the token the merchant requires. | Pay so that the merchant receives one of the `accepts` assets. |
 | `RECIPIENT_MISMATCH` | 400 | The signed recipient is not the merchant's `payTo`. | Sign to the invoiced `payTo`. |
 | `NETWORK_MISMATCH` | 400 | The facilitator does not support the payload's chain, or it is not the route's chain. | Sign on the invoiced network. |
 | `WINDOW_TOO_LONG` | 400 | A metered authorization valid for more than 3,600 seconds. | Sign again with a `validBefore` within the hour. |
+| `WINDOW_TOO_SHORT` | 400 | The authorization ends too soon for the handler to run and the payment to settle. | Sign again with a later `validBefore`. |
 | `PAYMENT_METHOD_NOT_SUPPORTED` | 400 | No settlement route for this method or token on this chain, including a metered payment on a chain without the escrow. | Pay with another method or token. |
 | `COLLATERAL_NOT_SUPPORTED` | 400 | The swap delivers a token that is not a collateral of the chain. | Pay for another of the `accepts` assets. |
-| `RATE_LIMIT_EXCEEDED` | 429 | The payer passed 1,000 verifies in the current UTC hour. | Pay again after `Retry-After`, which points to the next hour. |
+| `RATE_LIMIT_EXCEEDED` | 429 | The payer passed 1,000 verifies in the current UTC hour. A verify counts once its signature and payment checks pass, even when it is refused after that, because its settlement would fail, or another verify reserved the same nonce first. | Pay again after `Retry-After`, which points to the next hour. |
 | `PARALLELIZER_PAUSED` | 503 | The Parallelizer has paused the swap this route needs, or the facilitator could not read whether it has. Nothing was taken. | Pay with another token, or pay again later. |
 | `SAVINGS_PAUSED` | 503 | The sUSDp savings vault the payment deposits into or redeems from is paused, or the facilitator could not read whether it is. Nothing was taken. | Pay with another token, or pay again later. |
 | `SERVICE_UNAVAILABLE` | 503 | The facilitator could not read the chain or its own store. | Pay again after a short wait. |
+| `PERMIT2_ALLOWANCE_REQUIRED` | 412 | A payment through Permit2 from a payer whose Permit2 approval for the token is below the cap, with no EIP-2612 permit or one the token refused. The message starts with `permit2_allowance_required`, the reason standard x402 clients look for. | Approve Permit2 for the token, or sign the payment with an EIP-2612 permit. |
+| `TOKEN_BLOCKED` | 403 | A payment through Permit2 that the token refuses: the payer or the merchant is blacklisted, or the token is paused. Nothing was taken. | Pay with another token. |
+| `MERCHANT_NOT_ENABLED` | 503 | A USDC payment through Permit2 to a merchant whose USDC allowance to the escrow does not cover the cap, so the escrow cannot convert it. Nothing was taken. | Pay with USDp, or pay again later. |
+| `SWAP_PRICE_MOVED` | 402 | The swap's price or fee moved beyond the margin signed with the payment. Nothing was taken. | Sign a new payment. |
+| `SWAP_UNAVAILABLE` | 503 | The Parallelizer cannot make the payment's conversion now, for instance because a cap is reached or a price feed is stale. Nothing was taken. | Pay with another token, or pay again later. |
+| `SETTLEMENT_WOULD_FAIL` | 402 | A payment whose settlement, simulated at verify, would revert for another reason. Nothing was taken. | Pay with another token, or sign a new payment later. |
 
-An `error` from the facilitator that is not a code (capitals, digits and underscores) is not forwarded: the `402` carries `FACILITATOR_INVALID_RESPONSE` with the facilitator's message instead. That is the case of its per-IP rate limit (see [rate limits](#rate-limits)).
+An `error` from the facilitator that is not a code (capitals, digits and underscores) is not forwarded: the `402` carries `FACILITATOR_INVALID_RESPONSE` with the facilitator's message instead. That is the case of its per-IP rate limit, status 429 (see [rate limits](#rate-limits)), of a payload that does not match its request schema, status 400, and of a request body above 64 KB, status 413, which a payment forwarded by the middleware stays well below.
 
 ## Settlement failures
 
@@ -70,7 +83,7 @@ The settlement runs after your handler answered. When it fails, the middleware d
 
 | Reason | Facilitator status | Meaning | What the agent should do |
 |---|---|---|---|
-| `INSUFFICIENT_BALANCE` | 402 | The payer no longer holds the signed amount. | Fund the wallet, sign a new payment. |
+| `INSUFFICIENT_BALANCE` | 402 | The payer no longer holds the signed amount, or on a payment through Permit2 the amount charged. | Fund the wallet, sign a new payment. |
 | `AUTHORIZATION_USED` | 409 | The authorization is already consumed or cancelled on-chain. It may have paid the merchant. | Do not sign another payment before checking with the merchant. |
 | `PAYMENT_EXPIRED` | 402 | The authorization expired before settlement. On a metered route, the handler finished after the window. | Sign a new payment. |
 | `PAYMENT_NOT_VERIFIED` | 402 | No verified payment for this authorization, or an earlier settle of it failed. After `AUTHORIZATION_USED`, `RECEIPT_UNAVAILABLE` or `SUBMISSION_FAILED`, a repeated settle gets that code again instead. The merchant may have been paid, or may still be. | Do not sign another payment before checking with the merchant. |
@@ -81,12 +94,12 @@ The settlement runs after your handler answered. When it fails, the middleware d
 | `SAVINGS_PAUSED` | 503 | The sUSDp savings vault the payment deposits into or redeems from is paused, or the facilitator could not read whether it is. This settle sent nothing, but the payment may still settle until its authorization expires, and an earlier attempt may already have settled it. | Do not sign another payment before checking with the merchant. |
 | `SERVICE_UNAVAILABLE` | 503 | The facilitator could not read its own store. This settle sent nothing, but the payment may still settle until its authorization expires, and an earlier attempt may already have settled it. | Do not sign another payment before checking with the merchant. |
 | `TX_REVERTED` | 500 | The transaction reverted for a reason the facilitator could not attribute. | Sign a new payment. |
-| `SWAP_PRICE_MOVED` | 402 | The Parallelizer refused the swap: its price or fee moved, between signing and settlement, beyond the margin signed with the payment. The payment was not taken, and the facilitator will not settle it. | Sign a new payment. |
+| `SWAP_PRICE_MOVED` | 402 | The Parallelizer refused the swap: its price or fee moved, between signing and settlement, beyond the margin signed with the payment. On a payment through Permit2, the margin is the one the facilitator sets under the Parallelizer's quote. The payment was not taken, and the facilitator will not settle it. | Sign a new payment. |
 | `SWAP_UNAVAILABLE` | 503 | The Parallelizer refused the swap because it cannot make it now: the swap closed since the facilitator checked it, a cap or a maximum fee is reached, the amount exceeds what it can release, or a price feed is stale. The payment was not taken, and the facilitator will not settle it. | Pay with another token, or later with a new payment. |
 | `SUBMISSION_FAILED` | 500 | The settle failed. When the message says the outcome is unknown, a transaction may have been sent, or the facilitator could not read whether the authorization was used, and the payment may have settled or may still settle. | Do not sign another payment before checking with the merchant. x402-fetch says so for this reason whatever the message. A client that reads the merchant's 402 itself may sign a new payment when the message says no transaction was submitted. |
 | `RECEIPT_UNAVAILABLE` | 500 | The transaction was sent but its confirmation could not be read. | Do not sign another payment before checking with the merchant. |
 | `INVALID_PAYLOAD`, `NETWORK_MISMATCH`, `PAYMENT_METHOD_NOT_SUPPORTED` | 400 | The settle does not match the payment that was verified, or a metered amount is missing, malformed or above the cap. Nothing was settled. | Sign a new payment. |
-| `INSUFFICIENT_AMOUNT` | 402 | A metered amount of zero. Nothing was settled. | Sign a new payment. |
+| `INSUFFICIENT_AMOUNT` | 402 | A metered amount of zero, or an authorization for zero. Nothing was settled. | Sign a new payment. |
 
 The SDK adds its own reasons:
 
@@ -104,7 +117,7 @@ Before any of this, a settle that timed out or could not reach the facilitator i
 
 ## Rate limits
 
-The facilitator counts the requests of each IP address that calls it, which is the merchant's server: 60 verifies a minute and 600 settles a minute, each on its own counter. It also counts the verifies of each payer: 1,000 per UTC hour.
+The facilitator counts the requests of each IP address that calls it, which is the merchant's server: 60 verifies a minute and 600 settles a minute, each on its own counter. An IPv6 address counts with its /64 network. It also counts the verifies of each payer, 1,000 per UTC hour, including some that are refused at the last checks (see `RATE_LIMIT_EXCEEDED`). A request body above 64 KB is refused with `413`, which a payment forwarded by the middleware stays well below.
 
 | Limit | What the agent gets |
 |---|---|

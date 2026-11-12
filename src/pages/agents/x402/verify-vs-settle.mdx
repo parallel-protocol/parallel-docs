@@ -1,13 +1,13 @@
 ---
 title: The verify / settle flow
-description: How the Parallel x402 middleware verifies a payment off-chain, runs your handler, then settles on-chain — so agents are never charged for failed requests.
+description: How the Parallel x402 middleware verifies a payment, runs your handler, then settles on-chain, only after your handler succeeds.
 ---
 
 import { HelpFooter } from '@/components/HelpFooter'
 
 # The verify / settle flow
 
-x402 payments settle in two phases: an off-chain **verify** before your handler runs, and an on-chain **settle** after it succeeds. This is what makes the payment safe — the agent is only charged when it actually receives a successful response.
+x402 payments settle in two phases: a **verify** before your handler runs, which sends no transaction, and an on-chain **settle** after it succeeds. This is what makes the payment safe: the facilitator submits the transfer only after your handler returns a success response.
 
 ## Sequence
 
@@ -39,16 +39,18 @@ Agent                        Merchant (the SDK)            Facilitator
 
 - **The handler only runs after the signature is verified.** A request with a missing or invalid payment never reaches your code — it gets a `402`.
 - **Settlement happens after a 2xx.** The on-chain transfer is submitted only once your handler returns a success response. If your handler errors, nothing is charged.
+- **A slow handler is not charged.** On Express, Hono and Next.js, a handler that does not answer within 30 seconds gets a `504`, and nothing is settled. On a metered route, the limit is `maxTimeoutSeconds` minus two minutes, and 30 seconds at least. Fastify does not time handlers out.
 - **The settle is bound to the merchant that verified.** `POST /x402/verify` hands the middleware a settle token that `POST /x402/settle` must present. The token stays in memory for the life of the request and never reaches the agent. The facilitator has required it since 1 October 2026, and `@parallel-protocol/x402` sends it from 0.8.0: a merchant on 0.7.x or earlier sees every settlement refused with `SETTLE_TOKEN_REQUIRED`, and is never paid.
 - **The SDK talks to the facilitator only.** From 0.8.1 it calls the facilitator at its configured https address and never follows a redirect, so the payment, the settle token and the API key never reach another address.
 - **One payment, one settlement.** The facilitator claims the payment before it submits anything, so two settles of the same payment never both reach the chain. A settle repeated once the first one has finished gets its recorded outcome: the confirmation, marked `alreadySettled`, the failure's own code when the payment may have gone through (`AUTHORIZATION_USED`, `RECEIPT_UNAVAILABLE`, `SUBMISSION_FAILED`), or `PAYMENT_NOT_VERIFIED` after any other failure.
 - **Concurrent payments do not collide.** On each chain, the facilitator sends its settlement transactions one at a time, so payments settled together each get their own transaction.
-- **A failed settlement discards the response and says why.** The middleware returns `402` instead of your handler's output, with a `reason` that tells the agent whether to sign a new payment or to check with you first. See [settlement failures](/agents/x402/error-codes#settlement-failures).
-- **CORS preflight passes through.** `OPTIONS` requests are never challenged.
+- **A failed settlement discards the response and says why.** The middleware returns `402` instead of your handler's output, with a `reason` that tells the agent whether to sign a new payment or to check with you first. On Next.js, cookies set with `cookies()` from `next/headers` still go out with the `402`, since Next adds them to any response: set the cookies of a paid response on the `NextResponse` you return. See [settlement failures](/agents/x402/error-codes#settlement-failures).
+- **CORS preflight passes through.** `OPTIONS` requests are never challenged. On a paid route, only the status code and the `Access-Control-*`, `Vary` and `Allow` headers of your answer go out. On Next.js the preflight gets an empty `204` without running your handler, so set its CORS headers in `next.config.js`.
+- **Standard x402 clients are translated.** On a metered route that lists USDC, a standard x402 client sends its own Permit2 payment format. The middleware translates it into the facilitator's format before verify and settle. The facilitator rebuilds the Permit2 message from it and checks the payer's signature, so a mistranslated field fails verification.
 
 ## Settlement routes
 
-The facilitator settles each payment through one of 13 routes, chosen from the signed payload. The settlement receipt names it in `route`.
+The facilitator settles each payment through one of 14 routes, chosen from the signed payload. The settlement receipt names it in `route`.
 
 | Route | Method signed | Agent pays | Merchant receives | Gas (approx.) | How it settles |
 |---|---|---|---|---|---|
@@ -65,27 +67,28 @@ The facilitator settles each payment through one of 13 routes, chosen from the s
 | **K** | `redeemWithAuthorization` and `swapExactOutputWithAuthorization` | sUSDp | Another backing collateral (exact) | 180K | Same as I, for the other collaterals of the Parallelizer. |
 | **L** | `partialRedeemWithAuthorization` | sUSDp and USDp | USDp or a backing collateral | 180K | A partial sUSDp redemption combined with the agent's USDp, in one transaction. |
 | **U** | `uptoWithAuthorization` | USDp (the cap) | USDp (the amount charged) | 130K | A [metered payment](/agents/x402/api-reference#metered-routes-upto): Parallel's escrow contract pulls the signed cap, pays the merchant the amount the handler charged, and refunds the rest to the agent, in one transaction. |
+| **V** | `uptoPermit2` | USDC, the amount charged under a cap signed through Permit2 | USDp, converted from the amount charged | 390K | A metered payment from a standard x402 client: the Permit2 proxy pays the merchant the amount charged in USDC, and the escrow converts it to USDp, in one transaction. A Permit2 payment in USDp also settles on this route, with no conversion, at about 130K. |
 
 What each route needs on the chain:
 
-- Routes B, D, E, G, I, K and L need the Parallelizer, deployed on Ethereum, Base, Avalanche and HyperEVM.
-- Routes B and I swap to USDC, so they need USDC among the chain's collaterals, which is the case on Base and Avalanche.
+- Routes B, D, E, G, I, K and L, and route V paid in USDC, need the Parallelizer, deployed on Ethereum, Base, Avalanche and HyperEVM.
+- Routes B and I swap to USDC, and route V paid in USDC converts from it, so they need USDC among the chain's collaterals, which is the case on Base and Avalanche.
 - Routes C, G, H, I, J, K and L need sUSDp on the chain.
 - Route F takes the chain's USDC, on the four chains. Routes E and G take it only where USDC is a collateral of the Parallelizer, on Base and Avalanche. On these routes, any other token is refused with `PAYMENT_METHOD_NOT_SUPPORTED`, at verify and at settle.
-- Route U needs the escrow contract, deployed on Base. On route U, verify also checks that the payer holds the cap. A metered payment on another chain is refused at verify with `PAYMENT_METHOD_NOT_SUPPORTED`.
+- Routes U and V need the escrow contract, deployed on Base. On route U, verify also checks that the payer holds the cap. On route V, verify simulates the settlement at the cap, and refuses with `MERCHANT_NOT_ENABLED` when the merchant's USDC allowance to the escrow does not cover the cap. A metered payment on another chain is refused at verify with `PAYMENT_METHOD_NOT_SUPPORTED`.
 
-The facilitator's `GET /capabilities?chain=<slug>` lists the routes available on a chain right now, with their gas estimates and fees, and the settlement receipt says in `gasSponsored` whether the facilitator paid the gas.
+The facilitator's `GET /capabilities?chain=<slug>` lists the routes available on a chain right now, with their scheme, gas estimates and fees. The settlement receipt says in `gasSponsored` whether the payment counted as gas-sponsored. It is false on Ethereum, and once the same payer has passed 1,000 settlements in a calendar month (UTC).
 
 ## Headers involved
 
 | Phase | Header | Direction |
 |---|---|---|
-| Challenge | `payment-required` | server → client (on `402`) |
-| Payment | `payment-signature` (or `X-PAYMENT`) | client → server |
-| Receipt | `payment-response` | server → client (on `200`) |
+| Challenge | `payment-required` | server to client (on `402`) |
+| Payment | `payment-signature` (or `X-PAYMENT`) | client to server |
+| Receipt | `payment-response` | server to client (on a `2xx`) |
 
 All three carry base64-encoded payloads. The full shapes are documented in [Schemas](/agents/x402/schemas).
 
-From version 0.5.0, `@parallel-protocol/x402-fetch` also sends an `x402-client` header with the paid request, naming the x402-fetch and CLI versions the agent runs, for example `x402-fetch/0.5.1 cli/0.5.2`. The middleware does not read it. Your handler can, to spot a payer on outdated versions and tell it to update.
+From version 0.5.0, `@parallel-protocol/x402-fetch` also sends an `x402-client` header with the paid request, naming the x402-fetch and CLI versions the agent runs, for example `x402-fetch/0.5.2 cli/0.5.3`. The middleware does not read it. Your handler can, to spot a payer on outdated versions and tell it to update.
 
 <HelpFooter />

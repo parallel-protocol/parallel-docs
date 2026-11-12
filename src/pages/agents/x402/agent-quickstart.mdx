@@ -15,9 +15,9 @@ This guide makes an agent pay x402 APIs autonomously. The whole integration is o
 npm install @parallel-protocol/x402-fetch
 ```
 
-This page describes version 0.5.1, the one a fresh install gets. The package signs through the payment engine of the [Parallel CLI](/agents/cli), `@parallel-protocol/cli`, which it installs as a regular dependency, in version 0.5.2 or a later 0.5 release.
+This page describes version 0.5.2, the one a fresh install gets. The package signs through the payment engine of the [Parallel CLI](/agents/cli), `@parallel-protocol/cli`, which it installs as a regular dependency, in version 0.5.2 or a later 0.5 release. From CLI 0.5.3, a metered payment on Base is signed for the current escrow. The facilitator also settles payments signed for the previous escrow by earlier releases.
 
-A project on an earlier release moves to 0.5.1 with `npm install @parallel-protocol/x402-fetch@latest`, which also sets its range to `^0.5.1`. Without `@latest`, `npm install` and `npm update` keep the release that a `^0.4` or older range allows, since it does not reach 0.5. From 0.3.0, `payFetch` rejects with an `X402FetchError` when the merchant answers a paid request with `402`, as described in [When the merchant refuses the payment](#when-the-merchant-refuses-the-payment) and [When the settlement fails](#when-the-settlement-fails): code written for 0.2 that read that response must catch the error instead.
+A project on an earlier release moves to 0.5.2 with `npm install @parallel-protocol/x402-fetch@latest`, which also sets its range to `^0.5.2`. Without `@latest`, `npm install` and `npm update` keep the release that a `^0.4` or older range allows, since it does not reach 0.5. From 0.3.0, `payFetch` rejects with an `X402FetchError` when the merchant answers a paid request with `402`, as described in [When the merchant refuses the payment](#when-the-merchant-refuses-the-payment) and [When the settlement fails](#when-the-settlement-fails): code written for 0.2 that read that response must catch the error instead.
 
 ## 2. Fund a wallet
 
@@ -59,7 +59,7 @@ const receipt = decodePaymentResponse(res);
 console.log("paid:", receipt?.txHash, "gas sponsored:", receipt?.gasSponsored);
 ```
 
-That's the entire agent. The first request costs nothing (it just reads the `402` invoice); the paid retry carries the signed authorization.
+That's the entire agent. The first request costs nothing, since it only reads the `402` invoice. The paid retry carries the signed authorization. Besides `txHash` and `gasSponsored`, the `PaymentReceipt` type covers `route`, `chain`, `networkId`, `amountSettled` on a metered payment, and `alreadySettled`.
 
 The URL in the example is real: it is Parallel's **live demo API**, where every route charges 0.0001 of whichever token you pay with — try it as-is. For a complete runnable agent that also decodes the invoice and the on-chain settlement, clone the [agent starter](https://github.com/parallel-protocol/parallel-x402-agent-starter).
 
@@ -72,13 +72,13 @@ The URL in the example is real: it is Parallel's **live demo API**, where every 
 | `payWith` | *(auto)* | Force a payment token (`"usdp"`, `"usdc"`, `"susdp"`). Omitted, the agent picks from its balances. |
 | `maxAmount` | `"1"` | Hard spend cap per request, in token units. Invoices above it are refused before signing. |
 | `dailyBudget` | *(none)* | Cumulative spend ceiling per UTC day, across every payment the wrapper signs. Without it, nothing limits how many capped payments a day can sign. |
-| `timeoutMs` | `60000` | Time budget of the payment engine, in milliseconds. |
+| `timeoutMs` | `60000` | How long one payment may take in the payment engine, in milliseconds. It does not bound the requests to the merchant. A value that is not a whole number from 1 to 2147483647 throws `ENGINE_TIMEOUT` when you wrap `fetch`. |
 | `allowInsecure` | `false` | Pay merchants served over plain `http://`. Localhost is always allowed. |
 | `updateCheck` | `true` | Warn once when npm has a newer x402-fetch, or a newer CLI release this version accepts. See [versions](#versions). |
 
 ## Versions
 
-The paid request carries an `x402-client` header with the x402-fetch and CLI versions the agent runs, for example `x402-client: x402-fetch/0.5.1 cli/0.5.2`, and nothing else about the agent. A merchant can spot a payer on outdated versions and tell it to update. Releases before 0.5.0 send no such header.
+The paid request carries an `x402-client` header with the x402-fetch and CLI versions the agent runs, for example `x402-client: x402-fetch/0.5.2 cli/0.5.3`, and nothing else about the agent. A merchant can spot a payer on outdated versions and tell it to update. Releases before 0.5.0 send no such header.
 
 At the first payment of a process, in the background, the wrapper asks npm for the latest release of x402-fetch and of the CLI: two requests to `registry.npmjs.org` that carry only the package names. When the installed x402-fetch is older than its latest release, or the installed CLI is older than a latest release this x402-fetch accepts, it warns once, with `process.emitWarning` and the code `X402_FETCH_OUTDATED`. No payment waits for the check, and it says nothing when npm cannot be reached. The check does not run with `updateCheck: false`, in CI (`CI` set to anything but `false`), under a test runner (`NODE_ENV=test`), with `NO_UPDATE_NOTIFIER` set, or when Node warnings are off (`--no-warnings` or `NODE_NO_WARNINGS=1`).
 
@@ -91,22 +91,22 @@ Every guard fires **before** the agent signs — a refused invoice never spends 
 | `NO_SIGNING_KEY` | No private key provided (option or env), or a malformed one. Thrown when you wrap `fetch`. |
 | `UNKNOWN_CHAIN` | The configured `chain` is not a known chain. Thrown when you wrap `fetch`. |
 | `AMOUNT_EXCEEDS_MAX` | The invoice asks more than `maxAmount`. |
-| `BUDGET_EXCEEDED` | The invoice would take the day's spend past `dailyBudget`. |
+| `BUDGET_EXCEEDED` | The invoice would take the day's spend past `dailyBudget`. Also thrown when you wrap `fetch`, if `dailyBudget` is not a positive decimal amount. |
 | `CHAIN_MISMATCH` | The invoice targets a different chain than configured. |
-| `UNSUPPORTED_SCHEME` | The invoice offers only schemes this client cannot pay on the configured chain. It pays `exact` invoices, and `upto` invoices in USDp. |
+| `UNSUPPORTED_SCHEME` | The invoice offers only schemes this client cannot pay on the configured chain. It pays `exact` invoices, and `upto` invoices in USDp unless `payWith` names another token. |
 | `INVALID_INVOICE` | An invoice field is malformed: a `payTo` or `asset` that is not an address, an amount that is not a positive integer, or decimals that contradict the token catalog or fall outside 0 to 36. `decodePaymentResponse` also throws it, after the payment, when the receipt header cannot be decoded. |
 | `INSECURE_URL` | The merchant URL is plain `http://` (localhost excepted). |
-| `ENGINE_NOT_FOUND` | The payment engine, `@parallel-protocol/cli`, could not be found. |
-| `ENGINE_FAILED` | Payment preparation failed — the message carries the cause (usually balance, or a transient RPC error), and `engineCode` the engine's code, such as `INSUFFICIENT_BALANCE`. |
-| `ENGINE_TIMEOUT` | Payment preparation exceeded its time budget. |
+| `ENGINE_NOT_FOUND` | The payment engine, `@parallel-protocol/cli`, could not be found, or declares no binary. Reinstall the dependencies. |
+| `ENGINE_FAILED` | The engine refused the payment, or failed. The message carries the cause, and `engineCode` the engine's code when it gave one: `INSUFFICIENT_BALANCE` when the wallet cannot cover the amount, or `RPC_ERROR` when no RPC node answered a read the payment needs. After `RPC_ERROR` nothing is signed: retry, or set `ALCHEMY_API_KEY`. |
+| `ENGINE_TIMEOUT` | The engine did not answer this payment within `timeoutMs`. Other payments in flight are not affected. Also thrown when you wrap `fetch`, if `timeoutMs` is not a whole number of milliseconds from 1 to 2147483647. |
 
 Two more codes from `payFetch` come after the payment is sent, when the merchant answers the paid request with `402`: `PAYMENT_REFUSED` and `SETTLEMENT_FAILED`. The sections below describe them.
 
 ## Metered invoices
 
-A merchant can invoice a route with the `upto` scheme: a cap rather than a price, for a resource whose cost is only known once it is served. The agent signs the cap for the window the merchant announced (`maxTimeoutSeconds`, 3,600 seconds at most), the merchant charges its actual cost, and the escrow refunds the rest on-chain in the same settlement. The receipt's `amountSettled` is what was really paid.
+A merchant can invoice a route with the `upto` scheme: a cap rather than a price, for a resource whose cost is only known once it is served. The agent signs the cap for the window the merchant announced. That window is `maxTimeoutSeconds`, 300 seconds when the merchant announces none, and 3,600 seconds at most. The merchant charges its actual cost, and Parallel's escrow refunds the rest on-chain in the same settlement. The receipt's `amountSettled` is what was really paid.
 
-Metered payments are made in USDp. The cap counts in full against `maxAmount` and `dailyBudget`, and the refund is never credited back to the day's budget.
+Metered payments are made in USDp, on Base, from the wallet's USDp balance, which must cover the whole cap. The cap counts in full against `maxAmount` and `dailyBudget`, and the refund is never credited back to the day's budget. A metered invoice can also offer USDC through Permit2, for standard x402 clients: x402-fetch skips that entry and pays the USDp one. An invoice whose only entries on your chain are metered entries in another token is refused with `UNSUPPORTED_SCHEME`. The engine takes the escrow's address from its own catalog, never from the invoice.
 
 ## When the merchant refuses the payment
 

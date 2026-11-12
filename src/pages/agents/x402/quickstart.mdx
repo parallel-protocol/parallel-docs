@@ -1,5 +1,5 @@
 ---
-title: Accept stablecoins in Express in 5 minutes
+title: Accept stablecoins in 5 minutes
 description: Add stablecoin payment support to any Express, Next.js, Fastify, or Hono API with one middleware. Free, sponsored gas, no signup.
 ---
 
@@ -17,10 +17,10 @@ npm install @parallel-protocol/x402
 ```
 
 :::warning
-Use version 0.8.2 or later. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, and versions before 0.8.0 do not send it: their settlements are refused with `SETTLE_TOKEN_REQUIRED`, and the agent gets a `402` instead of your response. Version 0.8.1 adds the facilitator URL checks of step 2, and 0.8.2 tells the agent to check with you before paying again for the reasons listed in the error codes.
+Use version 0.10.1 or later: in earlier versions a request could reach a paid route unpaid through another form of its path, such as `/API/data` on Express or `/api/dat%61` on Fastify. Since 1 October 2026 the facilitator settles a payment only when the settle presents the token it issued at verify, and versions before 0.8.0 do not send it: their settlements are refused with `SETTLE_TOKEN_REQUIRED`, and the agent gets a `402` instead of your response. Version 0.8.1 adds the facilitator URL checks of step 2, and 0.8.2 tells the agent to check with you before paying again for the reasons listed in the error codes.
 :::
 
-Install your framework separately — they are optional peer dependencies:
+Install your framework separately. It is an optional peer dependency: Express 4 or 5, Next.js 14 or 15, Fastify 5.12.7 or a later 5.x, or Hono 4.
 
 ```bash
 npm install express   # or: next · fastify · hono
@@ -30,7 +30,7 @@ npm install express   # or: next · fastify · hono
 
 Point the middleware at the facilitator, then declare which routes are paid, at what price, on which network, and where funds should settle.
 
-Write the facilitator's URL with https, as below. Since version 0.8.1, the SDK refuses any other URL with an `X402ConfigError` when the middleware is created, except plain http on `localhost`, `127.0.0.1` and `[::1]`: `http://agents.parallel.best` is refused. The SDK calls that address only and never follows a redirect, which fails the call with `FACILITATOR_UNAVAILABLE`.
+Write the facilitator's URL with https, as below. Since version 0.8.1, the SDK refuses any other URL, except plain http on `localhost`, `127.0.0.1` and `[::1]`: `http://agents.parallel.best` is refused. It throws an `X402ConfigError` when the middleware is created, or on Fastify when the plugin is registered. The SDK calls that address only and never follows a redirect, which fails the call with `FACILITATOR_UNAVAILABLE`.
 
 <Tabs>
   <Tab label="Express">
@@ -77,6 +77,8 @@ export const GET = withPayment(config, async (req) => {
 });
 ```
 
+`withPayment` passes your handler the request only, and expects a `NextResponse` back. On a dynamic segment, read the parameters from `req.nextUrl.pathname`.
+
   </Tab>
   <Tab label="Fastify">
 
@@ -122,25 +124,33 @@ app.get("/api/data", (c) => c.json({ data: "protected content" }));
   </Tab>
 </Tabs>
 
-That's it. Your API now charges $0.01 per request to `/api/data`. Agents pay in any [supported stablecoin](/agents/x402/concepts#supported-stablecoins) — funds settle directly to the wallet address you configured.
+That's it. With the Express tab, each request to `/api/data` now costs 0.01 USDp, 0.01 USDC or 0.01 sUSDp, whichever the agent pays. Agents pay with [`@parallel-protocol/x402-fetch`](/agents/x402/agent-quickstart), from any [supported stablecoin](/agents/x402/concepts#supported-stablecoins) they hold. Funds settle directly to the wallet address you configured. A standard x402 client cannot pay this route.
 
 **No signup. No platform fee. Funds settle straight to your wallet.**
 
 :::tip
-`price` is a human amount (`"0.01"`). Each accepted token is priced with its own decimals automatically, from Parallel's on-chain token catalog — `"0.01"` invoices 0.01 USDp and 0.01 USDC on the same 402. Set `decimals` on a route only for a custom token the catalog doesn't know; an unknown token without it fails fast at startup. See the [route configuration](/agents/x402/api-reference#routeconfig).
+`price` is a human amount (`"0.01"`). Each accepted token is priced with its own decimals, read from the token catalog of `@parallel-protocol/chains`: `"0.01"` invoices 0.01 USDp, 0.01 USDC and 0.01 sUSDp on the same 402. Set `decimals` on a route only for a custom token the catalog does not know. It then overrides the catalog for every token of the route. An unknown token without it fails the first request to the route with `X402ConfigError`. See the [route configuration](/agents/x402/api-reference#routeconfig).
 :::
 
 ## 3. What happens behind the scenes
 
 When an agent calls your endpoint with a signed payment header:
 
-1. The middleware sends the payload to the facilitator's `/x402/verify` endpoint — an instant, off-chain check of the signature, the amount, the token and the recipient. A valid payment comes back with a settle token, which the middleware keeps in memory.
+1. The middleware sends the payload to the facilitator's `/x402/verify` endpoint, a check of the signature, the amount, the token and the recipient, with no transaction sent. A valid payment comes back with a settle token, which the middleware keeps in memory.
 2. If valid, **your handler runs** and produces the response.
 3. If your handler returns a 2xx, the middleware calls `/x402/settle` with that token — the on-chain transfer happens, once per payment.
 4. If your handler fails, **no settlement happens** — the agent is not charged.
 5. If the settlement fails, the agent gets a `402` with `PAYMENT_SETTLEMENT_FAILED` and a `reason` instead of your response. A settle that timed out or could not reach the facilitator is retried once first: repeating it is safe, since the facilitator answers with the recorded outcome. See the [error codes](/agents/x402/error-codes).
 
+On Express, Hono and Next.js, a handler that does not answer within 30 seconds gets a `504`, and nothing is settled. On a metered route, the limit is the route's `maxTimeoutSeconds`, 300 by default, minus two minutes, and 30 seconds at least. Fastify does not time handlers out.
+
 Read more: [The verify / settle flow](/agents/x402/verify-vs-settle).
+
+## 4. Optional: metered routes
+
+Set `scheme: "upto"` on a route whose cost is only known once it is served. `price` becomes a cap that the agent signs, and your handler names the amount it charges in the `payment-settle-amount` header, at most the cap. Without the header, the cap is charged. A `"0"` serves the request for free and settles nothing. An amount above the cap, malformed, or with more decimals than the token has, discards your response, and the agent gets a `402` with `INVALID_SETTLE_AMOUNT`.
+
+Metered routes settle on Base and accept USDp by default. To also take USDC from standard x402 clients, list `PARALLEL_TOKENS.base.usdc` in `acceptedTokens` next to `PARALLEL_TOKENS.base.usdp`, and approve the escrow for USDC from your `payTo` address. See [metered routes](/agents/x402/api-reference#metered-routes-upto).
 
 ## Next steps
 
