@@ -15,7 +15,7 @@ You declare paid routes in your middleware; the facilitator handles the rest.
 
 Every paid request goes through two phases:
 
-1. **Verify**: the facilitator checks the agent's signed payment without sending a transaction. It checks its shape, signature, nonce and expiry, and that it delivers the required token, for at least the price, to your `payTo` on the route's network. It refuses a payment whose conversion would go through a paused Parallelizer or savings vault. On a metered route paid in USDp, it checks that the payer holds the cap. On a metered route paid in USDC through Permit2, it simulates the settlement at the cap. If the payment is valid, the facilitator hands the middleware a settle token for it, and your handler runs.
+1. **Verify**: the facilitator checks the agent's signed payment without sending a transaction. It checks its shape, signature, nonce and expiry, and that it delivers the required token, for at least the price, to your `payTo` on the route's network. It refuses a payment whose conversion would go through a paused Parallelizer or savings vault. It simulates the settlement, at the cap on a metered route, and refuses a payment whose settlement would fail. If the payment is valid, the facilitator hands the middleware a settle token for it, and your handler runs.
 2. **Settle**: once your handler returns a success response, the middleware presents that token, and the facilitator submits the transfer on-chain and returns a settlement proof.
 
 If verification fails, your handler never runs. If your handler fails, settlement never happens — the agent is only charged for a successful response. See [verify vs settle](/agents/x402/verify-vs-settle) for the full sequence.
