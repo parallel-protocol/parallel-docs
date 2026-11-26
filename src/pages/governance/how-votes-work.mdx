@@ -1,0 +1,133 @@
+---
+title: How Votes Work
+description: >-
+  Parallel governance votes are messages signed in the wallet, checked by the
+  Parallel api, pinned to IPFS and archived, so anyone can recount a result
+  without trusting Parallel. The formats, the checks and where everything lives.
+subtitle: The technical side of app.parallel.best/votes.
+---
+
+import { HelpFooter } from '@/components/HelpFooter'
+
+# How Votes Work
+
+Parallel governance votes on [app.parallel.best/votes](https://app.parallel.best/votes). It replaces the Snapshot space `parallel-protocol.eth`, keeps its rules and its history, and adds what Snapshot did not give: a receipt for every accepted message, an archive of every closed vote, and a public tool to recount it.
+
+This page describes how the system works. For the rules as a voter sees them (voting power, voting systems, limits), read the [voting rules](https://app.parallel.best/votes/rules) in the app.
+
+## Overview
+
+1. An author signs a proposal in their wallet. A voter signs a ballot. No transaction, no gas, no network switch.
+2. The Parallel api checks the message: its signature, the rules, and the signer's voting power at the proposal's reference blocks.
+3. An accepted message is stored, pinned to IPFS, and its signer gets a receipt.
+4. When the vote ends, the api counts it and pins an archive of the proposal, every ballot and the voting power inputs.
+5. Anyone can take that archive and recount the vote from their own Ethereum and Base nodes.
+
+There is no contract and no relay: the api runs the ballot box, with rules anyone can read and replay.
+
+## Signed messages
+
+Proposals and ballots are [EIP-712](https://eips.ethereum.org/EIPS/eip-712) typed messages.
+
+- **Domain**: `{ name: "Parallel Votes", version: "1" }`. It has no `chainId` and no `verifyingContract`: no contract is involved, and a chain id would make wallets ask to switch network.
+- **`Proposal`**: `author`, `timestamp`, `title`, `body`, `discussion`, `votingSystem`, `choices`, `start`, `end`. The series and number are not fields of their own: the title opens with them (`PIP-73 | …`).
+- **`Ballot`**: `proposal` (the proposal's id), `choice`, `reason`, `timestamp`, `voter`. The choice is signed as text: the choice number, or for a weighted vote the weights as JSON in choice order (`{"1":30,"3":10}`).
+- **Id**: a message's id is the EIP-712 digest of its typed data, signature left out. A proposal imported from Snapshot keeps Snapshot's id (`0x…`, or `Qm…` for the oldest ones), so `https://app.parallel.best/votes/<id>` opens it.
+
+The api never verifies typed data sent by a client: it rebuilds the message from its fields, so a field the wallet showed but the format does not know cannot be slipped in.
+
+### Accounts that can sign
+
+- **EOAs and EIP-7702 accounts**: the signer is recovered from the signature (`ecrecover`).
+- **Smart accounts such as a Safe**: [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) `isValidSignature` on Ethereum, or on Base when the address has no code on Ethereum. [ERC-6492](https://eips.ethereum.org/EIPS/eip-6492) wrapped signatures and the legacy `isValidSignature(bytes, bytes)` are accepted too, as Snapshot accepts them. The chain and block of the check are recorded, because a Safe's owners change over time.
+
+A signed timestamp may be up to 6 days old when the message arrives, so the owners of a Safe have time to co-sign, and at most 5 minutes in the future.
+
+## Voting power
+
+The voting power of an address is read at the proposal's **reference blocks**, frozen when the api receives the proposal: the Ethereum block just before the head, and the last Base block at or before its time. The author does not choose them, and tokens staked or delegated after the proposal is published do not count on it.
+
+| Source | Chains | Weight |
+|---|---|---|
+| sPRL1 votes (`getPastVotes`): sPRL1 delegated to the address, including to itself | Ethereum, Base | x1 |
+| sPRL2 votes (`getPastVotes`, delegated like sPRL1), valued at the PRL in one Balancer pool token × 1.25 (the 80/20 pool counted as all PRL, as the Snapshot strategy did) | Ethereum, Base | x2.5 |
+
+To vote, stake PRL and delegate to yourself or to someone else: see [sPRL and Voting Power](/governance/sprl). A ballot with no voting power at the reference blocks is refused.
+
+## Checks on every message
+
+The api applies the same pure functions the recount uses. A refused message gets its reason.
+
+- **Ballots**: the proposal exists, was created on Parallel (imported Snapshot proposals take no ballot) and is not canceled; the ballot is signed and received between the vote's start and end; it is newer than the voter's previous ballot, and not signed in the same second (the latest ballot counts, until the vote ends); the choice is valid for the voting system; the reason is at most 5,000 characters.
+- **Proposals**: a title of 1 to 256 characters, a body of at most 50,000, a discussion link of at most 256; at least one choice of at most 256 characters; an end after the start and in the future; at most 20 active proposals per author, and 100 per day and 500 per month across all authors; at least 100,000 voting power for the author at the reference blocks, unless the author is exempt.
+- **Both**: a message of at most 100 KB, and hourly limits per IP address and per signer.
+
+Voting systems are those of Snapshot, counted the same way: single choice, weighted (each voter splits their voting power, used for elections), and basic (two or three choices, usually For, Against and Abstain, counted like single choice).
+
+By convention, a title opens with its series (`PIP`, `PGP`, `PIR`) and the next number of that series, as set out in the [Proposal Framework](/governance/proposal-framework). The api does not enforce it.
+
+## Receipts
+
+Each accepted message gets a receipt: an [EIP-191](https://eips.ethereum.org/EIPS/eip-191) signature of the api's receipt key over the message's id and the time it was received. A voter whose ballot disappeared holds the proof that it was accepted.
+
+The production receipt key's address is `0x065d95F6F5Dd6328a9B6a3F25558CCfafB2225A2`. It is also listed on the [voting rules](https://app.parallel.best/votes/rules) page and in the recount's README.
+
+## Storage on IPFS
+
+Every accepted message is pinned to IPFS as its signed envelope, the typed data the signer signed with its signature, and so is every moderation action and every closed vote's archive.
+
+- The api computes each CID itself (UnixFS v1, raw leaves, 256 KiB chunks, balanced) and uploads the same bytes to two providers, **Filebase** and **Pinata**, so both hold the same CID. A copy missing on one provider is pinned again until both hold it.
+- The app reads them through Parallel's gateway, `https://parallel-votes.myfilebase.com/ipfs/<cid>`, which serves only the files Parallel pins. Any other IPFS gateway or node serves the same CID.
+- Images in a proposal are pinned the same way: at most 20 per proposal, each at most 2 MiB and 25 million pixels, linked from the signed body as `ipfs://<cid>`.
+
+A signed message can also be read without IPFS, from the api: `GET https://api.parallel.best/public/votes/messages/<id>`.
+
+## Closing, archives and the index
+
+When a vote ends, the api counts it with the proposal's voting system and pins its **archive**: the proposal and every ballot with their signatures, the reference blocks, the published scores, and the signed moderation actions. The proposal's page links the archive on IPFS and offers a download of it.
+
+The api then pins an **index** of the closed votes: each vote's id, state, whether it is hidden, and the CID of its archive and of its moderation records. Each index links the one before it. The ENS name `parallel-protocol.eth` points to the latest index through its text record `parallel.votes.index` (`ipfs://<cid>`), so the archives can be found from the name alone. The name's owner sets the record by hand, so it can lag behind the latest index for a while; each index still links the ones before it.
+
+## Moderation
+
+Vote moderators, a fixed list of wallets, can act on a proposal. Each action is a signed message, pinned like the votes and carried in the archive.
+
+- **Hide** (and unhide): the proposal leaves the app's list of votes, and its page, still open by its link, is veiled until the reader asks to see it. Voting goes on, and the public api still lists it, flagged `isHidden`.
+- **Cancel**: no new ballot is accepted and no result is announced. The ballots already cast stay public and archived. A vote that has ended cannot be canceled.
+
+A proposal is never edited or deleted.
+
+## Recount a vote yourself
+
+The public repository [parallel-protocol/votes-recount](https://github.com/parallel-protocol/votes-recount) holds the recount tool, published with each release of the app. With Node 22:
+
+```bash
+git clone https://github.com/parallel-protocol/votes-recount.git
+cd votes-recount
+npm ci --ignore-scripts
+node votes-recount.mjs <archive CID or proposal id> --eth-rpc <url> --base-rpc <url>
+```
+
+Given a proposal id, it reads `parallel.votes.index` on `parallel-protocol.eth`, then the index, then the archive: it needs nothing from Parallel's website or api. It checks every signature, reads every voter's voting power again at the reference blocks, replays the intake rules, recounts, and compares with the published scores. With `--receipt-signer`, it also checks every receipt against the receipt key's address.
+
+The nodes must serve historical state. Older proposals need more chains: Polygon, Sonic or Fantom, as the README lists. The recount checks that the bytes of the index and of an archive are the content of their CID; an archive larger than 256 KiB is split in blocks that only an IPFS node checks, so pass your own node with `--gateway` not to trust the gateway with it.
+
+## Reading the votes
+
+- **App**: [app.parallel.best/votes](https://app.parallel.best/votes), with each proposal, its ballots, its archive and each voter's page.
+- **Public api**, no key, documented in [`/public/openapi.json`](https://api.parallel.best/public/openapi.json):
+  - `GET /public/votes/proposals`
+  - `GET /public/votes/proposal/:id`, with `/ballots` and `/archive`
+  - `GET /public/votes/stats`
+  - `GET /public/votes/voter/:address`, with `/ballots` and `/proposals`
+- **AI agents**: the MCP tools `get_proposals` and `get_proposal_details` read the same routes (see [MCP tools](/agents/mcp/tools)).
+
+## The Snapshot history
+
+Every vote of the Snapshot space `parallel-protocol.eth` since April 2021, the Mimo era included, was imported with the signed messages Snapshot still served, and pinned on Filebase and Pinata. Each keeps its id, and old `vote.parallel.best` links open the same proposal in the app.
+
+- 87 messages (6 proposals and 81 ballots, almost all from 2022) are no longer on IPFS. They count with Snapshot's numbers, but their signature cannot be checked again. None of them changes a result.
+- 17 ballots from 2022, approved on chain by a Safe, left no approval a node can still find. They count, and the recount marks them as unverifiable.
+- PGP-27 and PIP-49 (May 2025, 21 ballots) took their delegations from a service that is no longer online: they keep Snapshot's voting power, which the recount does not recompute.
+
+<HelpFooter />
