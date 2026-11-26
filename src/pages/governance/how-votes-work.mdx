@@ -18,10 +18,10 @@ This page describes how the system works. For the rules as a voter sees them (vo
 1. An author signs a proposal in their wallet. A voter signs a ballot. No transaction, no gas, no network switch.
 2. The Parallel api checks the message: its signature, the rules, and the signer's voting power at the proposal's reference blocks.
 3. An accepted message is stored, pinned to IPFS, and its signer gets a receipt.
-4. When the vote ends, the api counts it and pins an archive of the proposal, every ballot and the voting power inputs.
+4. When the vote ends, the api counts it and pins an archive of the proposal, every ballot with the voting power it counted, and the reference blocks.
 5. Anyone can take that archive and recount the vote from their own Ethereum and Base nodes.
 
-There is no contract and no relay: the api runs the ballot box, with rules anyone can read and replay.
+There is no contract and no relayer paying gas: the api runs the ballot box, with rules anyone can read and replay.
 
 ## Signed messages
 
@@ -97,16 +97,16 @@ A proposal is never edited or deleted.
 
 ## Recount a vote yourself
 
-The public repository [parallel-protocol/votes-recount](https://github.com/parallel-protocol/votes-recount) holds the recount tool, published with each release of the app. With Node 22:
+The public repository [parallel-protocol/votes-recount](https://github.com/parallel-protocol/votes-recount) holds the recount tool, published with each release of the app. With Node 22 or later:
 
 ```bash
 git clone https://github.com/parallel-protocol/votes-recount.git
 cd votes-recount
 npm ci --ignore-scripts
-node votes-recount.mjs <archive CID or proposal id> --eth-rpc <url> --base-rpc <url>
+node votes-recount.mjs <archive CID or proposal id (0x…)> --eth-rpc <url> --base-rpc <url>
 ```
 
-Given a proposal id, it reads `parallel.votes.index` on `parallel-protocol.eth`, then the index, then the archive: it needs nothing from Parallel's website or api. It checks every signature, reads every voter's voting power again at the reference blocks, replays the intake rules, recounts, and compares with the published scores. With `--receipt-signer`, it also checks every receipt against the receipt key's address.
+Given a proposal id (`0x…`), it reads `parallel.votes.index` on `parallel-protocol.eth`, then the index, then the archive: it needs nothing from Parallel's website or api. It checks every signature, reads every voter's voting power again at the reference blocks, replays the intake rules on the ballots cast on the app, recounts, and compares with the published scores. With `--receipt-signer`, it also checks every receipt against the receipt key's address. For the oldest Snapshot votes, whose id starts with `Qm`, pass the archive CID shown on the proposal's page.
 
 The nodes must serve historical state. Older proposals need more chains: Polygon, Sonic or Fantom, as the README lists. The recount checks that the bytes of the index and of an archive are the content of their CID; an archive larger than 256 KiB is split in blocks that only an IPFS node checks, so pass your own node with `--gateway` not to trust the gateway with it.
 
@@ -122,7 +122,7 @@ The nodes must serve historical state. Older proposals need more chains: Polygon
 
 ## The Snapshot history
 
-Every vote of the Snapshot space `parallel-protocol.eth` since April 2021, the Mimo era included, was imported with the signed messages Snapshot still served, and pinned on Filebase and Pinata. Each keeps its id, and old `vote.parallel.best` links open the same proposal in the app.
+Every vote of the Snapshot space `parallel-protocol.eth` since April 2021, the Mimo era included, was imported with the signed messages Snapshot still served, and pinned on Filebase and Pinata. Each keeps its id, and old `vote.parallel.best` links open the same proposal in the app. Each closed vote of the history also has its archive and an index entry, like ours, so it is recounted the same way; the scores its archive publishes are Snapshot's.
 
 - 87 messages (6 proposals and 81 ballots, almost all from 2022) are no longer on IPFS. They count with Snapshot's numbers, but their signature cannot be checked again. None of them changes a result.
 - 17 ballots from 2022, approved on chain by a Safe, left no approval a node can still find. They count, and the recount marks them as unverifiable.
