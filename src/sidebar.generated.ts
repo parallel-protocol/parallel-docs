@@ -346,6 +346,10 @@ export const sidebar: Sidebar = [
         link: "/governance/governance-process",
       },
       {
+        text: "How Votes Work",
+        link: "/governance/how-votes-work",
+      },
+      {
         text: "Proposal Framework",
         items: [
           {

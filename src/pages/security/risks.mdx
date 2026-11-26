@@ -26,7 +26,7 @@ Nothing on this page is financial, legal or tax advice. USDp is backed by other 
 | Smart-contract bug | Everyone | Audits and formal verification, Immunefi bug bounty, Hypernative monitoring, guardian pause, insurance fund | [Audits](/security/audits), [Bug Bounty](/security/bug-bounty-program), [Insurance Fund](/security/insurance-fund) |
 | Bridge failure | Anyone bridging USDp | 2 required plus 1 of 2 optional DVNs, daily and global limits, manual execution fallback, pause | [Bridging Module](/products/parallel-v3/how-it-works/bridging-module) |
 | Savings rate and keeper trust | sUSDp holders | 35.00% hard cap on the rate, DAO-whitelisted keepers, keeper timelock, donation-attack fix | [Savings Module](/products/parallel-v3/how-it-works/savings-module), [Keepers](/security/keepers) |
-| Governance and key holders | Everyone | 5 of 8 multisigs, Snapshot votes, role timelocks, scoped guardian powers | [DAO Multisigs](/governance/dao-multisigs), [Emergency Guardians](/security/parallel-emergency-guardians) |
+| Governance and key holders | Everyone | 5 of 8 multisigs, sPRL votes, role timelocks, scoped guardian powers | [DAO Multisigs](/governance/dao-multisigs), [Emergency Guardians](/security/parallel-emergency-guardians) |
 | PRL price, staking penalties, LP exposure | PRL and sPRL holders | Cooldown instead of penalty if you wait the full 28 days on Ethereum and Base, warnings in MCP transactions | [Staking Mechanisms](/governance/parallel-governance-token-prl/tokenomics/staking-mechanisms) |
 | Chain and infrastructure outage | Everyone on that chain | Independent deployments per chain, isolation mode available on the bridge, Sonic wind-down | [Implementation](/products/parallel-v3/stablecoins-and-savings/usdp-and-susdp/implementation) |
 | x402 facilitator outage or failure | Agents paying with x402, merchants accepting it | Off-chain verify then on-chain settle, nothing charged on failure, one settlement per payment, bound to the merchant that verified, non-custodial settlement, nonce and expiry on every authorization | [How the facilitator works](/agents/x402/concepts), [Verify vs settle](/agents/x402/verify-vs-settle) |
@@ -145,20 +145,20 @@ sUSDp inherits every USDp risk above; it adds no composability risk by design, b
 
 ### What could happen
 
-Parallel is governed by sPRL holders voting on Snapshot, but the votes are executed by DAO multisigs, which can change every parameter on this page, from the collateral list and fees to bridge limits, keeper addresses and the implementation behind each proxy. A compromised or colluding set of signers, or a vote captured by a large sPRL holder, is a risk to every holder. A wrongful pause (powers in section 3) can also trap funds for the incident's duration.
+Parallel is governed by sPRL holders voting on the Parallel app, but the votes are executed by DAO multisigs, which can change every parameter on this page, from the collateral list and fees to bridge limits, keeper addresses and the implementation behind each proxy. A compromised or colluding set of signers, or a vote captured by a large sPRL holder, is a risk to every holder. A wrongful pause (powers in section 3) can also trap funds for the incident's duration.
 
 Reserves are the exception: the Parallelizer holds the backing in permissionless contracts, and neither the DAO nor contributors can withdraw it.
 
 ### How Parallel mitigates it
 
 - **Multisig threshold.** Each DAO multisig has 8 elected members and needs 5 signatures to execute, elected by governance; see [DAO Multisigs](/governance/dao-multisigs).
-- **Public process.** Proposals are discussed on the forum for at least 48 hours, then voted on Snapshot; only proposals with more than 50% support and quorum are executed. See [Governance Process](/governance/governance-process).
+- **Public process.** Proposals are discussed on the forum for at least 48 hours, then voted on the Parallel app; only proposals with more than 50% support and quorum are executed. See [Governance Process](/governance/governance-process).
 - **Scoped roles.** The V3 AccessManager separates `GOVERNOR_ROLE`, `GUARDIAN_ROLE`, `KEEPER_ROLE` and per-stablecoin minter roles, each with a timelocked variant; guardians can pause, not reconfigure. Roles are listed on the [Parallel V3 developers page](/developers-hub/parallel-v3); timelock durations are in the contracts and governance proposals.
 - **Insurance fund separation.** The insurance fund lives in its own 5 of 8 multisig, distinct from the Protocol and DAO Treasury multisig.
 
 ### What you can do
 
-- Follow the [governance forum](https://gov.parallel.best/) and the [Snapshot space](https://vote.parallel.best/#/): parameter changes are announced there before they execute.
+- Follow the [governance forum](https://gov.parallel.best/) and the [votes page](https://app.parallel.best/votes): parameter changes are announced there before they execute.
 - Integrators: poll `get_protocol_parameters` for changes to fees, limits, roles and addresses.
 - Stake PRL and vote, or delegate to someone who does: governance risk falls as participation rises.
 
@@ -256,7 +256,7 @@ You do not have to trust this page. Everything it describes can be checked live.
 | Payment routes and gas sponsoring per chain | `get_payment_capabilities` |
 | Raw on-chain events across 24 chains | [GoldSky subgraphs](/developers-hub/parallel-v3/offchain-tools/subgraphs) |
 | Dashboards | A [Dune](/developers-hub/parallel-v3/offchain-tools/dune) page is planned |
-| Parameter changes before they execute | [Governance forum](https://gov.parallel.best/) and [Snapshot](https://vote.parallel.best/#/) |
+| Parameter changes before they execute | [Governance forum](https://gov.parallel.best/) and [votes page](https://app.parallel.best/votes) |
 | Pauses and emergency actions | Hypernative wallet and guardian multisig activity on each chain's explorer ([Hypernative](/security/hypernative), [DAO Multisigs](/governance/dao-multisigs)) |
 
 MCP read tools cache for 30 to 120 seconds; for a transaction that depends on an exact number, read the contract.
