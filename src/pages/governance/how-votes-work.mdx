@@ -7,8 +7,6 @@ description: >-
 subtitle: The technical side of app.parallel.best/votes.
 ---
 
-import { HelpFooter } from '@/components/HelpFooter'
-
 # How Votes Work
 
 Parallel governance votes on [app.parallel.best/votes](https://app.parallel.best/votes). It replaces the Snapshot space `parallel-protocol.eth`, keeps its rules and its history, and adds what Snapshot did not give: a receipt for every accepted message, an archive of every closed vote, and a public tool to recount it.
@@ -129,5 +127,3 @@ Every vote of the Snapshot space `parallel-protocol.eth` since April 2021, the M
 - 87 messages (6 proposals and 81 ballots, almost all from 2022) are no longer on IPFS. They count with Snapshot's numbers, but their signature cannot be checked again. None of them changes a result.
 - 17 ballots from 2022, approved on chain by a Safe, left no approval a node can still find. They count, and the recount marks them as unverifiable.
 - PGP-27 and PIP-49 (May 2025, 21 ballots) took their delegations from a service that is no longer online: they keep Snapshot's voting power, which the recount does not recompute.
-
-<HelpFooter />
