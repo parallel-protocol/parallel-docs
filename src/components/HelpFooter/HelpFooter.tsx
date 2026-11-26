@@ -9,10 +9,6 @@ export function HelpFooter() {
       <strong>Stuck?</strong>{" "}
       <a href="https://t.me/parallel_money" target="_blank" rel="noreferrer">
         Ask on Telegram
-      </a>{" "}
-      ·{" "}
-      <a href="https://gov.parallel.best/" target="_blank" rel="noreferrer">
-        Post on the governance forum
       </a>
     </aside>
   );
