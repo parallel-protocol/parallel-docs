@@ -88,7 +88,7 @@ Bridge to an address you control on the destination chain. Sending to an exchang
 1. Paste the origin transaction hash into [LayerZero Scan](https://layerzeroscan.com). The status tells you whether the message is waiting for verification, verified but not yet executed, or delivered.
 2. If the message is verified but stuck before execution, the Executor may be behind. LayerZero Scan lets you execute the delivery yourself by calling `lzReceive` on the destination chain and paying that chain's gas. This is the fallback built into the module: no single executor can block a transfer.
 3. If you received lz-USDp instead of USDp, the destination mint limit was reached. Wait for it to reset, then burn the lz-USDp for USDp in the app, or bridge it on to another chain.
-4. If nothing moves after an hour and LayerZero Scan shows no error, ask in the Parallel Discord with your transaction hash. Your tokens are either still on the origin chain or already minted on the destination; they are not lost in between.
+4. If nothing moves after an hour and LayerZero Scan shows no error, ask on the Parallel [Telegram](https://t.me/parallel_money) with your transaction hash. Your tokens are either still on the origin chain or already minted on the destination; they are not lost in between.
 
 ## USDp chains and limits
 
