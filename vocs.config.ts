@@ -52,7 +52,6 @@ export default defineConfig({
     { icon: "x", link: "https://x.com/ParallelMoney" },
     { icon: "telegram", link: "https://t.me/parallel_money" },
     { icon: "github", link: "https://github.com/parallel-protocol" },
-    { icon: "discord", link: "https://discord.gg/vuuAVAxpcF" },
   ],
   topNav: [
     { text: "Get USDp", link: "https://app.parallel.best/mint/" },
