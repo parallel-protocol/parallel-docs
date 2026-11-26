@@ -414,7 +414,6 @@ function buildGraph(
       "https://x.com/ParallelMoney",
       "https://github.com/parallel-protocol",
       "https://t.me/parallel_money",
-      "https://discord.gg/vuuAVAxpcF",
     ],
   };
   const website = {
